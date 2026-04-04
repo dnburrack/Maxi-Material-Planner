@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="MaxPlan">
+  <meta name="theme-color" content="#0A0A0A">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <title>MaxPlan — Maximo Material Planner</title>
+  <style>
+    :root {
+      --bg:           #F2F1ED;
+      --surface:      #FFFFFF;
+      --surface-2:    #F7F6F3;
+      --border:       #DDDBD4;
+      --border-strong:#A8A49C;
+      --text:         #0A0A0A;
+      --text-2:       #6B6862;
+      --text-3:       #9E9B95;
+      --accent:       #0047CC;
+      --accent-bg:    #EEF3FF;
+      --rot:          #B84500;
+      --rot-bg:       #FFF2EA;
+      --danger:       #C0000A;
+      --success:      #007A35;
+      --header-h:     58px;
+      --tab-h:        48px;
+      --safe-b:       env(safe-area-inset-bottom, 0px);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+    html { height: 100%; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100%;
+      max-width: 430px;
+      margin: 0 auto;
+      position: relative;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Screens ─────────────────────────── */
+    .screen { display: none; flex-direction: column; min-height: 100vh; }
+    .screen.active { display: flex; }
+
+    /* ── Header ──────────────────────────── */
+    .header {
+      height: var(--header-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      flex-shrink: 0;
+    }
+
+    .header-main { flex: 1; min-width: 0; }
+
+    .header-title {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-sub {
+      font-size: 11.5px;
+      color: var(--text-2);
+      margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Icon buttons ────────────────────── */
+    .icon-btn {
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      background: none; border: none; cursor: pointer;
+      border-radius: 10px;
+      color: var(--text-2);
+      flex-shrink: 0;
+      transition: background 0.1s, color 0.1s;
+    }
+    .icon-btn:active { background: var(--bg); color: var(--text); }
+    .icon-btn.accent { color: var(--accent); }
+    .icon-btn.danger:active { background: #FFF0F0; color: var(--danger); }
+
+    /* ── Content scroll area ─────────────── */
+    .content {
+      flex: 1;
+      padding: 14px 14px 100px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .content.has-tabs { padding-bottom: 130px; }
+
+    /* ── Section label ───────────────────── */
+    .section-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.9px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 8px;
+    }
+
+    /* ── Cards ───────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 13px 14px;
+      margin-bottom: 9px;
+    }
+    .card.tappable { cursor: pointer; }
+    .card.tappable:active { background: var(--surface-2); }
+
+    .card-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.1px;
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', monospace;
+    }
+
+    .card-desc {
+      font-size: 12.5px;
+      color: var(--text-2);
+      margin-top: 3px;
+    }
+
+    .card-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+
+    /* ── Chips / Badges ──────────────────── */
+    .chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px;
+      border-radius: 100px;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+
+    .chip-nr   { background: var(--accent-bg); color: var(--accent); }
+    .chip-rot  { background: var(--rot-bg);    color: var(--rot);    }
+    .chip-grey { background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border); }
+
+    /* ── Tabs ────────────────────────────── */
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: var(--header-h);
+      z-index: 19;
+    }
+
+    .tab-btn {
+      padding: 0 0 0 0;
+      height: var(--tab-h);
+      font-size: 13.5px; font-weight: 600;
+      background: none; border: none; cursor: pointer;
+      color: var(--text-3);
+      border-bottom: 2.5px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .tab-btn.active { color: var(--text); border-bottom-color: var(--text); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Bottom bar ──────────────────────── */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 10px 14px;
+      padding-bottom: calc(10px + var(--safe-b));
+      z-index: 30;
+    }
+
+    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+
+    /* ── Buttons ─────────────────────────── */
+    .btn {
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      width: 100%; padding: 13px 16px;
+      border: none; border-radius: 12px;
+      font-size: 14px; font-weight: 600; font-family: inherit;
+      cursor: pointer;
+      transition: opacity 0.1s, transform 0.1s;
+    }
+    .btn:active { opacity: 0.72; transform: scale(0.98); }
+
+    .btn-dark    { background: var(--text);    color: #fff; }
+    .btn-light   { background: var(--bg);      color: var(--text); border: 1px solid var(--border); }
+    .btn-accent  { background: var(--accent);  color: #fff; }
+    .btn-danger  { background: var(--danger);  color: #fff; }
+
+    .btn-sm { padding: 9px 14px; font-size: 13px; border-radius: 10px; width: auto; }
+
+    /* ── Sheet / Modal ───────────────────── */
+    .overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.48);
+      z-index: 50;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .overlay.open { display: flex; }
+
+    .sheet {
+      background: var(--bg);
+      width: 100%; max-width: 430px;
+      border-radius: 22px 22px 0 0;
+      padding: 8px 18px;
+      padding-bottom: calc(22px + var(--safe-b));
+      max-height: 92vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .sheet-handle {
+      width: 38px; height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 auto 18px;
+    }
+
+    .sheet-title { font-size: 19px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 20px; }
+
+    /* ── Forms ───────────────────────────── */
+    .f-group { margin-bottom: 14px; }
+
+    .f-label {
+      display: block;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.7px; text-transform: uppercase;
+      color: var(--text-2);
+      margin-bottom: 6px;
+    }
+
+    .f-input {
+      width: 100%;
+      padding: 12px 13px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 11px;
+      font-size: 16px; font-family: inherit; color: var(--text);
+      -webkit-appearance: none;
+      transition: border-color 0.15s;
+    }
+    .f-input:focus { outline: none; border-color: var(--accent); }
+    .f-input.mono {
+      font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', monospace;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    input[type=number].f-input { -moz-appearance: textfield; }
+    input[type=number].f-input::-webkit-outer-spin-button,
+    input[type=number].f-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    /* ── Empty state ─────────────────────── */
+    .empty {
+      text-align: center;
+      padding: 52px 24px 40px;
+    }
+    .empty-icon { font-size: 44px; margin-bottom: 12px; }
+    .empty-h { font-size: 16px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.2px; }
+    .empty-p { font-size: 13.5px; color: var(--text-2); line-height: 1.55; }
+
+    /* ── Actual item card ────────────────── */
+    .act-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 13px 14px;
+      margin-bottom: 9px;
+    }
+
+    .act-top {
+      display: flex; align-items: center; gap: 9px;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .act-info { flex: 1; min-width: 0; }
+
+    .act-itemnum {
+      font-size: 14.5px; font-weight: 700;
+      font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', monospace;
+      letter-spacing: 0.04em;
+    }
+
+    .act-meta { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+
+    .planned-qty {
+      font-size: 11.5px;
+      color: var(--text-2);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    .planned-qty strong { color: var(--text); }
+
+    /* ── Asset tags ──────────────────────── */
+    .asset-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; min-height: 4px; }
+
+    .asset-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--rot-bg);
+      border: 1px solid rgba(184,69,0,0.3);
+      color: var(--rot);
+      border-radius: 8px;
+      padding: 5px 8px;
+      font-size: 12px; font-weight: 700;
+      font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', monospace;
+    }
+
+    .tag-x {
+      background: none; border: none; cursor: pointer;
+      color: var(--rot); opacity: 0.6; font-size: 16px;
+      line-height: 1; padding: 0;
+      display: flex; align-items: center;
+    }
+    .tag-x:hover { opacity: 1; }
+
+    .asset-input-row { display: flex; gap: 8px; }
+    .asset-input-row .f-input { flex: 1; }
+
+    .add-btn {
+      width: 46px; height: 46px;
+      background: var(--text); color: #fff;
+      border: none; border-radius: 11px;
+      font-size: 22px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: opacity 0.1s;
+    }
+    .add-btn:active { opacity: 0.72; }
+
+    /* ── Branding (home) ─────────────────── */
+    .brand-block {
+      padding: 22px 14px 10px;
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .brand-icon {
+      width: 44px; height: 44px;
+      background: var(--text);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .brand-name {
+      font-size: 24px; font-weight: 800; letter-spacing: -0.7px; line-height: 1;
+    }
+    .brand-name em { font-style: normal; color: var(--accent); }
+    .brand-tagline { font-size: 12px; color: var(--text-2); margin-top: 3px; }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 14px 0 16px;
+    }
+
+    /* ── Toast ───────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: calc(88px + var(--safe-b));
+      left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1A1A1A;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 100px;
+      font-size: 13.5px; font-weight: 500;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Offline banner ──────────────────── */
+    #offline-banner {
+      display: none;
+      background: #FFEDCC;
+      color: #7A4A00;
+      font-size: 12px; font-weight: 600;
+      text-align: center;
+      padding: 6px;
+      letter-spacing: 0.2px;
+    }
+
+    /* ── Delete plan item ────────────────── */
+    .del-btn {
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      background: none; border: none; cursor: pointer;
+      border-radius: 8px;
+      color: var(--text-3);
+      flex-shrink: 0;
+      transition: background 0.1s, color 0.1s;
+    }
+    .del-btn:active { background: #FFE8E8; color: var(--danger); }
+
+    /* Chevron */
+    .chevron { color: var(--border-strong); flex-shrink: 0; }
+
+  </style>
+</head>
+<body>
+
+<!-- Offline notice -->
+<div id="offline-banner">⚡ Offline mode — all data saved locally</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- =============================================
+     SCREEN: HOME
+     ============================================= -->
+<div class="screen active" id="scr-home">
+  <div class="header">
+    <div class="header-main">
+      <div class="header-title">Max<em style="color:var(--accent)">Plan</em></div>
+    </div>
+    <button class="btn btn-sm btn-dark" onclick="openAddWO()" style="width:auto;padding:8px 14px;font-size:13.5px;border-radius:10px">+ New WO</button>
+  </div>
+
+  <div class="brand-block">
+    <div class="brand-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    </div>
+    <div>
+      <div class="brand-name">Max<em>Plan</em></div>
+      <div class="brand-tagline">Maximo Material Planner</div>
+    </div>
+  </div>
+
+  <div style="padding: 0 14px">
+    <div class="divider"></div>
+    <div class="section-label">Work Orders</div>
+    <div id="wo-list"></div>
+  </div>
+</div>
+
+<!-- =============================================
+     SCREEN: WO DETAIL
+     ============================================= -->
+<div class="screen" id="scr-wo">
+  <div class="header">
+    <button class="icon-btn accent" onclick="goHome()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="header-main">
+      <div class="header-title" id="wo-title">Work Order</div>
+      <div class="header-sub" id="wo-sub"></div>
+    </div>
+    <button class="icon-btn danger" onclick="deleteCurrentWO()" title="Delete WO">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+    </button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="t-plan" onclick="switchTab('plan')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Plan
+    </button>
+    <button class="tab-btn" id="t-actual" onclick="switchTab('actual')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Actual
+    </button>
+  </div>
+
+  <div class="content has-tabs" id="wo-content">
+    <!-- Plan panel -->
+    <div class="tab-panel active" id="panel-plan">
+      <div id="plan-list"></div>
+    </div>
+    <!-- Actual panel -->
+    <div class="tab-panel" id="panel-actual">
+      <div id="actual-list"></div>
+    </div>
+  </div>
+
+  <!-- Plan bottom bar -->
+  <div class="bottom-bar" id="bar-plan">
+    <div class="btn-row">
+      <button class="btn btn-light" onclick="openAddItem('non-rotating')">+ Non-Rotating</button>
+      <button class="btn btn-dark" onclick="openAddItem('rotating')">+ Rotating</button>
+    </div>
+  </div>
+
+  <!-- Actual bottom bar -->
+  <div class="bottom-bar" style="display:none" id="bar-actual">
+    <button class="btn btn-accent" onclick="saveActuals()">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Save Actuals
+    </button>
+  </div>
+</div>
+
+
+<!-- =============================================
+     SHEET: New Work Order
+     ============================================= -->
+<div class="overlay" id="ovl-addwo">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">New Work Order</div>
+    <div class="f-group">
+      <label class="f-label">WO Number *</label>
+      <input class="f-input mono" type="text" id="in-wono" placeholder="e.g. WO-12345" autocomplete="off" autocapitalize="characters">
+    </div>
+    <div class="f-group">
+      <label class="f-label">Description (optional)</label>
+      <input class="f-input" type="text" id="in-wodesc" placeholder="e.g. Pump bearing replacement" autocomplete="off">
+    </div>
+    <div style="margin-top:6px" class="btn-row">
+      <button class="btn btn-light" onclick="closeOvl('ovl-addwo')">Cancel</button>
+      <button class="btn btn-dark" onclick="saveNewWO()">Create WO</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- =============================================
+     SHEET: Add Plan Item
+     ============================================= -->
+<div class="overlay" id="ovl-additem">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="additem-title">Add Item</div>
+    <div class="f-group">
+      <label class="f-label">Item Number *</label>
+      <input class="f-input mono" type="text" id="in-itemno" placeholder="e.g. 1234-AB" autocomplete="off" autocapitalize="characters">
+    </div>
+    <div class="f-group">
+      <label class="f-label">Storeroom *</label>
+      <input class="f-input mono" type="text" id="in-storeroom" placeholder="e.g. CENTRAL" autocomplete="off" autocapitalize="characters">
+    </div>
+    <div class="f-group" id="qty-group">
+      <label class="f-label">Planned Quantity *</label>
+      <input class="f-input" type="number" id="in-qty" placeholder="0" min="0" step="0.5">
+    </div>
+    <div style="margin-top:6px" class="btn-row">
+      <button class="btn btn-light" onclick="closeOvl('ovl-additem')">Cancel</button>
+      <button class="btn btn-dark" onclick="savePlanItem()">Add to Plan</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ================================================
+//  STATE
+// ================================================
+let WOs = [];
+let activeWO = null;  // id of current WO
+let activeTab = 'plan';
+let itemTypeAdding = null;
+
+const KEY = 'maxplan_v1';
+
+function load() {
+  try { WOs = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { WOs = []; }
+}
+function save() {
+  localStorage.setItem(KEY, JSON.stringify(WOs));
+}
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+function getWO(id) {
+  return WOs.find(w => w.id === (id ?? activeWO));
+}
+
+// ================================================
+//  NAVIGATION
+// ================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('scr-' + id).classList.add('active');
+}
+
+function goHome() {
+  showScreen('home');
+  renderWOList();
+}
+
+function openWODetail(id) {
+  activeWO = id;
+  activeTab = 'plan';
+  showScreen('wo');
+  renderWODetail();
+}
+
+// ================================================
+//  OVERLAYS
+// ================================================
+function openOvl(id) { document.getElementById(id).classList.add('open'); }
+function closeOvl(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ================================================
+//  TOAST
+// ================================================
+let toastTimer;
+function toast(msg) {
+  clearTimeout(toastTimer);
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2300);
+}
+
+// ================================================
+//  HOME — WO LIST
+// ================================================
+function renderWOList() {
+  const el = document.getElementById('wo-list');
+  if (!WOs.length) {
+    el.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">📋</div>
+        <div class="empty-h">No Work Orders Yet</div>
+        <div class="empty-p">Tap <strong>+ New WO</strong> to create your first work order and start planning materials.</div>
+      </div>`;
+    return;
+  }
+  el.innerHTML = WOs.map(wo => {
+    const nr  = wo.planItems.filter(i => i.type === 'non-rotating').length;
+    const rot = wo.planItems.filter(i => i.type === 'rotating').length;
+    const hasActuals = Object.values(wo.actuals || {}).some(a =>
+      (a.actualQty !== undefined && a.actualQty !== '') ||
+      (a.assetNumbers && a.assetNumbers.length > 0)
+    );
+    return `
+      <div class="card tappable" onclick="openWODetail('${wo.id}')">
+        <div class="card-row">
+          <div>
+            <div class="card-title">${esc(wo.woNumber)}</div>
+            ${wo.description ? `<div class="card-desc">${esc(wo.description)}</div>` : ''}
+          </div>
+          <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="card-chips">
+          ${nr  ? `<span class="chip chip-nr">${nr} Non-Rotating</span>` : ''}
+          ${rot ? `<span class="chip chip-rot">${rot} Rotating</span>` : ''}
+          ${!nr && !rot ? `<span class="chip chip-grey">No items planned</span>` : ''}
+          ${hasActuals ? `<span class="chip chip-grey" style="color:var(--success)">✓ Actuals recorded</span>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Add WO ──────────────────────────────────────
+function openAddWO() {
+  document.getElementById('in-wono').value = '';
+  document.getElementById('in-wodesc').value = '';
+  openOvl('ovl-addwo');
+  setTimeout(() => document.getElementById('in-wono').focus(), 350);
+}
+
+function saveNewWO() {
+  const num  = document.getElementById('in-wono').value.trim().toUpperCase();
+  const desc = document.getElementById('in-wodesc').value.trim();
+  if (!num) { document.getElementById('in-wono').focus(); return; }
+  const wo = { id: uid(), woNumber: num, description: desc, createdAt: new Date().toISOString(), planItems: [], actuals: {} };
+  WOs.unshift(wo);
+  save();
+  closeOvl('ovl-addwo');
+  openWODetail(wo.id);
+}
+
+function deleteCurrentWO() {
+  const wo = getWO();
+  if (!wo) return;
+  if (!confirm(`Delete Work Order ${wo.woNumber}?\n\nThis cannot be undone.`)) return;
+  WOs = WOs.filter(w => w.id !== activeWO);
+  save();
+  toast('Work order deleted');
+  goHome();
+}
+
+// ================================================
+//  WO DETAIL
+// ================================================
+function renderWODetail() {
+  const wo = getWO();
+  if (!wo) return;
+  document.getElementById('wo-title').textContent = wo.woNumber;
+  document.getElementById('wo-sub').textContent   = wo.description || '';
+  renderPlanTab();
+  renderActualTab();
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  ['plan','actual'].forEach(t => {
+    document.getElementById('t-'      + t).classList.toggle('active', t === tab);
+    document.getElementById('panel-'  + t).classList.toggle('active', t === tab);
+    document.getElementById('bar-'    + t).style.display = (t === tab ? '' : 'none');
+  });
+}
+
+// ================================================
+//  PLAN TAB
+// ================================================
+function renderPlanTab() {
+  const wo = getWO();
+  const el = document.getElementById('plan-list');
+  if (!wo || !wo.planItems.length) {
+    el.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">🔩</div>
+        <div class="empty-h">No Materials Planned</div>
+        <div class="empty-p">Use the buttons below to add non-rotating or rotating items to the plan for this work order.</div>
+      </div>`;
+    return;
+  }
+  el.innerHTML = wo.planItems.map(item => `
+    <div class="card">
+      <div class="card-row" style="align-items:center">
+        <span class="chip ${item.type === 'non-rotating' ? 'chip-nr' : 'chip-rot'}">${item.type === 'non-rotating' ? 'NR' : 'ROT'}</span>
+        <span style="flex:1;font-size:14.5px;font-weight:700;font-family:ui-monospace,'SF Mono',monospace;letter-spacing:0.04em;min-width:0;overflow:hidden;text-overflow:ellipsis">${esc(item.itemNumber)}</span>
+        <button class="del-btn" onclick="deletePlanItem('${item.id}')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="card-chips" style="margin-top:8px">
+        <span class="chip chip-grey">📦 ${esc(item.storeroom)}</span>
+        ${item.type === 'non-rotating'
+          ? `<span class="chip chip-grey">Qty: ${item.plannedQty}</span>`
+          : `<span class="chip chip-rot" style="font-size:10.5px">Rotating Asset</span>`}
+      </div>
+    </div>`).join('');
+}
+
+function openAddItem(type) {
+  itemTypeAdding = type;
+  document.getElementById('additem-title').textContent = type === 'non-rotating' ? 'Add Non-Rotating Item' : 'Add Rotating Item';
+  document.getElementById('qty-group').style.display   = type === 'non-rotating' ? 'block' : 'none';
+  ['in-itemno','in-storeroom','in-qty'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  openOvl('ovl-additem');
+  setTimeout(() => document.getElementById('in-itemno').focus(), 350);
+}
+
+function savePlanItem() {
+  const wo = getWO();
+  if (!wo) return;
+  const itemNo    = document.getElementById('in-itemno').value.trim().toUpperCase();
+  const storeroom = document.getElementById('in-storeroom').value.trim().toUpperCase();
+  const qty       = parseFloat(document.getElementById('in-qty').value) || 0;
+
+  if (!itemNo || !storeroom) return;
+  if (itemTypeAdding === 'non-rotating' && qty <= 0) {
+    document.getElementById('in-qty').focus();
+    return;
+  }
+
+  const item = {
+    id: uid(),
+    type: itemTypeAdding,
+    itemNumber: itemNo,
+    storeroom,
+    ...(itemTypeAdding === 'non-rotating' ? { plannedQty: qty } : {})
+  };
+
+  wo.planItems.push(item);
+  wo.actuals[item.id] = itemTypeAdding === 'non-rotating'
+    ? { actualQty: '' }
+    : { assetNumbers: [] };
+
+  save();
+  closeOvl('ovl-additem');
+  renderPlanTab();
+  renderActualTab();
+  toast('Item added to plan');
+}
+
+function deletePlanItem(itemId) {
+  const wo = getWO();
+  if (!wo) return;
+  wo.planItems = wo.planItems.filter(i => i.id !== itemId);
+  delete wo.actuals[itemId];
+  save();
+  renderPlanTab();
+  renderActualTab();
+}
+
+// ================================================
+//  ACTUAL TAB
+// ================================================
+function renderActualTab() {
+  const wo = getWO();
+  const el = document.getElementById('actual-list');
+  if (!wo || !wo.planItems.length) {
+    el.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">📝</div>
+        <div class="empty-h">Nothing to Record Yet</div>
+        <div class="empty-p">Add items to the <strong>Plan</strong> tab first. Once planned, you can record actual quantities and asset numbers here.</div>
+      </div>`;
+    return;
+  }
+  el.innerHTML = wo.planItems.map(item => {
+    const actual = wo.actuals[item.id] || {};
+    if (item.type === 'non-rotating') {
+      return `
+        <div class="act-card">
+          <div class="act-top">
+            <span class="chip chip-nr">NR</span>
+            <div class="act-info">
+              <div class="act-itemnum">${esc(item.itemNumber)}</div>
+              <div class="act-meta">📦 ${esc(item.storeroom)}</div>
+            </div>
+          </div>
+          <div class="planned-qty">Planned qty: <strong>${item.plannedQty}</strong></div>
+          <div class="f-group" style="margin:0">
+            <label class="f-label">Actual Qty Used</label>
+            <input
+              class="f-input"
+              type="number"
+              id="aq-${item.id}"
+              placeholder="Enter actual quantity"
+              value="${actual.actualQty !== undefined ? actual.actualQty : ''}"
+              min="0" step="0.5"
+              oninput="onActualQty('${item.id}', this.value)"
+            >
+          </div>
+        </div>`;
+    } else {
+      const tags = (actual.assetNumbers || []);
+      return `
+        <div class="act-card">
+          <div class="act-top">
+            <span class="chip chip-rot">ROT</span>
+            <div class="act-info">
+              <div class="act-itemnum">${esc(item.itemNumber)}</div>
+              <div class="act-meta">📦 ${esc(item.storeroom)}</div>
+            </div>
+          </div>
+          <div class="f-group" style="margin:0">
+            <label class="f-label">Asset Numbers Issued</label>
+            <div class="asset-tags" id="tags-${item.id}">
+              ${renderTags(item.id, tags)}
+            </div>
+            <div class="asset-input-row">
+              <input
+                class="f-input mono"
+                type="text"
+                id="ai-${item.id}"
+                placeholder="Enter asset number"
+                autocapitalize="characters"
+                autocomplete="off"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();addAsset('${item.id}')}"
+              >
+              <button class="add-btn" onclick="addAsset('${item.id}')">+</button>
+            </div>
+          </div>
+        </div>`;
+    }
+  }).join('');
+}
+
+function renderTags(itemId, tags) {
+  return tags.map(a => `
+    <span class="asset-tag">
+      ${esc(a)}
+      <button class="tag-x" onclick="removeAsset('${itemId}','${esc(a)}')">×</button>
+    </span>`).join('');
+}
+
+function onActualQty(itemId, val) {
+  const wo = getWO();
+  if (!wo) return;
+  wo.actuals[itemId] = wo.actuals[itemId] || {};
+  wo.actuals[itemId].actualQty = val === '' ? '' : parseFloat(val);
+  save();
+}
+
+function addAsset(itemId) {
+  const wo = getWO();
+  if (!wo) return;
+  const input = document.getElementById('ai-' + itemId);
+  const val = input.value.trim().toUpperCase();
+  if (!val) return;
+  if (!wo.actuals[itemId]) wo.actuals[itemId] = { assetNumbers: [] };
+  if (!wo.actuals[itemId].assetNumbers) wo.actuals[itemId].assetNumbers = [];
+  if (!wo.actuals[itemId].assetNumbers.includes(val)) {
+    wo.actuals[itemId].assetNumbers.push(val);
+    save();
+  }
+  input.value = '';
+  const el = document.getElementById('tags-' + itemId);
+  if (el) el.innerHTML = renderTags(itemId, wo.actuals[itemId].assetNumbers);
+  input.focus();
+}
+
+function removeAsset(itemId, assetNum) {
+  const wo = getWO();
+  if (!wo || !wo.actuals[itemId]) return;
+  wo.actuals[itemId].assetNumbers = wo.actuals[itemId].assetNumbers.filter(a => a !== assetNum);
+  save();
+  const el = document.getElementById('tags-' + itemId);
+  if (el) el.innerHTML = renderTags(itemId, wo.actuals[itemId].assetNumbers);
+}
+
+function saveActuals() {
+  save();
+  toast('✓ Actuals saved');
+  renderWOList(); // update home badges
+}
+
+// ================================================
+//  UTILS
+// ================================================
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ================================================
+//  OFFLINE DETECTION
+// ================================================
+function updateOfflineBanner() {
+  document.getElementById('offline-banner').style.display = navigator.onLine ? 'none' : 'block';
+}
+window.addEventListener('online',  updateOfflineBanner);
+window.addEventListener('offline', updateOfflineBanner);
+updateOfflineBanner();
+
+// ================================================
+//  INIT
+// ================================================
+load();
+renderWOList();
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(() => console.log('[MaxPlan] Service worker registered ✓'))
+      .catch(e  => console.warn('[MaxPlan] SW failed:', e));
+  });
+}
+</script>
+</body>
+</html>
