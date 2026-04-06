@@ -8,226 +8,338 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="MaxPlan">
   <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
   <title>MaxPlan — WO Material Planner</title>
   <style>
     :root {
-      --bg:#F5F4F1;--surface:#FFF;--primary:#1C2B4A;--primary-lt:#243560;
-      --accent:#E8A020;--accent-lt:#FEF3C7;
-      --text:#111827;--text2:#6B7280;--border:#E5E7EB;
-      --nr:#2563EB;--nr-bg:#EFF6FF;
-      --rot:#059669;--rot-bg:#ECFDF5;
-      --inprg:#D97706;--inprg-bg:#FFFBEB;
-      --comp:#059669;--comp-bg:#ECFDF5;
-      --appr:#3B82F6;--appr-bg:#EFF6FF;
-      --danger:#DC2626;--danger-bg:#FEF2F2;
-      --radius:14px;--radius-sm:9px;
-      --shadow:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.05);
-      --mono:'SF Mono','Consolas','Courier New',monospace;
-      --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
+      --bg: #F5F4F1; --surface: #FFFFFF;
+      --primary: #1C2B4A; --primary-light: #243560;
+      --accent: #E8A020; --accent-light: #FEF3C7;
+      --text: #111827; --text-secondary: #6B7280; --border: #E5E7EB;
+      --nr-color: #2563EB; --nr-bg: #EFF6FF;
+      --rot-color: #059669; --rot-bg: #ECFDF5;
+      --wo-color: #7C3AED; --wo-bg: #F5F3FF;
+      --danger: #DC2626; --danger-bg: #FEF2F2;
+      --radius: 14px; --radius-sm: 9px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+      --font-mono: 'SF Mono','Consolas','Courier New',monospace;
+      --safe-top: env(safe-area-inset-top,0px);
+      --safe-bottom: env(safe-area-inset-bottom,0px);
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html{height:100%}
-    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100%;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overflow:hidden}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+      background:var(--bg);color:var(--text);height:100%;
+      -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overflow:hidden}
+
+    /* VIEWS */
     .view{display:none;flex-direction:column;height:100vh;overflow:hidden}
     .view.active{display:flex}
-    .header{background:var(--primary);color:#fff;padding:14px 18px;padding-top:calc(14px + var(--st));display:flex;align-items:center;gap:10px;flex-shrink:0;min-height:calc(60px + var(--st))}
-    .hbtn{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:6px;margin:-6px;line-height:1;flex-shrink:0;opacity:.85;transition:opacity .15s}
-    .hbtn:active{opacity:.4}
-    .htxt{flex:1;min-width:0}
-    .htxt h1{font-size:17px;font-weight:700;letter-spacing:-.2px;line-height:1.2}
-    .hsub{font-size:12px;opacity:.6;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .hact{display:flex;align-items:center;gap:4px;flex-shrink:0}
-    .title-tap{cursor:pointer;display:inline-flex;align-items:center;gap:5px}
-    .title-tap::after{content:'▾';font-size:11px;opacity:.55}
-    .sph{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:20px;flex-shrink:0}
-    .sph-appr{background:rgba(59,130,246,.25);color:#93C5FD}
-    .sph-inprg{background:rgba(217,119,6,.3);color:#FCD34D}
-    .sph-comp{background:rgba(5,150,105,.3);color:#6EE7B7}
-    .scroll-content{flex:1;overflow-y:auto;overflow-x:hidden;padding:18px 16px;padding-bottom:calc(88px + var(--sb));-webkit-overflow-scrolling:touch}
-    .list-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);margin-bottom:12px}
-    .status-section{margin-bottom:6px}
-    .status-section+.status-section{margin-top:20px}
-    .sec-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-    .sec-head-line{flex:1;height:1px;background:var(--border)}
-    .sec-badge{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:4px 12px;border-radius:20px;flex-shrink:0}
-    .sb-appr{background:var(--appr-bg);color:var(--appr)}
-    .sb-inprg{background:var(--inprg-bg);color:var(--inprg)}
-    .sb-comp{background:var(--comp-bg);color:var(--comp)}
-    .wo-card{background:var(--surface);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);border:1px solid var(--border);display:flex;align-items:center;gap:13px;cursor:pointer;transition:transform .12s;-webkit-user-select:none;user-select:none}
+
+    /* HEADER */
+    .header{background:var(--primary);color:white;padding:14px 18px;
+      padding-top:calc(14px + var(--safe-top));display:flex;align-items:center;
+      gap:10px;flex-shrink:0;min-height:calc(60px + var(--safe-top))}
+    .header-icon-btn{background:none;border:none;color:white;font-size:22px;
+      cursor:pointer;padding:6px;margin:-6px;line-height:1;flex-shrink:0;
+      opacity:.85;transition:opacity .15s}
+    .header-icon-btn:active{opacity:.5}
+    .header-text{flex:1;min-width:0}
+    .header h1{font-size:17px;font-weight:700;letter-spacing:-.2px;line-height:1.2}
+    .header-sub{font-size:12px;opacity:.6;margin-top:1px;white-space:nowrap;
+      overflow:hidden;text-overflow:ellipsis}
+    .header-actions{display:flex;gap:2px;flex-shrink:0}
+
+    /* SCROLL */
+    .scroll-content{flex:1;overflow-y:auto;overflow-x:hidden;
+      padding:18px 16px;padding-bottom:calc(88px + var(--safe-bottom));
+      -webkit-overflow-scrolling:touch}
+
+    /* HOME CARDS */
+    .list-label{font-size:11px;font-weight:700;letter-spacing:.08em;
+      text-transform:uppercase;color:var(--text-secondary);margin-bottom:12px}
+    .wo-card{background:var(--surface);border-radius:var(--radius);
+      padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);
+      border:1px solid var(--border);display:flex;align-items:center;gap:13px;
+      cursor:pointer;transition:transform .12s;-webkit-user-select:none;user-select:none}
     .wo-card:active{transform:scale(.975)}
-    .wo-dot{width:42px;height:42px;border-radius:10px;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
-    .wo-body{flex:1;min-width:0}
-    .wo-num{font-family:var(--mono);font-size:15px;font-weight:700;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-    .wo-desc{font-size:13px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .wo-right{text-align:right;flex-shrink:0}
-    .wo-count{font-size:12px;color:var(--text2)}
-    .wo-done{font-size:11px;color:var(--rot);font-weight:600;margin-top:2px}
-    .wo-chev{color:#CBD5E1;font-size:16px;margin-left:4px;flex-shrink:0}
-    .ms{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:10px;flex-shrink:0}
-    .ms-appr{background:var(--appr-bg);color:var(--appr)}
-    .ms-inprg{background:var(--inprg-bg);color:var(--inprg)}
-    .ms-comp{background:var(--comp-bg);color:var(--comp)}
-    .empty{text-align:center;padding:52px 20px;color:var(--text2)}
+    .wo-card-dot{width:42px;height:42px;border-radius:10px;background:var(--primary);
+      display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+    .wo-card-body{flex:1;min-width:0}
+    .wo-card-num{font-family:var(--font-mono);font-size:15px;font-weight:700}
+    .wo-card-desc{font-size:13px;color:var(--text-secondary);margin-top:2px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .wo-card-meta{font-size:11px;color:var(--text-secondary);margin-top:2px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .wo-card-right{text-align:right;flex-shrink:0}
+    .wo-card-count{font-size:12px;color:var(--text-secondary)}
+    .wo-card-done{font-size:11px;color:var(--rot-color);font-weight:600;margin-top:2px}
+    .wo-card-chevron{color:#CBD5E1;font-size:16px;margin-left:4px;flex-shrink:0}
+
+    /* VERSION FOOTER */
+    .version-footer{padding:14px 16px calc(14px + var(--safe-bottom));display:flex;justify-content:center}
+    .version-pill{background:var(--primary);color:rgba(255,255,255,.75);border:none;
+      border-radius:20px;padding:7px 18px;font-size:12px;font-weight:700;
+      letter-spacing:.04em;cursor:pointer;font-family:inherit;transition:opacity .15s}
+    .version-pill:active{opacity:.7}
+
+    /* EMPTY */
+    .empty{text-align:center;padding:52px 20px;color:var(--text-secondary)}
     .empty-icon{font-size:44px;opacity:.3;margin-bottom:14px}
     .empty h3{font-size:17px;color:var(--text);margin-bottom:8px}
     .empty p{font-size:14px;line-height:1.6;max-width:260px;margin:0 auto}
-    .fab{position:fixed;bottom:calc(22px + var(--sb));right:20px;width:56px;height:56px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:26px;line-height:1;cursor:pointer;box-shadow:0 4px 18px rgba(232,160,32,.45);display:flex;align-items:center;justify-content:center;transition:transform .15s;z-index:80;-webkit-user-select:none;user-select:none}
+
+    /* FAB */
+    .fab{position:fixed;bottom:calc(22px + var(--safe-bottom));right:20px;
+      width:56px;height:56px;border-radius:50%;background:var(--accent);color:white;
+      border:none;font-size:26px;line-height:1;cursor:pointer;
+      box-shadow:0 4px 18px rgba(232,160,32,.45);display:flex;align-items:center;
+      justify-content:center;transition:transform .15s;z-index:80;
+      -webkit-user-select:none;user-select:none}
     .fab:active{transform:scale(.9)}
-    .tabs{display:flex;background:var(--primary-lt);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
-    .tab{flex:1;background:none;border:none;color:rgba(255,255,255,.5);font-size:12px;font-weight:600;padding:11px 4px;cursor:pointer;border-bottom:3px solid transparent;transition:color .2s,border-color .2s;font-family:inherit}
+
+    /* TABS */
+    .tabs{display:flex;background:var(--primary-light);
+      border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+    .tab{flex:1;background:none;border:none;color:rgba(255,255,255,.5);
+      font-size:12px;font-weight:600;padding:11px 4px;cursor:pointer;
+      border-bottom:3px solid transparent;transition:color .2s,border-color .2s;font-family:inherit}
     .tab.active{color:#fff;border-bottom-color:var(--accent)}
-    .badge{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:20px;flex-shrink:0;line-height:1.4}
-    .badge-nr{background:var(--nr-bg);color:var(--nr)}
-    .badge-rot{background:var(--rot-bg);color:var(--rot)}
-    .item-card{background:var(--surface);border-radius:var(--radius);padding:14px 15px;margin-bottom:10px;box-shadow:var(--shadow);border:1px solid var(--border)}
-    .ich{display:flex;align-items:center;gap:9px;margin-bottom:11px}
-    .inum{font-family:var(--mono);font-size:16px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .iact{display:flex;gap:2px;flex-shrink:0}
-    .iab{background:none;border:none;color:#CBD5E1;font-size:15px;cursor:pointer;padding:5px;transition:color .15s;line-height:1}
-    .iab:active{color:var(--accent)}
-    .iab.del:active{color:var(--danger)}
-    .imeta{display:flex;gap:16px;flex-wrap:wrap}
-    .mc{display:flex;flex-direction:column;gap:2px}
-    .ml{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text2)}
-    .mv{font-family:var(--mono);font-size:14px;font-weight:600}
-    .mv.ds{font-size:12px;color:var(--text2);font-family:inherit;font-weight:500}
-    .actual-card{background:var(--surface);border-radius:var(--radius);padding:14px 15px;margin-bottom:10px;box-shadow:var(--shadow);border:1px solid var(--border)}
-    .plan-ref{font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.8}
-    .plan-ref strong{font-family:var(--mono);color:var(--text);font-weight:600}
-    .prog-wrap{margin:10px 0 12px}
-    .prog-track{background:var(--border);border-radius:4px;height:5px;overflow:hidden}
-    .prog-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .3s}
-    .prog-fill.over{background:var(--danger)}
-    .prog-leg{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-top:4px}
-    .prog-leg span{font-family:var(--mono);font-weight:600}
-    .issue-line{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:11px 12px;margin-bottom:8px;background:var(--bg);transition:border-color .2s}
-    .issue-line.has-qty{border-color:var(--nr);background:var(--nr-bg)}
-    .il-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
-    .il-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)}
-    .il-lbl.filled{color:var(--nr)}
-    .il-rm{background:none;border:none;color:#CBD5E1;font-size:14px;cursor:pointer;padding:2px;line-height:1}
-    .il-rm:active{color:var(--danger)}
-    .ig{display:grid;grid-template-columns:90px 1fr;gap:8px;margin-bottom:8px}
-    .slot-row{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:11px 12px;margin-bottom:8px;background:var(--bg);transition:border-color .2s}
-    .slot-row.has-asset{border-color:var(--rot);background:var(--rot-bg)}
-    .sh{display:flex;align-items:center;gap:8px;margin-bottom:9px}
-    .sl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);flex:1}
-    .sl.done{color:var(--rot)}
-    .sf{display:flex;flex-direction:column;gap:4px}
-    .sf+.sf{margin-top:8px}
-    .sf-l{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)}
-    .sf-i{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:14px;font-family:var(--mono);background:var(--surface);outline:none;color:var(--text);transition:border-color .2s}
-    .sf-i:focus{border-color:var(--accent)}
-    .sf-i.ai:focus{border-color:var(--rot)}
-    .sf-i.ni:focus{border-color:var(--nr)}
-    .sf-i.di{font-family:inherit;font-size:13px}
-    .rem-bar{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text2);background:var(--bg);border-radius:8px;padding:8px 12px;margin-top:4px}
-    .rem-bar.done-bar{color:var(--rot);background:var(--rot-bg)}
-    .add-line-btn{background:var(--nr);color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
-    .add-line-btn:active{opacity:.8}
-    .notes-block{background:var(--accent-lt);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:16px;border-left:3px solid var(--accent);font-size:13px;color:#78350F;line-height:1.5;white-space:pre-wrap;word-break:break-word}
-    .sum-hdr{background:var(--primary);color:#fff;border-radius:var(--radius);padding:16px;margin-bottom:14px}
-    .sum-hdr h3{font-size:15px;font-weight:700;margin-bottom:12px;opacity:.8}
-    .sum-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+
+    /* BADGE */
+    .badge{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+      padding:3px 8px;border-radius:20px;flex-shrink:0;line-height:1.4}
+    .badge-nr{background:var(--nr-bg);color:var(--nr-color)}
+    .badge-rot{background:var(--rot-bg);color:var(--rot-color)}
+
+    /* ITEM CARD */
+    .item-card{background:var(--surface);border-radius:var(--radius);
+      padding:14px 15px;margin-bottom:10px;box-shadow:var(--shadow);border:1px solid var(--border)}
+    .item-card-head{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+    .item-num{font-family:var(--font-mono);font-size:16px;font-weight:700;flex:1;
+      min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .item-actions{display:flex;gap:2px;flex-shrink:0}
+    .item-action-btn{background:none;border:none;color:#CBD5E1;font-size:15px;
+      cursor:pointer;padding:5px;transition:color .15s;line-height:1}
+    .item-action-btn:active{color:var(--accent)}
+    .item-action-btn.del:active{color:var(--danger)}
+    .item-meta{display:flex;gap:14px;flex-wrap:wrap}
+    .meta-col{display:flex;flex-direction:column;gap:2px}
+    .meta-lbl{font-size:10px;font-weight:700;letter-spacing:.07em;
+      text-transform:uppercase;color:var(--text-secondary)}
+    .meta-val{font-family:var(--font-mono);font-size:14px;font-weight:600}
+    .meta-val.date-stamp{font-size:12px;color:var(--text-secondary);font-family:inherit;font-weight:500}
+
+    /* WO INHERITANCE CHIP */
+    .inherit-chip{display:inline-flex;align-items:center;gap:5px;
+      background:var(--wo-bg);color:var(--wo-color);border-radius:20px;
+      padding:3px 9px;font-size:11px;font-weight:600;margin-top:6px;
+      border:1px solid rgba(124,58,237,.15)}
+    .inherit-chip span{opacity:.7;font-size:10px}
+
+    /* ACTUAL CARD */
+    .actual-card{background:var(--surface);border-radius:var(--radius);
+      padding:14px 15px;margin-bottom:10px;box-shadow:var(--shadow);border:1px solid var(--border)}
+    .plan-ref{font-size:12px;color:var(--text-secondary);margin-bottom:12px;line-height:1.8}
+    .plan-ref strong{font-family:var(--font-mono);color:var(--text);font-weight:600}
+
+    /* PROGRESS */
+    .progress-wrap{margin-top:10px;margin-bottom:14px}
+    .progress-track{background:var(--border);border-radius:4px;height:5px;overflow:hidden}
+    .progress-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .3s}
+    .progress-fill.over{background:var(--danger)}
+    .progress-legend{display:flex;justify-content:space-between;
+      font-size:11px;color:var(--text-secondary);margin-top:4px}
+    .progress-legend span{font-family:var(--font-mono);font-weight:600}
+
+    /* SLOT ROWS */
+    .slot-row{border:1.5px solid var(--border);border-radius:var(--radius-sm);
+      padding:12px;margin-bottom:8px;background:var(--bg);transition:border-color .2s}
+    .slot-row.issued{border-color:var(--nr-color);background:var(--nr-bg)}
+    .slot-row.has-asset{border-color:var(--rot-color);background:var(--rot-bg)}
+    .slot-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+    .slot-label{font-size:11px;font-weight:700;text-transform:uppercase;
+      letter-spacing:.06em;color:var(--text-secondary);flex:1}
+    .slot-label.done-nr{color:var(--nr-color)}
+    .slot-label.done-rot{color:var(--rot-color)}
+    .issue-toggle{border:none;border-radius:20px;padding:4px 12px;font-size:11px;
+      font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;flex-shrink:0}
+    .issue-toggle.off{background:var(--border);color:var(--text-secondary)}
+    .issue-toggle.on{background:var(--nr-color);color:white}
+
+    /* SLOT FIELDS */
+    .slot-fields{display:flex;flex-direction:column;gap:8px}
+    .slot-field-group{display:flex;flex-direction:column;gap:4px}
+    .slot-micro-lbl{font-size:10px;font-weight:700;text-transform:uppercase;
+      letter-spacing:.06em;color:var(--text-secondary)}
+    .slot-micro-lbl.inherited{color:var(--wo-color)}
+    .slot-input{width:100%;border:1.5px solid var(--border);border-radius:8px;
+      padding:8px 11px;font-size:14px;font-family:var(--font-mono);background:var(--surface);
+      outline:none;color:var(--text);transition:border-color .2s}
+    .slot-input:focus{border-color:var(--accent)}
+    .slot-input.rot-asset:focus{border-color:var(--rot-color)}
+    .slot-input.inherited-val{border-color:rgba(124,58,237,.3);background:var(--wo-bg);color:var(--wo-color)}
+
+    /* NOTES */
+    .notes-block{background:var(--accent-light);border-radius:var(--radius-sm);
+      padding:10px 12px;margin-bottom:16px;border-left:3px solid var(--accent);
+      font-size:13px;color:#78350F;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+
+    /* SUMMARY */
+    .summary-header-card{background:var(--primary);color:white;
+      border-radius:var(--radius);padding:16px;margin-bottom:14px}
+    .summary-header-card h3{font-size:15px;font-weight:700;margin-bottom:12px;opacity:.8}
+    .summary-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
     .stat-box{background:rgba(255,255,255,.08);border-radius:10px;padding:10px;text-align:center}
-    .stat-box .sv{font-size:22px;font-weight:800;font-family:var(--mono);display:block}
-    .stat-box .sl2{font-size:10px;opacity:.65;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;display:block}
-    .sum-sec{margin-bottom:18px}
-    .sum-item{background:var(--surface);border-radius:var(--radius-sm);padding:13px 14px;margin-bottom:8px;border:1px solid var(--border);box-shadow:var(--shadow)}
-    .sum-ih{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-    .sin{font-family:var(--mono);font-size:14px;font-weight:700;flex:1}
-    .sum-row{display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-top:4px}
-    .sum-row strong{font-family:var(--mono);color:var(--text)}
-    .ss{font-size:12px;padding:7px 10px;border-radius:8px;background:var(--bg);border:1px solid var(--border);margin-top:6px}
-    .ss.done{background:var(--rot-bg);border-color:rgba(5,150,105,.25)}
-    .ss-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
-    .ss-l{font-weight:700;color:var(--text2)}
-    .ss-l.done{color:var(--rot)}
-    .ss-v{font-family:var(--mono);font-weight:600}
-    .ss-sub{color:var(--text2);font-size:11px;margin-top:2px}
-    .sp{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;flex-shrink:0}
-    .sp-done{background:var(--rot-bg);color:var(--rot)}
-    .sp-partial{background:var(--accent-lt);color:#92400E}
-    .sp-pending{background:var(--border);color:var(--text2)}
-    .export-btn{width:100%;background:var(--primary);color:#fff;border:none;border-radius:var(--radius);padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px}
+    .stat-box .stat-val{font-size:22px;font-weight:800;font-family:var(--font-mono);display:block}
+    .stat-box .stat-lbl{font-size:10px;opacity:.65;text-transform:uppercase;
+      letter-spacing:.06em;margin-top:2px;display:block}
+    .summary-section{margin-bottom:18px}
+    .summary-item{background:var(--surface);border-radius:var(--radius-sm);
+      padding:13px 14px;margin-bottom:8px;border:1px solid var(--border);box-shadow:var(--shadow)}
+    .summary-item-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+    .summary-item-num{font-family:var(--font-mono);font-size:14px;font-weight:700;flex:1}
+    .summary-row{display:flex;justify-content:space-between;font-size:13px;
+      color:var(--text-secondary);margin-top:4px}
+    .summary-row strong{font-family:var(--font-mono);color:var(--text)}
+    .summary-slot{font-size:12px;padding:7px 10px;border-radius:8px;
+      background:var(--bg);border:1px solid var(--border);margin-top:6px}
+    .summary-slot.done-nr{background:var(--nr-bg);border-color:rgba(37,99,235,.2)}
+    .summary-slot.done-rot{background:var(--rot-bg);border-color:rgba(5,150,105,.2)}
+    .summary-slot-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+    .summary-slot-label{font-weight:700;color:var(--text-secondary)}
+    .summary-slot-label.done-nr{color:var(--nr-color)}
+    .summary-slot-label.done-rot{color:var(--rot-color)}
+    .summary-slot-val{font-family:var(--font-mono);font-weight:600}
+    .summary-slot-detail{color:var(--text-secondary);font-size:11px;line-height:1.7}
+    .status-pill{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;
+      text-transform:uppercase;letter-spacing:.05em;flex-shrink:0}
+    .pill-done{background:var(--rot-bg);color:var(--rot-color)}
+    .pill-partial{background:var(--accent-light);color:#92400E}
+    .pill-pending{background:var(--border);color:var(--text-secondary)}
+
+    /* EXPORT */
+    .export-btn{width:100%;background:var(--primary);color:white;border:none;
+      border-radius:var(--radius);padding:14px;font-size:15px;font-weight:700;cursor:pointer;
+      font-family:inherit;display:flex;align-items:center;justify-content:center;
+      gap:8px;margin-bottom:12px}
     .export-btn:active{opacity:.8}
-    .copy-ok{text-align:center;font-size:13px;color:var(--rot);font-weight:600;opacity:0;transition:opacity .3s;margin-bottom:12px}
-    .copy-ok.show{opacity:1}
+    .copy-success{text-align:center;font-size:13px;color:var(--rot-color);
+      font-weight:600;opacity:0;transition:opacity .3s;margin-bottom:12px}
+    .copy-success.show{opacity:1}
+
     .section-block+.section-block{margin-top:22px}
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .22s}
+
+    /* MODALS */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;
+      display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .22s}
     .overlay.open{opacity:1;pointer-events:all}
-    .sheet{background:var(--surface);border-radius:22px 22px 0 0;padding:20px 18px calc(20px + var(--sb));width:100%;max-height:92vh;overflow-y:auto;transform:translateY(100%);transition:transform .28s cubic-bezier(.32,.72,0,1)}
+    .sheet{background:var(--surface);border-radius:22px 22px 0 0;
+      padding:20px 18px calc(20px + var(--safe-bottom));width:100%;max-height:92vh;
+      overflow-y:auto;transform:translateY(100%);
+      transition:transform .28s cubic-bezier(.32,.72,0,1)}
     .overlay.open .sheet{transform:translateY(0)}
-    .sh-handle{width:34px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px}
+    .sheet-handle{width:34px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px}
     .sheet h2{font-size:20px;font-weight:800;letter-spacing:-.3px;margin-bottom:18px}
-    .sts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
-    .sts-btn{padding:11px 6px;border-radius:var(--radius-sm);border:2px solid var(--border);background:none;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:.04em;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:3px}
-    .sts-btn small{font-size:9px;font-weight:600;opacity:.7;letter-spacing:.03em;text-transform:uppercase}
-    .sts-btn.sel-appr{border-color:var(--appr);background:var(--appr-bg);color:var(--appr)}
-    .sts-btn.sel-inprg{border-color:var(--inprg);background:var(--inprg-bg);color:var(--inprg)}
-    .sts-btn.sel-comp{border-color:var(--comp);background:var(--comp-bg);color:var(--comp)}
+
+    /* FORMS */
     .field{margin-bottom:15px}
-    .fl{display:block;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text2);margin-bottom:6px}
-    .fi{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:16px;font-family:inherit;color:var(--text);background:var(--bg);outline:none;transition:border-color .2s}
-    .fi:focus{border-color:var(--accent)}
-    .fi.err{border-color:var(--danger)}
-    .fi.mono{font-family:var(--mono)}
-    textarea.fi{resize:none;min-height:90px;line-height:1.55}
+    .field-label{display:block;font-size:11px;font-weight:700;letter-spacing:.07em;
+      text-transform:uppercase;color:var(--text-secondary);margin-bottom:6px}
+    .field-label.optional::after{content:' (optional)';font-weight:400;letter-spacing:0;text-transform:none;font-size:10px}
+    .field-input{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);
+      padding:12px 14px;font-size:16px;font-family:inherit;color:var(--text);
+      background:var(--bg);outline:none;transition:border-color .2s}
+    .field-input:focus{border-color:var(--accent)}
+    .field-input.err{border-color:var(--danger)}
+    .field-input.mono{font-family:var(--font-mono)}
+    textarea.field-input{resize:none;min-height:90px;line-height:1.55}
+    .field-hint{font-size:11px;color:var(--text-secondary);margin-top:5px;line-height:1.5}
+
+    /* TYPE TOGGLE */
     .type-row{display:flex;gap:8px;margin-bottom:18px}
-    .type-btn{flex:1;padding:11px 8px;border:2px solid var(--border);border-radius:var(--radius-sm);background:none;font-size:14px;font-weight:700;color:var(--text2);cursor:pointer;transition:all .15s;font-family:inherit}
-    .type-btn.sel-nr{border-color:var(--nr);background:var(--nr-bg);color:var(--nr)}
-    .type-btn.sel-rot{border-color:var(--rot);background:var(--rot-bg);color:var(--rot)}
-    .btn-p{width:100%;background:var(--primary);color:#fff;border:none;border-radius:var(--radius);padding:15px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px}
-    .btn-p:active{opacity:.8}
-    .btn-d{width:100%;background:var(--danger-bg);color:var(--danger);border:none;border-radius:var(--radius);padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px}
-    .btn-m{width:100%;background:var(--border);color:var(--text2);border:none;border-radius:var(--radius);padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px}
-    .divider{height:1px;background:var(--border);margin:16px 0}
-    .update-banner{display:none;background:#1D4ED8;color:#fff;padding:11px 16px;align-items:center;gap:10px;flex-shrink:0}
+    .type-btn{flex:1;padding:11px 8px;border:2px solid var(--border);
+      border-radius:var(--radius-sm);background:none;font-size:14px;font-weight:700;
+      color:var(--text-secondary);cursor:pointer;transition:all .15s;font-family:inherit}
+    .type-btn.sel-nr{border-color:var(--nr-color);background:var(--nr-bg);color:var(--nr-color)}
+    .type-btn.sel-rot{border-color:var(--rot-color);background:var(--rot-bg);color:var(--rot-color)}
+
+    /* BUTTONS */
+    .btn-primary{width:100%;background:var(--primary);color:white;border:none;
+      border-radius:var(--radius);padding:15px;font-size:16px;font-weight:700;
+      cursor:pointer;font-family:inherit;margin-top:6px}
+    .btn-primary:active{opacity:.8}
+    .btn-danger{width:100%;background:var(--danger-bg);color:var(--danger);border:none;
+      border-radius:var(--radius);padding:14px;font-size:15px;font-weight:700;
+      cursor:pointer;font-family:inherit;margin-top:6px}
+    .btn-muted{width:100%;background:var(--border);color:var(--text-secondary);border:none;
+      border-radius:var(--radius);padding:14px;font-size:15px;font-weight:700;
+      cursor:pointer;font-family:inherit;margin-top:8px}
+
+    /* BANNERS */
+    .update-banner{display:none;background:#1D4ED8;color:white;
+      padding:11px 16px;align-items:center;gap:10px;flex-shrink:0}
     .update-banner.show{display:flex}
     .update-banner p{font-size:13px;flex:1;line-height:1.4}
-    .update-banner button{background:#fff;color:#1D4ED8;border:none;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0}
-    #ib{display:none;background:var(--accent-lt);border-top:1px solid #FDE68A;padding:10px 16px;align-items:center;gap:10px;flex-shrink:0}
-    #ib.show{display:flex}
-    #ib p{font-size:13px;flex:1;line-height:1.4;color:#92400E}
-    #ib button{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0}
-    .ver-footer{padding:14px 16px calc(14px + var(--sb));display:flex;justify-content:center}
-    .ver-pill{background:var(--primary);color:rgba(255,255,255,.75);border:none;border-radius:20px;padding:7px 18px;font-size:12px;font-weight:700;letter-spacing:.04em;cursor:pointer;font-family:inherit;transition:opacity .15s}
-    .ver-pill:active{opacity:.7}
-    .vc{background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow);border:1px solid var(--border)}
-    .vc-h{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
-    .vn{font-family:var(--mono);font-size:20px;font-weight:800;color:var(--primary)}
-    .vd{font-size:12px;color:var(--text2);margin-top:3px}
-    .vt{background:var(--primary);color:#fff;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;letter-spacing:.04em;flex-shrink:0}
-    .vt.lat{background:var(--rot)}
-    .vb{font-size:14px;color:var(--text);line-height:1.7}
-    .vb p{margin-bottom:6px}
-    .vb ul{padding-left:18px}
-    .vb li{margin-bottom:4px}
-    .vb li::marker{color:var(--accent)}
+    .update-banner button{background:white;color:#1D4ED8;border:none;border-radius:8px;
+      padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0}
+    #install-banner{display:none;background:var(--accent-light);border-top:1px solid #FDE68A;
+      padding:10px 16px;align-items:center;gap:10px;flex-shrink:0}
+    #install-banner.show{display:flex}
+    #install-banner p{font-size:13px;flex:1;line-height:1.4;color:#92400E}
+    #install-banner button{background:var(--accent);color:white;border:none;border-radius:8px;
+      padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0}
+
+    /* VERSION HISTORY */
+    .ver-card{background:var(--surface);border-radius:var(--radius);padding:16px;
+      margin-bottom:14px;box-shadow:var(--shadow);border:1px solid var(--border)}
+    .ver-card-head{display:flex;align-items:flex-start;justify-content:space-between;
+      gap:10px;margin-bottom:10px}
+    .ver-num{font-family:var(--font-mono);font-size:20px;font-weight:800;color:var(--primary)}
+    .ver-date{font-size:12px;color:var(--text-secondary);margin-top:3px}
+    .ver-tag{background:var(--primary);color:white;border-radius:20px;padding:4px 12px;
+      font-size:11px;font-weight:700;letter-spacing:.04em;flex-shrink:0}
+    .ver-tag.latest{background:var(--rot-color)}
+    .ver-body{font-size:14px;color:var(--text);line-height:1.7}
+    .ver-body p{margin-bottom:6px}
+    .ver-body ul{padding-left:18px}
+    .ver-body li{margin-bottom:4px}
+    .ver-body li::marker{color:var(--accent)}
   </style>
 </head>
 <body>
 
-<div id="vh" class="view active">
+<!-- ═══ HOME ═══ -->
+<div id="view-home" class="view active">
   <div class="header">
-    <div class="htxt"><h1>MaxPlan</h1><div class="hsub">Maximo Work Order Material Planner</div></div>
+    <div class="header-text">
+      <h1>MaxPlan</h1>
+      <div class="header-sub">Maximo Work Order Material Planner</div>
+    </div>
   </div>
-  <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button onclick="location.reload(true)">Update</button></div>
-  <div id="ib"><p>Install MaxPlan for offline access on your phone.</p><button id="bi">Install</button></div>
-  <div class="scroll-content" id="hl"></div>
-  <button class="fab" id="fn">+</button>
+  <div class="update-banner" id="update-banner">
+    <p id="update-msg">A new version is available!</p>
+    <button onclick="location.reload(true)">Update</button>
+  </div>
+  <div id="install-banner">
+    <p>Install MaxPlan for offline access on your phone.</p>
+    <button id="btn-install">Install</button>
+  </div>
+  <div class="scroll-content" id="home-list"></div>
+  <button class="fab" id="fab-new-wo">+</button>
 </div>
 
-<div id="vw" class="view">
+<!-- ═══ WORK ORDER ═══ -->
+<div id="view-wo" class="view">
   <div class="header">
-    <button class="hbtn" id="bb">←</button>
-    <div class="htxt">
-      <h1 id="wt" class="title-tap">WO</h1>
-      <div class="hsub" id="ws">Title</div>
+    <button class="header-icon-btn" id="btn-back">←</button>
+    <div class="header-text">
+      <h1 id="wo-title">WO-XXXXX</h1>
+      <div class="header-sub" id="wo-sub">Description</div>
     </div>
-    <div class="hact">
-      <span id="wsp" class="sph sph-appr">APPR</span>
-      <button class="hbtn" id="dw">🗑</button>
+    <div class="header-actions">
+      <button class="header-icon-btn" id="btn-edit-wo">✏️</button>
+      <button class="header-icon-btn" id="btn-del-wo">🗑</button>
     </div>
   </div>
   <div class="tabs">
@@ -235,691 +347,1041 @@
     <button class="tab" data-tab="actual">✅ Actual</button>
     <button class="tab" data-tab="summary">📊 Summary</button>
   </div>
-  <div class="scroll-content" id="wc"></div>
-  <button class="fab" id="fa" style="display:none">+</button>
+  <div class="scroll-content" id="wo-content"></div>
+  <button class="fab" id="fab-add-item" style="display:none">+</button>
 </div>
 
-<div id="vv" class="view">
+<!-- ═══ VERSION HISTORY ═══ -->
+<div id="view-versions" class="view">
   <div class="header">
-    <button class="hbtn" id="bv">←</button>
-    <div class="htxt"><h1>Version History</h1><div class="hsub">MaxPlan — WO Material Planner</div></div>
+    <button class="header-icon-btn" id="btn-back-versions">←</button>
+    <div class="header-text">
+      <h1>Version History</h1>
+      <div class="header-sub">MaxPlan — WO Material Planner</div>
+    </div>
   </div>
   <div class="scroll-content">
-    <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.1.2</div><div class="vd">April Week 1 2026</div></div><span class="vt lat">Latest</span></div>
-      <div class="vb"><ul>
-        <li>New Work Order form: <strong>Work Order Number</strong>, <strong>Title</strong>, <strong>Long Description</strong>, optional <strong>Location</strong> field</li>
-        <li>Work Order <strong>status system</strong> — default APPR. Tap the WO number in the header to edit the WO and change status</li>
-        <li>Status <strong>INPRG</strong> and <strong>COMP</strong> auto-stamp the date &amp; time when set; both dates are manually editable</li>
-        <li>Status badge visible on every work order card; home screen grouped into <strong>INPRG / APPR / COMP</strong> sections</li>
-        <li>Non-rotating Actual tab now uses <strong>flexible issue lines</strong>: enter qty and location per line; new line opens automatically when remaining units exist</li>
-        <li><strong>Actual Date</strong> auto-stamps on every issue line (NR) and asset slot (rotating) when data is first entered; manually editable</li>
-        <li>Rotating items retain one slot per planned qty unit, each with asset number, location, and actual date</li>
-      </ul></div>
-    </div>
-    <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.1</div><div class="vd">April Week 1 2026</div></div><span class="vt">Previous</span></div>
-      <div class="vb"><ul>
-        <li>Rotating items include planned quantity in the Plan tab</li>
-        <li>Actual tab: individual slots per planned rotating qty (asset number + Maximo location)</li>
-        <li>Non-rotating actuals: per-unit location tracking and issued toggles</li>
-        <li>Edit work order (number, description, notes); Notes field on WOs</li>
-        <li>Summary tab with planned vs actual totals and completion percentage</li>
-        <li>Export / copy to clipboard; reservation timestamps on all planned items</li>
-        <li>In-app version history and automatic update check</li>
-      </ul></div>
-    </div>
-    <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.0</div><div class="vd">April Week 1 2026</div></div><span class="vt">Initial Release</span></div>
-      <div class="vb"><p>Initial release — offline PWA for Maximo WO material planning.</p><ul>
-        <li>Create and manage multiple work orders</li>
-        <li>Add non-rotating and rotating items to a Plan tab</li>
-        <li>Record actual quantities and issued asset numbers in an Actual tab</li>
-        <li>Fully offline via service worker; installable as a PWA</li>
-      </ul></div>
-    </div>
-  </div>
-</div>
 
-<!-- MODAL: NEW/EDIT WO -->
-<div class="overlay" id="mwo">
-  <div class="sheet">
-    <div class="sh-handle"></div>
-    <h2 id="mwot">New Work Order</h2>
-    <div class="field"><label class="fl">Work Order Number *</label>
-      <input class="fi mono" id="iwn" placeholder="e.g. WO-12345" autocomplete="off" autocorrect="off" autocapitalize="characters"></div>
-    <div class="field"><label class="fl">Title</label>
-      <input class="fi" id="iwt" placeholder="Brief title of the work" autocomplete="off"></div>
-    <div class="field"><label class="fl">Long Description</label>
-      <textarea class="fi" id="iwd" placeholder="Detailed description, instructions, or context…" rows="3"></textarea></div>
-    <div class="field"><label class="fl">Location</label>
-      <input class="fi mono" id="iwl" placeholder="Identifies the work order's location" autocomplete="off" autocorrect="off" autocapitalize="characters"></div>
-    <div id="ss" style="display:none">
-      <div class="divider"></div>
-      <div class="fl" style="margin-bottom:10px">Work Order Status</div>
-      <div class="sts-row">
-        <button class="sts-btn sel-appr" id="sa" onclick="setSt('APPR')">APPR<small>Approved</small></button>
-        <button class="sts-btn" id="si" onclick="setSt('INPRG')">INPRG<small>In Progress</small></button>
-        <button class="sts-btn" id="sc" onclick="setSt('COMP')">COMP<small>Completed</small></button>
+    <div class="ver-card">
+      <div class="ver-card-head">
+        <div><div class="ver-num">v1.1.3</div><div class="ver-date">April Week 1 2026</div></div>
+        <span class="ver-tag latest">Latest</span>
       </div>
-      <div id="id-field" style="display:none" class="field"><label class="fl">In Progress Date</label><input class="fi" id="iid" placeholder="DD/MMM/YYYY H:MMam" autocomplete="off"></div>
-      <div id="cd-field" style="display:none" class="field"><label class="fl">Completion Date</label><input class="fi" id="icd" placeholder="DD/MMM/YYYY H:MMam" autocomplete="off"></div>
+      <div class="ver-body">
+        <ul>
+          <li>Work order creation and edit page now includes an <strong>Asset Number</strong> field and a <strong>Location of Work</strong> field at the WO level</li>
+          <li>Any plan items (rotating or non-rotating) added <em>after</em> a WO-level location or asset number is set will automatically inherit those values in the Actual tab</li>
+          <li>Inherited location and asset number fields are highlighted in purple in the Actual tab to indicate they originated from the work order — they remain editable per slot</li>
+          <li>If location or asset number is later changed on the WO, only <em>newly added</em> plan items will reflect the updated values; existing plan items retain the values that were set at the time they were planned (delete and re-add an item to pick up the new WO values)</li>
+          <li>Plan items show inheritance chips in the Plan tab indicating which WO-level values they carry</li>
+          <li><strong>Rotating Asset Number</strong> field (per slot) renamed to clearly differentiate the unique rotating asset being issued vs the WO-level asset number the work is being done on</li>
+          <li>Location field label changed to <strong>Location of Work</strong> throughout the app</li>
+          <li>WO cards on the home screen now show location and asset number if set</li>
+        </ul>
+      </div>
     </div>
-    <button class="btn-p" id="swo">Create Work Order</button>
-    <button class="btn-m" id="cwo">Cancel</button>
+
+    <div class="ver-card">
+      <div class="ver-card-head">
+        <div><div class="ver-num">v1.1</div><div class="ver-date">April Week 1 2026</div></div>
+        <span class="ver-tag">Previous</span>
+      </div>
+      <div class="ver-body">
+        <ul>
+          <li>Rotating items now include a <strong>planned quantity</strong> field in the Plan tab</li>
+          <li>Actual tab shows an individual slot per planned rotating quantity — each with a unique asset number and location</li>
+          <li>Non-rotating items support per-unit location tracking in the Actual tab</li>
+          <li>Both item types include a <strong>Maximo Location</strong> field per issued unit</li>
+          <li>Added edit work order (number, description, notes)</li>
+          <li>Added Notes field on work orders</li>
+          <li>New Summary tab with planned vs actual totals and completion percentage</li>
+          <li>Export / copy to clipboard — formatted summary of all planned and actual materials</li>
+          <li>Reservation timestamps on every planned item (DD/MMM/YYYY 0:00am format)</li>
+          <li>Confirmation dialogs before deleting items or work orders</li>
+          <li>In-app version history page and automatic update check</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ver-card">
+      <div class="ver-card-head">
+        <div><div class="ver-num">v1.0</div><div class="ver-date">April Week 1 2026</div></div>
+        <span class="ver-tag">Initial Release</span>
+      </div>
+      <div class="ver-body">
+        <p>Initial release of MaxPlan. Core functions:</p>
+        <ul>
+          <li>Create and manage multiple work orders</li>
+          <li>Add non-rotating and rotating items to a Plan tab</li>
+          <li>Record actual quantities used for non-rotating items</li>
+          <li>Record issued asset numbers for rotating items</li>
+          <li>Fully offline-capable via service worker caching</li>
+          <li>Installable to phone home screen as a standalone PWA</li>
+          <li>All data saved locally on-device</li>
+        </ul>
+      </div>
+    </div>
+
   </div>
 </div>
 
-<!-- MODAL: ADD/EDIT ITEM -->
-<div class="overlay" id="mi">
+<!-- ═══ MODAL: NEW / EDIT WO ═══ -->
+<div class="overlay" id="modal-new-wo">
   <div class="sheet">
-    <div class="sh-handle"></div>
-    <h2 id="mit">Add Planned Item</h2>
-    <div class="type-row" id="tr">
-      <button class="type-btn sel-nr" id="tnr" onclick="setType('non-rotating')">Non-Rotating</button>
-      <button class="type-btn" id="trot" onclick="setType('rotating')">Rotating</button>
+    <div class="sheet-handle"></div>
+    <h2 id="modal-wo-title">New Work Order</h2>
+    <div class="field">
+      <label class="field-label">WO Number *</label>
+      <input class="field-input mono" id="inp-wo-num" placeholder="e.g. WO-12345"
+        autocomplete="off" autocorrect="off" autocapitalize="characters">
     </div>
-    <div class="field"><label class="fl">Item Number *</label>
-      <input class="fi mono" id="iin" placeholder="e.g. I27317" autocomplete="off" autocorrect="off" autocapitalize="characters"></div>
-    <div class="field"><label class="fl">Storeroom *</label>
-      <input class="fi mono" id="isr" placeholder="e.g. ST050" autocomplete="off" autocorrect="off" autocapitalize="characters"></div>
-    <div class="field"><label class="fl" id="ql">Planned Quantity *</label>
-      <input class="fi mono" id="iq" type="number" min="1" placeholder="1" inputmode="numeric"></div>
-    <button class="btn-p" id="si2">Add to Plan</button>
-    <button class="btn-m" id="ci">Cancel</button>
+    <div class="field">
+      <label class="field-label optional">Description</label>
+      <input class="field-input" id="inp-wo-desc" placeholder="Brief description of the work" autocomplete="off">
+    </div>
+    <div class="field">
+      <label class="field-label optional">Asset Number</label>
+      <input class="field-input mono" id="inp-wo-asset" placeholder="e.g. EQ-00456"
+        autocomplete="off" autocorrect="off" autocapitalize="characters">
+      <div class="field-hint">Items added to the plan after this is set will auto-fill this asset number in the Actual tab.</div>
+    </div>
+    <div class="field">
+      <label class="field-label optional">Location of Work</label>
+      <input class="field-input mono" id="inp-wo-location" placeholder="e.g. PUMP-ROOM-A"
+        autocomplete="off" autocorrect="off" autocapitalize="characters">
+      <div class="field-hint">Items added to the plan after this is set will auto-fill this location in the Actual tab.</div>
+    </div>
+    <div class="field">
+      <label class="field-label optional">Notes</label>
+      <textarea class="field-input" id="inp-wo-notes"
+        placeholder="Any additional notes, instructions, or context…" rows="3"></textarea>
+    </div>
+    <button class="btn-primary" id="btn-save-wo">Create Work Order</button>
+    <button class="btn-muted" id="btn-cancel-wo">Cancel</button>
   </div>
 </div>
 
-<!-- MODAL: DEL WO -->
-<div class="overlay" id="mdw">
+<!-- ═══ MODAL: ADD / EDIT PLAN ITEM ═══ -->
+<div class="overlay" id="modal-add-item">
   <div class="sheet">
-    <div class="sh-handle"></div>
+    <div class="sheet-handle"></div>
+    <h2 id="modal-item-title">Add Planned Item</h2>
+    <div class="type-row" id="type-row">
+      <button class="type-btn sel-nr" id="tbtn-nr" onclick="setType('non-rotating')">Non-Rotating</button>
+      <button class="type-btn" id="tbtn-rot" onclick="setType('rotating')">Rotating</button>
+    </div>
+    <div class="field">
+      <label class="field-label">Item Number *</label>
+      <input class="field-input mono" id="inp-item-num" placeholder="e.g. I27317"
+        autocomplete="off" autocorrect="off" autocapitalize="characters">
+    </div>
+    <div class="field">
+      <label class="field-label">Storeroom *</label>
+      <input class="field-input mono" id="inp-storeroom" placeholder="e.g. ST050"
+        autocomplete="off" autocorrect="off" autocapitalize="characters">
+    </div>
+    <div class="field">
+      <label class="field-label" id="qty-label">Planned Quantity *</label>
+      <input class="field-input mono" id="inp-qty" type="number" min="1" placeholder="1" inputmode="numeric">
+    </div>
+    <div id="item-inherit-preview" style="display:none;margin-bottom:16px">
+      <div class="field-hint" style="color:var(--wo-color);font-weight:600">
+        ✦ This item will inherit from the work order:
+      </div>
+      <div id="item-inherit-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"></div>
+    </div>
+    <button class="btn-primary" id="btn-save-item">Add to Plan</button>
+    <button class="btn-muted" id="btn-cancel-item">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL: CONFIRM DELETE WO ═══ -->
+<div class="overlay" id="modal-del-wo">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
     <h2>Delete Work Order?</h2>
-    <p style="color:var(--text2);font-size:15px;line-height:1.65;margin-bottom:22px">Permanently removes this work order and all associated data. Cannot be undone.</p>
-    <button class="btn-d" id="cdw">Yes, Delete Work Order</button>
-    <button class="btn-m" id="ndw">Cancel</button>
+    <p style="color:var(--text-secondary);font-size:15px;line-height:1.65;margin-bottom:22px">
+      This permanently removes this work order, all planned items and all actuals. This cannot be undone.
+    </p>
+    <button class="btn-danger" id="btn-confirm-del">Yes, Delete Work Order</button>
+    <button class="btn-muted" id="btn-cancel-del">Cancel</button>
   </div>
 </div>
 
-<!-- MODAL: DEL ITEM -->
-<div class="overlay" id="mdi">
+<!-- ═══ MODAL: CONFIRM DELETE ITEM ═══ -->
+<div class="overlay" id="modal-del-item">
   <div class="sheet">
-    <div class="sh-handle"></div>
+    <div class="sheet-handle"></div>
     <h2>Remove Item?</h2>
-    <p style="color:var(--text2);font-size:15px;line-height:1.65;margin-bottom:22px">Removes this planned item and its recorded actuals.</p>
-    <button class="btn-d" id="cdi">Yes, Remove Item</button>
-    <button class="btn-m" id="ndi">Cancel</button>
+    <p style="color:var(--text-secondary);font-size:15px;line-height:1.65;margin-bottom:22px">
+      This removes the planned item and any recorded actuals for it.
+    </p>
+    <button class="btn-danger" id="btn-confirm-del-item">Yes, Remove Item</button>
+    <button class="btn-muted" id="btn-cancel-del-item">Cancel</button>
   </div>
 </div>
 
 <script>
-const APP_VER = '1.1.2';
-const KEY = 'maxplan_v112';
-const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,8);
-const esc = s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const $=id=>document.getElementById(id);
-function fdt(ts){
-  if(!ts)return'—';const d=new Date(ts);
-  const dd=String(d.getDate()).padStart(2,'0');
-  const mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
-  const yr=d.getFullYear();let h=d.getHours(),m=String(d.getMinutes()).padStart(2,'0');
-  const ap=h>=12?'pm':'am';h=h%12||12;return`${dd}/${mo}/${yr} ${h}:${m}${ap}`;
-}
-const now=()=>fdt(Date.now());
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CONSTANTS & STATE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const APP_VERSION = '1.1.3';
+const STORE_KEY   = 'maxplan_v113';
 
-let S={wos:[],cid:null,ctab:'plan',atype:'non-rotating',eid:null,ewo:false,pdel:null,_st:'APPR',_id:'',_cd:''};
-function load(){try{const r=localStorage.getItem(KEY);if(r)S.wos=JSON.parse(r).wos||[];}catch(e){}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify({wos:S.wos}));}catch(e){}}
-const CWO=()=>S.wos.find(w=>w.id===S.cid)||null;
+let state = {
+  workOrders: [],
+  currentId: null, currentTab: 'plan',
+  addType: 'non-rotating',
+  editItemId: null, editWOMode: false,
+  pendingDelItemId: null
+};
 
-function getNRL(wo,item){
-  if(!wo.actuals)wo.actuals={};
-  if(!wo.actuals[item.id])wo.actuals[item.id]={};
-  const a=wo.actuals[item.id];
-  if(!a.issueLines||!a.issueLines.length)a.issueLines=[{id:uid(),qty:'',loc:'',dt:''}];
-  return a.issueLines;
-}
-function getSlots(wo,item){
-  if(!wo.actuals)wo.actuals={};
-  if(!wo.actuals[item.id])wo.actuals[item.id]={};
-  const a=wo.actuals[item.id];
-  if(!a.slots)a.slots=[];
-  const n=item.plannedQty||1;
-  while(a.slots.length<n)a.slots.push({id:uid(),an:'',loc:'',dt:''});
-  if(a.slots.length>n)a.slots=a.slots.slice(0,n);
-  return a.slots;
-}
-function nrTotal(wo,iid){
-  const a=(wo.actuals||{})[iid];
-  if(!a||!a.issueLines)return 0;
-  return a.issueLines.reduce((s,l)=>s+(parseInt(l.qty)||0),0);
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// UTILS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+
+function esc(s) {
+  return String(s ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// NAV
-function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));$(id).classList.add('active');}
-function goHome(){S.cid=null;showView('vh');renderHome();}
-function goWO(id){S.cid=id;S.ctab='plan';showView('vw');renderWO();}
-function goVer(){showView('vv');}
+function formatDT(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  const dd  = String(d.getDate()).padStart(2,'0');
+  const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+  let h = d.getHours(), m = String(d.getMinutes()).padStart(2,'0');
+  const ap = h >= 12 ? 'pm' : 'am';
+  h = h % 12 || 12;
+  return `${dd}/${mon}/${d.getFullYear()} ${h}:${m}${ap}`;
+}
 
-// HOME
-function renderHome(){
-  const el=$('hl');
-  const wos=[...S.wos].sort((a,b)=>b.createdAt-a.createdAt);
-  const secs=[{k:'INPRG',cls:'sb-inprg',lbl:'In Progress'},{k:'APPR',cls:'sb-appr',lbl:'Approved'},{k:'COMP',cls:'sb-comp',lbl:'Completed'}];
-  let html='',any=false;
-  secs.forEach(sec=>{
-    const list=wos.filter(w=>(w.status||'APPR')===sec.k);
-    if(!list.length)return;
-    any=true;
-    html+=`<div class="status-section"><div class="sec-head"><span class="sec-badge ${sec.cls}">${sec.lbl} (${list.length})</span><div class="sec-head-line"></div></div>`;
-    list.forEach(wo=>{
-      const pc=(wo.planItems||[]).length;
-      const dc=(wo.planItems||[]).filter(item=>{
-        const a=(wo.actuals||{})[item.id];if(!a)return false;
-        if(item.type==='non-rotating')return(a.issueLines||[]).some(l=>parseInt(l.qty)>0);
-        return(a.slots||[]).some(s=>s.an&&s.an.trim());
-      }).length;
-      const st=wo.status||'APPR';
-      const mc={APPR:'ms-appr',INPRG:'ms-inprg',COMP:'ms-comp'}[st];
-      html+=`<div class="wo-card" data-id="${wo.id}">
-        <div class="wo-dot">🔧</div>
-        <div class="wo-body">
-          <div class="wo-num">${esc(wo.woNumber)}<span class="ms ${mc}">${st}</span></div>
-          <div class="wo-desc">${wo.title?esc(wo.title):'<em style="opacity:.5">No title</em>'}</div>
-        </div>
-        <div class="wo-right">
-          <div class="wo-count">${pc} item${pc!==1?'s':''}</div>
-          ${dc>0?`<div class="wo-done">✓ ${dc} actual${dc!==1?'s':''}</div>`:''}
-        </div>
-        <div class="wo-chev">›</div>
-      </div>`;
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// STORAGE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) state.workOrders = JSON.parse(raw).workOrders || [];
+  } catch(e) {}
+}
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({ workOrders: state.workOrders })); } catch(e) {}
+}
+function currentWO() { return state.workOrders.find(w => w.id === state.currentId) || null; }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SLOT MANAGEMENT
+// Each slot = one issued unit line in the Actual tab.
+// Fields per slot:
+//   Non-rotating: issued(bool), location(str), woAsset(str)
+//   Rotating:     rotatingAsset(str), location(str), woAsset(str)
+//
+// inheritedLocation / inheritedWoAsset are snapshotted from
+// the WO at the time the plan item was created. They are used
+// to PRE-FILL newly initialised slots only.
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function getSlots(wo, item) {
+  if (!wo.actuals) wo.actuals = {};
+  if (!wo.actuals[item.id]) wo.actuals[item.id] = { slots: [] };
+  const act = wo.actuals[item.id];
+  if (!act.slots) act.slots = [];
+  const needed = item.plannedQty || 1;
+
+  // Grow: pre-fill new slots with the inherited values from the plan item
+  while (act.slots.length < needed) {
+    act.slots.push({
+      id: uid(),
+      issued: false,
+      rotatingAsset: '',
+      location: item.inheritedLocation || '',
+      woAsset: item.inheritedWoAsset || ''
     });
-    html+=`</div>`;
-  });
-  if(!any)html=`<div class="empty"><div class="empty-icon">📋</div><h3>No Work Orders</h3><p>Tap <strong>+</strong> to create your first work order.</p></div>`;
-  html+=`<div class="ver-footer"><button class="ver-pill" id="bv2">MaxPlan v${APP_VER}</button></div>`;
-  el.innerHTML=html;
-  el.querySelectorAll('.wo-card').forEach(c=>c.addEventListener('click',()=>goWO(c.dataset.id)));
-  $('bv2').addEventListener('click',goVer);
-}
-
-// WO VIEW
-function renderWO(){
-  const wo=CWO();if(!wo)return goHome();
-  $('wt').textContent=wo.woNumber;
-  $('ws').textContent=wo.title||'No title';
-  const st=wo.status||'APPR';
-  const pill=$('wsp');
-  pill.textContent=st;
-  pill.className='sph '+{APPR:'sph-appr',INPRG:'sph-inprg',COMP:'sph-comp'}[st];
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===S.ctab));
-  $('fa').style.display=S.ctab==='plan'?'flex':'none';
-  if(S.ctab==='plan')renderPlan();
-  else if(S.ctab==='actual')renderActual();
-  else renderSummary();
-}
-
-// PLAN TAB
-function renderPlan(){
-  const wo=CWO();const el=$('wc');const items=wo.planItems||[];
-  let top='';
-  if(wo.longDescription)top+=`<div class="notes-block">📝 ${esc(wo.longDescription)}</div>`;
-  if(wo.location)top+=`<div style="font-size:12px;color:var(--text2);margin-bottom:16px">📍 <strong style="color:var(--text)">${esc(wo.location)}</strong></div>`;
-  if(!items.length){el.innerHTML=top+`<div class="empty"><div class="empty-icon">📦</div><h3>No Planned Items</h3><p>Tap <strong>+</strong> to add items.</p></div>`;return;}
-  const nr=items.filter(i=>i.type==='non-rotating');
-  const rot=items.filter(i=>i.type==='rotating');
-  const card=(item,lbl,bc)=>`<div class="item-card">
-    <div class="ich"><span class="badge ${bc}">${lbl}</span><span class="inum">${esc(item.itemNumber)}</span>
-    <div class="iact"><button class="iab" data-edit="${item.id}">✏️</button><button class="iab del" data-del="${item.id}">✕</button></div></div>
-    <div class="imeta">
-      <div class="mc"><span class="ml">Storeroom</span><span class="mv">${esc(item.storeroom)}</span></div>
-      <div class="mc"><span class="ml">Planned Qty</span><span class="mv">${item.plannedQty}</span></div>
-      <div class="mc"><span class="ml">Reserved</span><span class="mv ds">${fdt(item.createdAt)}</span></div>
-    </div></div>`;
-  let html=top;
-  if(nr.length)html+=`<div class="section-block"><div class="list-label">Non-Rotating (${nr.length})</div>${nr.map(i=>card(i,'Non-Rotating','badge-nr')).join('')}</div>`;
-  if(rot.length)html+=`<div class="section-block"><div class="list-label">Rotating (${rot.length})</div>${rot.map(i=>card(i,'Rotating','badge-rot')).join('')}</div>`;
-  el.innerHTML=html;
-  el.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openEditItem(b.dataset.edit)));
-  el.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{S.pdel=b.dataset.del;openM('mdi');}));
-}
-
-// ACTUAL TAB
-function renderActual(){
-  const wo=CWO();const el=$('wc');const items=wo.planItems||[];
-  if(!items.length){el.innerHTML=`<div class="empty"><div class="empty-icon">✅</div><h3>No Items</h3><p>Add planned items first.</p></div>`;return;}
-  const nr=items.filter(i=>i.type==='non-rotating');
-  const rot=items.filter(i=>i.type==='rotating');
-  let html='';
-
-  if(nr.length){
-    html+=`<div class="section-block"><div class="list-label">Non-Rotating Actuals (${nr.length})</div>`;
-    nr.forEach(item=>{
-      const lines=getNRL(wo,item);
-      const tot=lines.reduce((s,l)=>s+(parseInt(l.qty)||0),0);
-      const rem=item.plannedQty-tot;
-      const pct=item.plannedQty>0?Math.min(100,Math.round((tot/item.plannedQty)*100)):0;
-      html+=`<div class="actual-card">
-        <div class="ich" style="margin-bottom:9px"><span class="badge badge-nr">Non-Rotating</span><span class="inum">${esc(item.itemNumber)}</span></div>
-        <div class="plan-ref">Storeroom: <strong>${esc(item.storeroom)}</strong> &nbsp;·&nbsp; Planned: <strong>${item.plannedQty}</strong> &nbsp;·&nbsp; Reserved: <strong>${fdt(item.createdAt)}</strong></div>
-        <div class="prog-wrap"><div class="prog-track"><div class="prog-fill${rem<0?' over':''}" id="pf${item.id}" style="width:${pct}%"></div></div>
-        <div class="prog-leg"><span id="pl${item.id}">${tot} of ${item.plannedQty} issued</span><span>${pct}%</span></div></div>
-        <div id="il${item.id}">${lines.map((l,i)=>nrLineHtml(item.id,l,i,lines.length)).join('')}</div>
-        <div class="rem-bar${rem<=0?' done-bar':''}" id="rb${item.id}">
-          <span>${rem<=0?'✓ All units accounted for':`${rem} of ${item.plannedQty} remaining`}</span>
-          ${rem>0?`<button class="add-line-btn" onclick="addLine('${item.id}')">+ Add Issue Line</button>`:''}
-        </div>
-      </div>`;
-    });
-    html+=`</div>`;
   }
-
-  if(rot.length){
-    html+=`<div class="section-block"><div class="list-label">Rotating Actuals (${rot.length})</div>`;
-    rot.forEach(item=>{
-      const slots=getSlots(wo,item);
-      const dn=slots.filter(s=>s.an&&s.an.trim()).length;
-      const pct=item.plannedQty>0?Math.round((dn/item.plannedQty)*100):0;
-      html+=`<div class="actual-card">
-        <div class="ich" style="margin-bottom:9px"><span class="badge badge-rot">Rotating</span><span class="inum">${esc(item.itemNumber)}</span></div>
-        <div class="plan-ref">Storeroom: <strong>${esc(item.storeroom)}</strong> &nbsp;·&nbsp; Planned: <strong>${item.plannedQty}</strong> &nbsp;·&nbsp; Reserved: <strong>${fdt(item.createdAt)}</strong></div>
-        <div class="prog-wrap"><div class="prog-track"><div class="prog-fill" id="pf${item.id}" style="width:${pct}%"></div></div>
-        <div class="prog-leg"><span id="pl${item.id}">${dn} of ${item.plannedQty} assets recorded</span><span>${pct}%</span></div></div>
-        ${slots.map((s,i)=>rotSlotHtml(item.id,s,i,item.plannedQty)).join('')}
-      </div>`;
-    });
-    html+=`</div>`;
-  }
-
-  save();el.innerHTML=html;
+  // Trim if qty reduced
+  if (act.slots.length > needed) act.slots = act.slots.slice(0, needed);
+  return act.slots;
 }
 
-function nrLineHtml(iid,line,idx,tot){
-  const hq=!!(line.qty&&parseInt(line.qty)>0);
-  return`<div class="issue-line${hq?' has-qty':''}" id="nl${line.id}">
-    <div class="il-head">
-      <span class="il-lbl${hq?' filled':''}">Issue Line ${idx+1}</span>
-      ${tot>1?`<button class="il-rm" data-i="${iid}" data-l="${line.id}" onclick="rmLine(this)">✕</button>`:''}
-    </div>
-    <div class="ig">
-      <div class="sf"><span class="sf-l">Qty to Issue</span>
-        <input class="sf-i ni" type="number" min="0" inputmode="numeric" value="${esc(String(line.qty))}" placeholder="0" data-i="${iid}" data-l="${line.id}" data-f="qty" oninput="nrIn(this)"></div>
-      <div class="sf"><span class="sf-l">Maximo Location</span>
-        <input class="sf-i" type="text" placeholder="e.g. PUMP-ROOM-A" value="${esc(line.loc)}" autocomplete="off" autocorrect="off" autocapitalize="characters" data-i="${iid}" data-l="${line.id}" data-f="loc" oninput="nrIn(this)"></div>
-    </div>
-    <div class="sf"><span class="sf-l">Actual Date</span>
-      <input class="sf-i di" type="text" placeholder="Auto-fills on entry — or type manually" value="${esc(line.dt)}" data-i="${iid}" data-l="${line.id}" data-f="dt" oninput="nrIn(this)"></div>
-  </div>`;
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// NAVIGATION
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
+function goHome()     { state.currentId = null; showView('view-home');     renderHome(); }
+function goToWO(id)   { state.currentId = id; state.currentTab = 'plan'; showView('view-wo'); renderWOView(); }
+function goVersions() { showView('view-versions'); }
 
-function rotSlotHtml(iid,slot,idx,tot){
-  const ha=!!(slot.an&&slot.an.trim());
-  return`<div class="slot-row${ha?' has-asset':''}" id="sl${slot.id}">
-    <div class="sh"><span class="sl${ha?' done':''}">Asset ${idx+1} of ${tot}</span>${ha?'<span style="font-size:14px;color:var(--rot);font-weight:700">✓</span>':''}</div>
-    <div class="sf"><span class="sf-l">Asset Number</span>
-      <input class="sf-i ai" type="text" placeholder="e.g. EQ-00123" value="${esc(slot.an)}" autocomplete="off" autocorrect="off" autocapitalize="characters" data-i="${iid}" data-s="${slot.id}" data-f="an" oninput="rotIn(this)"></div>
-    <div class="sf"><span class="sf-l">Maximo Location</span>
-      <input class="sf-i" type="text" placeholder="e.g. PUMP-ROOM-A" value="${esc(slot.loc)}" autocomplete="off" autocorrect="off" autocapitalize="characters" data-i="${iid}" data-s="${slot.id}" data-f="loc" oninput="rotIn(this)"></div>
-    <div class="sf"><span class="sf-l">Actual Date</span>
-      <input class="sf-i di" type="text" placeholder="Auto-fills on entry — or type manually" value="${esc(slot.dt)}" data-i="${iid}" data-s="${slot.id}" data-f="dt" oninput="rotIn(this)"></div>
-  </div>`;
-}
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDER HOME
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderHome() {
+  const el  = document.getElementById('home-list');
+  const wos = [...state.workOrders].sort((a,b) => b.createdAt - a.createdAt);
+  let html  = '';
 
-function nrIn(inp){
-  const wo=CWO();if(!wo)return;
-  const iid=inp.dataset.i,lid=inp.dataset.l,f=inp.dataset.f,v=inp.value;
-  const a=wo.actuals[iid];if(!a||!a.issueLines)return;
-  const line=a.issueLines.find(l=>l.id===lid);if(!line)return;
-  if(f==='qty'&&v&&parseInt(v)>0&&!line.dt){
-    line.dt=now();
-    const row=$(`nl${lid}`);
-    if(row){const di=row.querySelector('[data-f="dt"]');if(di&&!di.value)di.value=line.dt;}
-  }
-  line[f]=v;save();
-  const row=$(`nl${lid}`);
-  if(row){
-    const hq=!!(line.qty&&parseInt(line.qty)>0);
-    row.classList.toggle('has-qty',hq);
-    const lb=row.querySelector('.il-lbl');if(lb)lb.classList.toggle('filled',hq);
-  }
-  const item=(wo.planItems||[]).find(i=>i.id===iid);if(item)refreshNR(wo,item);
-}
-
-function refreshNR(wo,item){
-  const lines=(wo.actuals[item.id]||{}).issueLines||[];
-  const tot=lines.reduce((s,l)=>s+(parseInt(l.qty)||0),0);
-  const rem=item.plannedQty-tot;
-  const pct=item.plannedQty>0?Math.min(100,Math.round((tot/item.plannedQty)*100)):0;
-  const pf=$(`pf${item.id}`);const pl=$(`pl${item.id}`);
-  if(pf){pf.style.width=`${pct}%`;pf.className=`prog-fill${rem<0?' over':''}`;}
-  if(pl)pl.textContent=`${tot} of ${item.plannedQty} issued`;
-  const rb=$(`rb${item.id}`);
-  if(rb){
-    rb.className=`rem-bar${rem<=0?' done-bar':''}`;
-    rb.innerHTML=`<span>${rem<=0?'✓ All units accounted for':`${rem} of ${item.plannedQty} remaining`}</span>${rem>0?`<button class="add-line-btn" onclick="addLine('${item.id}')">+ Add Issue Line</button>`:''}`;
-  }
-}
-
-function addLine(iid){
-  const wo=CWO();if(!wo)return;
-  const item=(wo.planItems||[]).find(i=>i.id===iid);if(!item)return;
-  const a=wo.actuals[iid];if(!a)return;
-  const nl={id:uid(),qty:'',loc:'',dt:''};
-  a.issueLines.push(nl);save();
-  const container=$(`il${iid}`);
-  if(container){
-    container.innerHTML=a.issueLines.map((l,i)=>nrLineHtml(iid,l,i,a.issueLines.length)).join('');
-    setTimeout(()=>{const last=container.lastElementChild;if(last)last.scrollIntoView({behavior:'smooth',block:'nearest'});},100);
-  }
-  refreshNR(wo,item);
-}
-
-function rmLine(btn){
-  const iid=btn.dataset.i,lid=btn.dataset.l;
-  const wo=CWO();if(!wo)return;
-  const a=wo.actuals[iid];if(!a||!a.issueLines||a.issueLines.length<=1)return;
-  a.issueLines=a.issueLines.filter(l=>l.id!==lid);save();
-  const item=(wo.planItems||[]).find(i=>i.id===iid);
-  const container=$(`il${iid}`);
-  if(container&&item){
-    container.innerHTML=a.issueLines.map((l,i)=>nrLineHtml(iid,l,i,a.issueLines.length)).join('');
-    refreshNR(wo,item);
-  }
-}
-
-function rotIn(inp){
-  const wo=CWO();if(!wo)return;
-  const iid=inp.dataset.i,sid=inp.dataset.s,f=inp.dataset.f,v=inp.value;
-  const a=wo.actuals[iid];if(!a||!a.slots)return;
-  const slot=a.slots.find(s=>s.id===sid);if(!slot)return;
-  if(f==='an'&&v.trim()&&!slot.dt){
-    slot.dt=now();
-    const row=$(`sl${sid}`);
-    if(row){const di=row.querySelector('[data-f="dt"]');if(di&&!di.value)di.value=slot.dt;}
-  }
-  slot[f]=v;save();
-  if(f==='an'){
-    const ha=!!(slot.an&&slot.an.trim());
-    const row=$(`sl${sid}`);
-    if(row){row.classList.toggle('has-asset',ha);const lb=row.querySelector('.sl');if(lb)lb.classList.toggle('done',ha);}
-    const item=(wo.planItems||[]).find(i=>i.id===iid);
-    if(item){
-      const dn=a.slots.filter(s=>s.an&&s.an.trim()).length;
-      const pct=item.plannedQty>0?Math.round((dn/item.plannedQty)*100):0;
-      const pf=$(`pf${iid}`);const pl=$(`pl${iid}`);
-      if(pf)pf.style.width=`${pct}%`;
-      if(pl)pl.textContent=`${dn} of ${item.plannedQty} assets recorded`;
-    }
-  }
-}
-
-// SUMMARY TAB
-function renderSummary(){
-  const wo=CWO();const el=$('wc');const items=wo.planItems||[];
-  if(!items.length){el.innerHTML=`<div class="empty"><div class="empty-icon">📊</div><h3>No Data</h3><p>Add planned items first.</p></div>`;return;}
-  const nr=items.filter(i=>i.type==='non-rotating');
-  const rot=items.filter(i=>i.type==='rotating');
-  const gst=item=>{
-    const a=(wo.actuals||{})[item.id];if(!a)return'pending';
-    if(item.type==='non-rotating'){const n=(a.issueLines||[]).reduce((s,l)=>s+(parseInt(l.qty)||0),0);return n===0?'pending':n<item.plannedQty?'partial':'done';}
-    const n=(a.slots||[]).filter(s=>s.an&&s.an.trim()).length;return n===0?'pending':n<item.plannedQty?'partial':'done';
-  };
-  const dn=items.filter(i=>gst(i)==='done').length;
-  const pn=items.filter(i=>gst(i)==='partial').length;
-  const pct=items.length?Math.round(((dn+pn*.5)/items.length)*100):0;
-  const pill=st=>({done:`<span class="sp sp-done">✓ Done</span>`,partial:`<span class="sp sp-partial">Partial</span>`,pending:`<span class="sp sp-pending">Pending</span>`}[st]);
-  const wst=wo.status||'APPR';
-  const sc={APPR:'var(--appr)',INPRG:'var(--inprg)',COMP:'var(--comp)'}[wst];
-
-  let html=`<div class="sum-hdr"><h3>Work Order Summary</h3>
-    <div class="sum-stats">
-      <div class="stat-box"><span class="sv">${items.length}</span><span class="sl2">Total Items</span></div>
-      <div class="stat-box"><span class="sv">${dn}</span><span class="sl2">Completed</span></div>
-      <div class="stat-box"><span class="sv">${pct}%</span><span class="sl2">Progress</span></div>
-    </div></div>
-    <div style="background:var(--surface);border-radius:var(--radius);padding:13px 15px;margin-bottom:14px;border:1px solid var(--border);box-shadow:var(--shadow)">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:8px">Work Order Details</div>
-      <div class="sum-row"><span>WO Number</span><strong>${esc(wo.woNumber)}</strong></div>
-      ${wo.title?`<div class="sum-row"><span>Title</span><strong style="font-family:inherit">${esc(wo.title)}</strong></div>`:''}
-      ${wo.location?`<div class="sum-row"><span>Location</span><strong>${esc(wo.location)}</strong></div>`:''}
-      <div class="sum-row"><span>Status</span><strong style="color:${sc}">${wst}</strong></div>
-      ${wo.inprgDate?`<div class="sum-row"><span>Started</span><strong style="font-family:inherit;font-size:12px">${esc(wo.inprgDate)}</strong></div>`:''}
-      ${wo.compDate?`<div class="sum-row"><span>Completed</span><strong style="font-family:inherit;font-size:12px">${esc(wo.compDate)}</strong></div>`:''}
-    </div>
-    <button class="export-btn" id="exb">📋 &nbsp;Copy Summary to Clipboard</button>
-    <div class="copy-ok" id="cok">✓ Copied!</div>`;
-
-  if(nr.length){
-    html+=`<div class="sum-sec"><div class="list-label">Non-Rotating Items</div>`;
-    nr.forEach(item=>{
-      const a=(wo.actuals||{})[item.id]||{};
-      const lines=(a.issueLines||[]).filter(l=>parseInt(l.qty)>0);
-      const tot=lines.reduce((s,l)=>s+(parseInt(l.qty)||0),0);
-      const st=gst(item);
-      html+=`<div class="sum-item"><div class="sum-ih"><span class="badge badge-nr">Non-Rot</span><span class="sin">${esc(item.itemNumber)}</span>${pill(st)}</div>
-        <div class="sum-row"><span>Storeroom</span><strong>${esc(item.storeroom)}</strong></div>
-        <div class="sum-row"><span>Planned</span><strong>${item.plannedQty}</strong></div>
-        <div class="sum-row"><span>Total Issued</span><strong>${tot}</strong></div>
-        <div class="sum-row"><span>Reserved</span><strong style="font-family:inherit;font-size:12px">${fdt(item.createdAt)}</strong></div>
-        ${lines.map((l,i)=>`<div class="ss done"><div class="ss-h"><span class="ss-l done">Issue ${i+1}</span><span class="ss-v">${esc(String(l.qty))} unit${parseInt(l.qty)!==1?'s':''}</span></div>${l.loc?`<div class="ss-sub">Location: ${esc(l.loc)}</div>`:''}${l.dt?`<div class="ss-sub">Actual Date: ${esc(l.dt)}</div>`:''}</div>`).join('')}
-      </div>`;
-    });
-    html+=`</div>`;
-  }
-  if(rot.length){
-    html+=`<div class="sum-sec"><div class="list-label">Rotating Items</div>`;
-    rot.forEach(item=>{
-      const a=(wo.actuals||{})[item.id]||{};
-      const slots=a.slots||[];
-      const dn2=slots.filter(s=>s.an&&s.an.trim()).length;
-      const st=gst(item);
-      html+=`<div class="sum-item"><div class="sum-ih"><span class="badge badge-rot">Rotating</span><span class="sin">${esc(item.itemNumber)}</span>${pill(st)}</div>
-        <div class="sum-row"><span>Storeroom</span><strong>${esc(item.storeroom)}</strong></div>
-        <div class="sum-row"><span>Planned</span><strong>${item.plannedQty}</strong></div>
-        <div class="sum-row"><span>Assets Recorded</span><strong>${dn2} of ${item.plannedQty}</strong></div>
-        <div class="sum-row"><span>Reserved</span><strong style="font-family:inherit;font-size:12px">${fdt(item.createdAt)}</strong></div>
-        ${slots.map((s,i)=>{const d=!!(s.an&&s.an.trim());return`<div class="ss ${d?'done':''}"><div class="ss-h"><span class="ss-l ${d?'done':''}">Asset ${i+1}</span><span class="ss-v">${d?esc(s.an):'Pending'}</span></div>${s.loc?`<div class="ss-sub">Location: ${esc(s.loc)}</div>`:''}${s.dt?`<div class="ss-sub">Actual Date: ${esc(s.dt)}</div>`:''}</div>`;}).join('')}
-      </div>`;
-    });
-    html+=`</div>`;
-  }
-  if(wo.longDescription)html+=`<div class="sum-sec"><div class="list-label">Long Description</div><div class="notes-block">📝 ${esc(wo.longDescription)}</div></div>`;
-  el.innerHTML=html;
-  $('exb').addEventListener('click',doExport);
-}
-
-function doExport(){
-  const wo=CWO();if(!wo)return;
-  const items=wo.planItems||[];const L=[];
-  L.push('============================');L.push('MAXPLAN — WO MATERIAL SUMMARY');L.push('============================');
-  L.push(`WO Number  : ${wo.woNumber}`);
-  if(wo.title)L.push(`Title      : ${wo.title}`);
-  if(wo.location)L.push(`Location   : ${wo.location}`);
-  if(wo.longDescription)L.push(`Description: ${wo.longDescription}`);
-  L.push(`Status     : ${wo.status||'APPR'}`);
-  if(wo.inprgDate)L.push(`Started    : ${wo.inprgDate}`);
-  if(wo.compDate)L.push(`Completed  : ${wo.compDate}`);
-  L.push(`Exported   : ${now()}`);L.push('');
-  items.filter(i=>i.type==='non-rotating').forEach(item=>{
-    const a=(wo.actuals||{})[item.id]||{};
-    const ils=(a.issueLines||[]).filter(l=>parseInt(l.qty)>0);
-    const tot=ils.reduce((s,l)=>s+(parseInt(l.qty)||0),0);
-    L.push(`── NON-ROTATING: ${item.itemNumber}`);
-    L.push(`   Storeroom  : ${item.storeroom}`);
-    L.push(`   Planned Qty: ${item.plannedQty}`);
-    L.push(`   Total Issued: ${tot}`);
-    L.push(`   Reserved   : ${fdt(item.createdAt)}`);
-    ils.forEach((l,i)=>L.push(`   Issue ${i+1}    : ${l.qty} unit${parseInt(l.qty)!==1?'s':''}${l.loc?' · Loc: '+l.loc:''}${l.dt?' · Date: '+l.dt:''}`));
-    L.push('');
-  });
-  items.filter(i=>i.type==='rotating').forEach(item=>{
-    const a=(wo.actuals||{})[item.id]||{};
-    const slots=a.slots||[];
-    L.push(`── ROTATING: ${item.itemNumber}`);
-    L.push(`   Storeroom  : ${item.storeroom}`);
-    L.push(`   Planned Qty: ${item.plannedQty}`);
-    L.push(`   Reserved   : ${fdt(item.createdAt)}`);
-    slots.forEach((s,i)=>L.push(`   Asset ${i+1}    : ${s.an&&s.an.trim()?s.an:'Pending'}${s.loc?' · Loc: '+s.loc:''}${s.dt?' · Date: '+s.dt:''}`));
-    L.push('');
-  });
-  L.push('============================');
-  const txt=L.join('\n');
-  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(copiedOk).catch(()=>fbCopy(txt));
-  else fbCopy(txt);
-}
-function fbCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');copiedOk();}catch(e){alert(t);}document.body.removeChild(ta);}
-function copiedOk(){const e=$('cok');if(!e)return;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2800);}
-
-// STATUS MODAL
-function setSt(s){
-  S._st=s;
-  ['APPR','INPRG','COMP'].forEach(x=>{
-    const b=$({APPR:'sa',INPRG:'si',COMP:'sc'}[x]);
-    if(b)b.className='sts-btn'+(x===s?` sel-${x.toLowerCase()}`:'');
-  });
-  if(s==='INPRG'||s==='COMP'){const f=$('iid');if(f&&!f.value){f.value=now();S._id=f.value;}}
-  if(s==='COMP'){const f=$('icd');if(f&&!f.value){f.value=now();S._cd=f.value;}}
-  $('id-field').style.display=(s==='INPRG'||s==='COMP')?'':'none';
-  $('cd-field').style.display=s==='COMP'?'':'none';
-}
-
-function openWOModal(edit){
-  S.ewo=edit;
-  $('mwot').textContent=edit?'Edit Work Order':'New Work Order';
-  $('swo').textContent=edit?'Save Changes':'Create Work Order';
-  $('ss').style.display=edit?'':'none';
-  if(edit){
-    const wo=CWO();if(!wo)return;
-    $('iwn').value=wo.woNumber;
-    $('iwt').value=wo.title||'';
-    $('iwd').value=wo.longDescription||'';
-    $('iwl').value=wo.location||'';
-    S._st=wo.status||'APPR';S._id=wo.inprgDate||'';S._cd=wo.compDate||'';
-    ['APPR','INPRG','COMP'].forEach(x=>{
-      const b=$({APPR:'sa',INPRG:'si',COMP:'sc'}[x]);
-      if(b)b.className='sts-btn'+(x===S._st?` sel-${x.toLowerCase()}`:'');
-    });
-    $('iid').value=S._id;$('icd').value=S._cd;
-    $('id-field').style.display=(S._st==='INPRG'||S._st==='COMP')?'':'none';
-    $('cd-field').style.display=S._st==='COMP'?'':'none';
+  if (wos.length === 0) {
+    html = `<div class="empty">
+      <div class="empty-icon">📋</div><h3>No Work Orders</h3>
+      <p>Tap <strong>+</strong> to create your first work order and start planning materials.</p>
+    </div>`;
   } else {
-    $('iwn').value='';$('iwt').value='';$('iwd').value='';$('iwl').value='';
+    html += `<div class="list-label">${wos.length} work order${wos.length!==1?'s':''}</div>`;
+    wos.forEach(wo => {
+      const planCount  = (wo.planItems||[]).length;
+      const actuals    = wo.actuals||{};
+      const doneCount  = (wo.planItems||[]).filter(item => {
+        const a = actuals[item.id];
+        if (!a||!a.slots) return false;
+        return item.type==='non-rotating' ? a.slots.some(s=>s.issued) : a.slots.some(s=>s.rotatingAsset&&s.rotatingAsset.trim());
+      }).length;
+      // Build meta line
+      const metaParts = [];
+      if (wo.location) metaParts.push('📍 ' + wo.location);
+      if (wo.assetNumber) metaParts.push('⚙️ ' + wo.assetNumber);
+      html += `<div class="wo-card" data-id="${wo.id}">
+        <div class="wo-card-dot">🔧</div>
+        <div class="wo-card-body">
+          <div class="wo-card-num">${esc(wo.woNumber)}</div>
+          <div class="wo-card-desc">${wo.description?esc(wo.description):'<em style="opacity:.5">No description</em>'}</div>
+          ${metaParts.length?`<div class="wo-card-meta">${esc(metaParts.join('  '))}</div>`:''}
+        </div>
+        <div class="wo-card-right">
+          <div class="wo-card-count">${planCount} item${planCount!==1?'s':''}</div>
+          ${doneCount>0?`<div class="wo-card-done">✓ ${doneCount} actual${doneCount!==1?'s':''}</div>`:''}
+        </div>
+        <div class="wo-card-chevron">›</div>
+      </div>`;
+    });
   }
-  $('iwn').classList.remove('err');
-  openM('mwo');setTimeout(()=>$('iwn').focus(),300);
+
+  html += `<div class="version-footer">
+    <button class="version-pill" id="btn-show-versions">MaxPlan v${APP_VERSION}</button>
+  </div>`;
+
+  el.innerHTML = html;
+  el.querySelectorAll('.wo-card').forEach(c => c.addEventListener('click', () => goToWO(c.dataset.id)));
+  document.getElementById('btn-show-versions').addEventListener('click', goVersions);
 }
 
-// MODALS
-function openM(id){$(id).classList.add('open');}
-function closeM(id){$(id).classList.remove('open');}
-function setType(t){
-  S.atype=t;
-  $('tnr').className='type-btn'+(t==='non-rotating'?' sel-nr':'');
-  $('trot').className='type-btn'+(t==='rotating'?' sel-rot':'');
-  $('ql').textContent=t==='rotating'?'Planned Quantity (no. of assets) *':'Planned Quantity *';
-}
-function openEditItem(iid){
-  const wo=CWO();if(!wo)return;
-  const item=(wo.planItems||[]).find(i=>i.id===iid);if(!item)return;
-  S.eid=iid;
-  $('mit').textContent='Edit Planned Item';$('si2').textContent='Save Changes';
-  $('tr').style.display='none';S.atype=item.type;
-  $('iin').value=item.itemNumber;$('isr').value=item.storeroom;$('iq').value=item.plannedQty;
-  $('ql').textContent=item.type==='rotating'?'Planned Quantity (no. of assets) *':'Planned Quantity *';
-  ['iin','isr','iq'].forEach(id=>$(id).classList.remove('err'));
-  openM('mi');setTimeout(()=>$('iin').focus(),300);
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDER WO VIEW
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderWOView() {
+  const wo = currentWO(); if (!wo) return goHome();
+  document.getElementById('wo-title').textContent = wo.woNumber;
+  document.getElementById('wo-sub').textContent   = wo.description || 'No description';
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === state.currentTab));
+  document.getElementById('fab-add-item').style.display = state.currentTab==='plan' ? 'flex' : 'none';
+  if      (state.currentTab==='plan')   renderPlanTab();
+  else if (state.currentTab==='actual') renderActualTab();
+  else                                  renderSummaryTab();
 }
 
-// VERSION CHECK
-async function chkVer(){
-  if(sessionStorage.getItem('vchk'))return;sessionStorage.setItem('vchk','1');
-  try{const r=await fetch('./version.json?_='+Date.now(),{cache:'no-store'});const d=await r.json();
-    if(d.version&&d.version!==APP_VER){$('um').textContent=`MaxPlan v${d.version} is available — tap to update.`;$('ub').classList.add('show');}
-  }catch(e){}
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDER PLAN TAB
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderPlanTab() {
+  const wo    = currentWO();
+  const el    = document.getElementById('wo-content');
+  const items = wo.planItems || [];
+
+  let notesHtml = '';
+  if (wo.notes) notesHtml += `<div class="notes-block">📝 ${esc(wo.notes)}</div>`;
+
+  // WO-level info banner
+  if (wo.location || wo.assetNumber) {
+    notesHtml += `<div style="background:var(--wo-bg);border:1px solid rgba(124,58,237,.2);
+      border-radius:var(--radius-sm);padding:11px 13px;margin-bottom:16px;font-size:13px;color:var(--wo-color)">
+      <strong>WO-level defaults</strong> — new items added to the plan will inherit these values in the Actual tab:
+      ${wo.location ? `<div style="margin-top:5px">📍 <strong>Location of Work:</strong> ${esc(wo.location)}</div>` : ''}
+      ${wo.assetNumber ? `<div style="margin-top:3px">⚙️ <strong>Asset Number:</strong> ${esc(wo.assetNumber)}</div>` : ''}
+      <div style="font-size:11px;opacity:.7;margin-top:6px">To apply updated values to existing items, remove and re-add them.</div>
+    </div>`;
+  }
+
+  if (items.length === 0) {
+    el.innerHTML = notesHtml + `<div class="empty">
+      <div class="empty-icon">📦</div><h3>No Planned Items</h3>
+      <p>Tap <strong>+</strong> to add non-rotating or rotating items.</p>
+    </div>`;
+    return;
+  }
+
+  const nr  = items.filter(i => i.type==='non-rotating');
+  const rot = items.filter(i => i.type==='rotating');
+
+  const itemCard = item => {
+    const isRot = item.type==='rotating';
+    const chips = [];
+    if (item.inheritedLocation) chips.push(`📍 ${esc(item.inheritedLocation)}`);
+    if (item.inheritedWoAsset)  chips.push(`⚙️ ${esc(item.inheritedWoAsset)}`);
+    return `<div class="item-card">
+      <div class="item-card-head">
+        <span class="badge ${isRot?'badge-rot':'badge-nr'}">${isRot?'Rotating':'Non-Rotating'}</span>
+        <span class="item-num">${esc(item.itemNumber)}</span>
+        <div class="item-actions">
+          <button class="item-action-btn" data-edit="${item.id}">✏️</button>
+          <button class="item-action-btn del" data-del="${item.id}">✕</button>
+        </div>
+      </div>
+      <div class="item-meta">
+        <div class="meta-col"><span class="meta-lbl">Storeroom</span><span class="meta-val">${esc(item.storeroom)}</span></div>
+        <div class="meta-col"><span class="meta-lbl">Planned Qty</span><span class="meta-val">${item.plannedQty}</span></div>
+        <div class="meta-col"><span class="meta-lbl">Reserved</span><span class="meta-val date-stamp">${formatDT(item.createdAt)}</span></div>
+      </div>
+      ${chips.length ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">
+        ${chips.map(c=>`<span class="inherit-chip"><span>inherits</span> ${c}</span>`).join('')}
+      </div>` : ''}
+    </div>`;
+  };
+
+  let html = notesHtml;
+  if (nr.length>0)  html += `<div class="section-block"><div class="list-label">Non-Rotating (${nr.length})</div>${nr.map(itemCard).join('')}</div>`;
+  if (rot.length>0) html += `<div class="section-block"><div class="list-label">Rotating (${rot.length})</div>${rot.map(itemCard).join('')}</div>`;
+
+  el.innerHTML = html;
+  el.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openEditItem(b.dataset.edit)));
+  el.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
+    state.pendingDelItemId = b.dataset.del; openModal('modal-del-item');
+  }));
 }
 
-// INIT
-document.addEventListener('DOMContentLoaded',()=>{
-  load();renderHome();chkVer();
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDER ACTUAL TAB
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderActualTab() {
+  const wo    = currentWO();
+  const el    = document.getElementById('wo-content');
+  const items = wo.planItems || [];
 
-  $('bb').addEventListener('click',goHome);
-  $('bv').addEventListener('click',goHome);
-  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{S.ctab=t.dataset.tab;renderWO();}));
-  $('wt').addEventListener('click',()=>openWOModal(true));
-  $('fn').addEventListener('click',()=>openWOModal(false));
+  if (items.length===0) {
+    el.innerHTML = `<div class="empty">
+      <div class="empty-icon">✅</div><h3>No Items to Record</h3>
+      <p>Add planned items in the <strong>Plan</strong> tab first.</p>
+    </div>`; return;
+  }
 
-  $('swo').addEventListener('click',()=>{
-    const num=$('iwn').value.trim().toUpperCase();
-    if(!num){$('iwn').classList.add('err');return;}
-    $('iwn').classList.remove('err');
-    const fields={woNumber:num,title:$('iwt').value.trim(),longDescription:$('iwd').value.trim(),location:$('iwl').value.trim().toUpperCase()};
-    if(S.ewo){
-      const wo=CWO();if(!wo)return;
-      Object.assign(wo,fields);
-      wo.status=S._st;wo.inprgDate=$('iid').value.trim();wo.compDate=$('icd').value.trim();
-      save();closeM('mwo');renderWO();
-    } else {
-      const wo={id:uid(),...fields,status:'APPR',inprgDate:'',compDate:'',createdAt:Date.now(),planItems:[],actuals:{}};
-      S.wos.push(wo);save();closeM('mwo');goWO(wo.id);
+  const nr  = items.filter(i=>i.type==='non-rotating');
+  const rot = items.filter(i=>i.type==='rotating');
+  let html  = '';
+
+  // ── NON-ROTATING ──
+  if (nr.length>0) {
+    html += `<div class="section-block"><div class="list-label">Non-Rotating Actuals (${nr.length})</div>`;
+    nr.forEach(item => {
+      const slots   = getSlots(wo, item);
+      const issuedN = slots.filter(s=>s.issued).length;
+      const pct     = item.plannedQty>0 ? Math.round((issuedN/item.plannedQty)*100) : 0;
+      html += `<div class="actual-card">
+        <div class="item-card-head" style="margin-bottom:9px">
+          <span class="badge badge-nr">Non-Rotating</span>
+          <span class="item-num">${esc(item.itemNumber)}</span>
+        </div>
+        <div class="plan-ref">
+          Storeroom: <strong>${esc(item.storeroom)}</strong> &nbsp;·&nbsp;
+          Planned: <strong>${item.plannedQty}</strong> &nbsp;·&nbsp;
+          Reserved: <strong>${formatDT(item.createdAt)}</strong>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-track"><div class="progress-fill" id="pf-${item.id}" style="width:${pct}%"></div></div>
+          <div class="progress-legend">
+            <span id="prog-lbl-${item.id}">${issuedN} of ${item.plannedQty} issued</span>
+            <span>${pct}%</span>
+          </div>
+        </div>`;
+      slots.forEach((slot, idx) => {
+        const hasLoc    = !!(slot.location && slot.location.trim());
+        const hasAsset  = !!(slot.woAsset && slot.woAsset.trim());
+        const locInherited   = hasLoc  && slot.location === item.inheritedLocation;
+        const assetInherited = hasAsset && slot.woAsset  === item.inheritedWoAsset;
+        html += `<div class="slot-row${slot.issued?' issued':''}" id="slot-${slot.id}">
+          <div class="slot-header">
+            <span class="slot-label${slot.issued?' done-nr':''}" id="slbl-${slot.id}">Unit ${idx+1} of ${item.plannedQty}</span>
+            <button class="issue-toggle ${slot.issued?'on':'off'}"
+              data-item="${item.id}" data-slot="${slot.id}" onclick="toggleIssue(this)">
+              ${slot.issued ? '✓ Issued' : 'Not Issued'}
+            </button>
+          </div>
+          <div class="slot-fields">
+            <div class="slot-field-group">
+              <div class="slot-micro-lbl${assetInherited?' inherited':''}">Asset Number${assetInherited?' (from WO)':''}</div>
+              <input class="slot-input${assetInherited?' inherited-val':''}" type="text"
+                placeholder="e.g. EQ-00456"
+                value="${esc(slot.woAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+                data-item="${item.id}" data-slot="${slot.id}" data-field="woAsset"
+                oninput="handleSlotInput(this)">
+            </div>
+            <div class="slot-field-group">
+              <div class="slot-micro-lbl${locInherited?' inherited':''}">Location of Work${locInherited?' (from WO)':''}</div>
+              <input class="slot-input${locInherited?' inherited-val':''}" type="text"
+                placeholder="e.g. PUMP-ROOM-A"
+                value="${esc(slot.location)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+                data-item="${item.id}" data-slot="${slot.id}" data-field="location"
+                oninput="handleSlotInput(this)">
+            </div>
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
+    });
+    html += `</div>`;
+  }
+
+  // ── ROTATING ──
+  if (rot.length>0) {
+    html += `<div class="section-block"><div class="list-label">Rotating Actuals (${rot.length})</div>`;
+    rot.forEach(item => {
+      const slots  = getSlots(wo, item);
+      const doneN  = slots.filter(s=>s.rotatingAsset&&s.rotatingAsset.trim()).length;
+      const pct    = item.plannedQty>0 ? Math.round((doneN/item.plannedQty)*100) : 0;
+      html += `<div class="actual-card">
+        <div class="item-card-head" style="margin-bottom:9px">
+          <span class="badge badge-rot">Rotating</span>
+          <span class="item-num">${esc(item.itemNumber)}</span>
+        </div>
+        <div class="plan-ref">
+          Storeroom: <strong>${esc(item.storeroom)}</strong> &nbsp;·&nbsp;
+          Planned: <strong>${item.plannedQty}</strong> &nbsp;·&nbsp;
+          Reserved: <strong>${formatDT(item.createdAt)}</strong>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-track"><div class="progress-fill" id="pf-${item.id}" style="width:${pct}%"></div></div>
+          <div class="progress-legend">
+            <span id="prog-lbl-${item.id}">${doneN} of ${item.plannedQty} assets recorded</span>
+            <span>${pct}%</span>
+          </div>
+        </div>`;
+      slots.forEach((slot, idx) => {
+        const hasDone   = !!(slot.rotatingAsset&&slot.rotatingAsset.trim());
+        const hasLoc    = !!(slot.location&&slot.location.trim());
+        const hasAsset  = !!(slot.woAsset&&slot.woAsset.trim());
+        const locInherited   = hasLoc  && slot.location === item.inheritedLocation;
+        const assetInherited = hasAsset && slot.woAsset  === item.inheritedWoAsset;
+        html += `<div class="slot-row${hasDone?' has-asset':''}" id="slot-${slot.id}">
+          <div class="slot-header">
+            <span class="slot-label${hasDone?' done-rot':''}" id="slbl-${slot.id}">Asset ${idx+1} of ${item.plannedQty}</span>
+            ${hasDone?`<span style="font-size:13px;color:var(--rot-color);font-weight:700">✓</span>`:''}
+          </div>
+          <div class="slot-fields">
+            <div class="slot-field-group">
+              <div class="slot-micro-lbl" style="color:var(--rot-color)">Rotating Asset Number</div>
+              <input class="slot-input rot-asset" type="text"
+                placeholder="e.g. EQ-00123"
+                value="${esc(slot.rotatingAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+                data-item="${item.id}" data-slot="${slot.id}" data-field="rotatingAsset"
+                oninput="handleSlotInput(this)">
+            </div>
+            <div class="slot-field-group">
+              <div class="slot-micro-lbl${assetInherited?' inherited':''}">Asset Number${assetInherited?' (from WO)':''}</div>
+              <input class="slot-input${assetInherited?' inherited-val':''}" type="text"
+                placeholder="e.g. EQ-00456"
+                value="${esc(slot.woAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+                data-item="${item.id}" data-slot="${slot.id}" data-field="woAsset"
+                oninput="handleSlotInput(this)">
+            </div>
+            <div class="slot-field-group">
+              <div class="slot-micro-lbl${locInherited?' inherited':''}">Location of Work${locInherited?' (from WO)':''}</div>
+              <input class="slot-input${locInherited?' inherited-val':''}" type="text"
+                placeholder="e.g. PUMP-ROOM-A"
+                value="${esc(slot.location)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+                data-item="${item.id}" data-slot="${slot.id}" data-field="location"
+                oninput="handleSlotInput(this)">
+            </div>
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
+    });
+    html += `</div>`;
+  }
+
+  save(); // persist slot initialisation
+  el.innerHTML = html;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ACTUAL SLOT HANDLERS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function toggleIssue(btn) {
+  const wo = currentWO(); if (!wo) return;
+  const {item: itemId, slot: slotId} = btn.dataset;
+  if (!wo.actuals?.[itemId]) return;
+  const slot = wo.actuals[itemId].slots.find(s => s.id===slotId);
+  if (!slot) return;
+  slot.issued = !slot.issued; save();
+
+  btn.textContent  = slot.issued ? '✓ Issued' : 'Not Issued';
+  btn.className    = `issue-toggle ${slot.issued?'on':'off'}`;
+  const row = document.getElementById(`slot-${slotId}`);
+  if (row) {
+    row.classList.toggle('issued', slot.issued);
+    const lbl = document.getElementById(`slbl-${slotId}`);
+    if (lbl) lbl.className = `slot-label${slot.issued?' done-nr':''}`;
+  }
+  // Update progress bar
+  const item = (wo.planItems||[]).find(i=>i.id===itemId);
+  if (item) {
+    const slots   = wo.actuals[itemId].slots;
+    const issuedN = slots.filter(s=>s.issued).length;
+    const pct     = item.plannedQty>0 ? Math.round((issuedN/item.plannedQty)*100) : 0;
+    const pf = document.getElementById(`pf-${itemId}`);
+    const pl = document.getElementById(`prog-lbl-${itemId}`);
+    if (pf) pf.style.width = `${pct}%`;
+    if (pl) pl.textContent = `${issuedN} of ${item.plannedQty} issued`;
+  }
+}
+
+function handleSlotInput(input) {
+  const {item: itemId, slot: slotId, field} = input.dataset;
+  const wo = currentWO(); if (!wo) return;
+  const slot = wo.actuals?.[itemId]?.slots?.find(s=>s.id===slotId);
+  if (!slot) return;
+  slot[field] = input.value; save();
+
+  if (field === 'rotatingAsset') {
+    const hasDone = !!(input.value && input.value.trim());
+    const row = document.getElementById(`slot-${slotId}`);
+    if (row) {
+      row.classList.toggle('has-asset', hasDone);
+      const lbl = document.getElementById(`slbl-${slotId}`);
+      if (lbl) lbl.className = `slot-label${hasDone?' done-rot':''}`;
+      const tick = row.querySelector('.slot-header span:not(.slot-label)');
+      if (tick) { tick.textContent = hasDone?'✓':''; }
     }
+    // Update rotating progress
+    const item = (wo.planItems||[]).find(i=>i.id===itemId);
+    if (item) {
+      const slots = wo.actuals[itemId].slots;
+      const doneN = slots.filter(s=>s.rotatingAsset&&s.rotatingAsset.trim()).length;
+      const pct   = item.plannedQty>0 ? Math.round((doneN/item.plannedQty)*100) : 0;
+      const pf = document.getElementById(`pf-${itemId}`);
+      const pl = document.getElementById(`prog-lbl-${itemId}`);
+      if (pf) pf.style.width = `${pct}%`;
+      if (pl) pl.textContent = `${doneN} of ${item.plannedQty} assets recorded`;
+    }
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDER SUMMARY TAB
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderSummaryTab() {
+  const wo    = currentWO();
+  const el    = document.getElementById('wo-content');
+  const items = wo.planItems||[];
+
+  if (items.length===0) {
+    el.innerHTML=`<div class="empty"><div class="empty-icon">📊</div><h3>No Data Yet</h3>
+      <p>Add planned items in the <strong>Plan</strong> tab.</p></div>`; return;
+  }
+
+  const getStatus = item => {
+    const a = (wo.actuals||{})[item.id];
+    if (!a||!a.slots||!a.slots.length) return 'pending';
+    if (item.type==='non-rotating') {
+      const n = a.slots.filter(s=>s.issued).length;
+      return n===0?'pending':n<item.plannedQty?'partial':'done';
+    }
+    const n = a.slots.filter(s=>s.rotatingAsset&&s.rotatingAsset.trim()).length;
+    return n===0?'pending':n<item.plannedQty?'partial':'done';
+  };
+
+  const nr=items.filter(i=>i.type==='non-rotating'), rot=items.filter(i=>i.type==='rotating');
+  const doneN    = items.filter(i=>getStatus(i)==='done').length;
+  const partialN = items.filter(i=>getStatus(i)==='partial').length;
+  const pct      = items.length>0?Math.round(((doneN+partialN*0.5)/items.length)*100):0;
+
+  const pill = s => s==='done'?`<span class="status-pill pill-done">✓ Done</span>`:
+    s==='partial'?`<span class="status-pill pill-partial">Partial</span>`:
+    `<span class="status-pill pill-pending">Pending</span>`;
+
+  let html=`
+    <div class="summary-header-card">
+      <h3>Work Order Summary</h3>
+      <div class="summary-stats">
+        <div class="stat-box"><span class="stat-val">${items.length}</span><span class="stat-lbl">Total Items</span></div>
+        <div class="stat-box"><span class="stat-val">${doneN}</span><span class="stat-lbl">Completed</span></div>
+        <div class="stat-box"><span class="stat-val">${pct}%</span><span class="stat-lbl">Progress</span></div>
+      </div>
+    </div>
+    <button class="export-btn" id="btn-export">📋 &nbsp;Copy Summary to Clipboard</button>
+    <div class="copy-success" id="copy-success">✓ Copied to clipboard!</div>`;
+
+  if (wo.assetNumber||wo.location) {
+    html+=`<div class="summary-section"><div class="list-label">Work Order Details</div>
+      <div class="summary-item">
+        ${wo.assetNumber?`<div class="summary-row"><span>Asset Number</span><strong>${esc(wo.assetNumber)}</strong></div>`:''}
+        ${wo.location?`<div class="summary-row"><span>Location of Work</span><strong>${esc(wo.location)}</strong></div>`:''}
+      </div></div>`;
+  }
+
+  if (nr.length>0) {
+    html+=`<div class="summary-section"><div class="list-label">Non-Rotating Items</div>`;
+    nr.forEach(item => {
+      const slots   = ((wo.actuals||{})[item.id]||{}).slots||[];
+      const issuedN = slots.filter(s=>s.issued).length;
+      const st      = getStatus(item);
+      html+=`<div class="summary-item">
+        <div class="summary-item-head">
+          <span class="badge badge-nr">Non-Rot</span>
+          <span class="summary-item-num">${esc(item.itemNumber)}</span>${pill(st)}
+        </div>
+        <div class="summary-row"><span>Storeroom</span><strong>${esc(item.storeroom)}</strong></div>
+        <div class="summary-row"><span>Planned / Issued</span><strong>${item.plannedQty} / ${issuedN}</strong></div>
+        <div class="summary-row"><span>Reserved</span><strong style="font-family:inherit;font-size:12px">${formatDT(item.createdAt)}</strong></div>
+        <div style="margin-top:10px"><div class="meta-lbl" style="margin-bottom:6px">Issue Details</div>
+          ${slots.map((s,i)=>{
+            const done=s.issued;
+            return `<div class="summary-slot ${done?'done-nr':''}">
+              <div class="summary-slot-head">
+                <span class="summary-slot-label ${done?'done-nr':''}">Unit ${i+1}</span>
+                <span class="summary-slot-val">${done?'✓ Issued':'Pending'}</span>
+              </div>
+              <div class="summary-slot-detail">
+                ${s.woAsset?`Asset: ${esc(s.woAsset)}<br>`:''}
+                ${s.location?`Location: ${esc(s.location)}`:''}
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  if (rot.length>0) {
+    html+=`<div class="summary-section"><div class="list-label">Rotating Items</div>`;
+    rot.forEach(item => {
+      const slots = ((wo.actuals||{})[item.id]||{}).slots||[];
+      const doneN2 = slots.filter(s=>s.rotatingAsset&&s.rotatingAsset.trim()).length;
+      const st = getStatus(item);
+      html+=`<div class="summary-item">
+        <div class="summary-item-head">
+          <span class="badge badge-rot">Rotating</span>
+          <span class="summary-item-num">${esc(item.itemNumber)}</span>${pill(st)}
+        </div>
+        <div class="summary-row"><span>Storeroom</span><strong>${esc(item.storeroom)}</strong></div>
+        <div class="summary-row"><span>Planned / Recorded</span><strong>${item.plannedQty} / ${doneN2}</strong></div>
+        <div class="summary-row"><span>Reserved</span><strong style="font-family:inherit;font-size:12px">${formatDT(item.createdAt)}</strong></div>
+        <div style="margin-top:10px"><div class="meta-lbl" style="margin-bottom:6px">Asset Details</div>
+          ${slots.map((s,i)=>{
+            const done=!!(s.rotatingAsset&&s.rotatingAsset.trim());
+            return `<div class="summary-slot ${done?'done-rot':''}">
+              <div class="summary-slot-head">
+                <span class="summary-slot-label ${done?'done-rot':''}">Asset ${i+1}</span>
+                <span class="summary-slot-val">${done?esc(s.rotatingAsset):'Pending'}</span>
+              </div>
+              <div class="summary-slot-detail">
+                ${s.woAsset?`Asset #: ${esc(s.woAsset)}<br>`:''}
+                ${s.location?`Location: ${esc(s.location)}`:''}
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  if (wo.notes) html+=`<div class="summary-section"><div class="list-label">Work Order Notes</div>
+    <div class="notes-block">📝 ${esc(wo.notes)}</div></div>`;
+
+  el.innerHTML=html;
+  document.getElementById('btn-export').addEventListener('click', exportSummary);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// EXPORT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function exportSummary() {
+  const wo=currentWO(); if (!wo) return;
+  const lines=['============================','MAXPLAN — WO MATERIAL SUMMARY',
+    '============================',`Work Order : ${wo.woNumber}`];
+  if (wo.description) lines.push(`Description: ${wo.description}`);
+  if (wo.assetNumber) lines.push(`Asset No.  : ${wo.assetNumber}`);
+  if (wo.location)    lines.push(`Location   : ${wo.location}`);
+  if (wo.notes)       lines.push(`Notes      : ${wo.notes}`);
+  lines.push(`Exported   : ${formatDT(Date.now())}`,``);
+
+  (wo.planItems||[]).filter(i=>i.type==='non-rotating').forEach(item=>{
+    const slots   = ((wo.actuals||{})[item.id]||{}).slots||[];
+    const issuedN = slots.filter(s=>s.issued).length;
+    lines.push(`── NON-ROTATING: ${item.itemNumber}`,`   Storeroom  : ${item.storeroom}`,
+      `   Planned Qty: ${item.plannedQty}`,`   Issued     : ${issuedN} of ${item.plannedQty}`,
+      `   Reserved   : ${formatDT(item.createdAt)}`);
+    slots.forEach((s,i)=>{
+      let detail=`   Unit ${i+1}     : ${s.issued?'Issued':'Pending'}`;
+      if (s.woAsset)  detail+=` · Asset: ${s.woAsset}`;
+      if (s.location) detail+=` · Location: ${s.location}`;
+      lines.push(detail);
+    }); lines.push(``);
   });
-  $('cwo').addEventListener('click',()=>closeM('mwo'));
 
-  $('dw').addEventListener('click',()=>openM('mdw'));
-  $('cdw').addEventListener('click',()=>{S.wos=S.wos.filter(w=>w.id!==S.cid);save();closeM('mdw');goHome();});
-  $('ndw').addEventListener('click',()=>closeM('mdw'));
-
-  $('fa').addEventListener('click',()=>{
-    S.eid=null;$('mit').textContent='Add Planned Item';$('si2').textContent='Add to Plan';
-    $('tr').style.display='';$('iin').value='';$('isr').value='';$('iq').value='';
-    ['iin','isr','iq'].forEach(id=>$(id).classList.remove('err'));
-    setType('non-rotating');openM('mi');setTimeout(()=>$('iin').focus(),300);
+  (wo.planItems||[]).filter(i=>i.type==='rotating').forEach(item=>{
+    const slots = ((wo.actuals||{})[item.id]||{}).slots||[];
+    const doneN = slots.filter(s=>s.rotatingAsset&&s.rotatingAsset.trim()).length;
+    lines.push(`── ROTATING: ${item.itemNumber}`,`   Storeroom  : ${item.storeroom}`,
+      `   Planned Qty: ${item.plannedQty}`,`   Assets Done: ${doneN} of ${item.plannedQty}`,
+      `   Reserved   : ${formatDT(item.createdAt)}`);
+    slots.forEach((s,i)=>{
+      const hasDone=!!(s.rotatingAsset&&s.rotatingAsset.trim());
+      let detail=`   Asset ${i+1}    : ${hasDone?s.rotatingAsset:'Pending'}`;
+      if (s.woAsset)  detail+=` · Asset: ${s.woAsset}`;
+      if (s.location) detail+=` · Location: ${s.location}`;
+      lines.push(detail);
+    }); lines.push(``);
   });
 
-  $('si2').addEventListener('click',()=>{
-    const itemNum=$('iin').value.trim().toUpperCase();
-    const sr=$('isr').value.trim().toUpperCase();
-    const qty=parseInt($('iq').value)||0;
+  lines.push('============================');
+  const text=lines.join('\n');
+  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(showCopied).catch(()=>fallbackCopy(text));
+  else fallbackCopy(text);
+}
+function fallbackCopy(text){
+  const ta=document.createElement('textarea'); ta.value=text;
+  ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(ta); ta.select();
+  try{document.execCommand('copy');showCopied();}catch(e){alert(text);}
+  document.body.removeChild(ta);
+}
+function showCopied(){
+  const el=document.getElementById('copy-success'); if(!el)return;
+  el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// MODALS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function setType(type) {
+  state.addType = type;
+  document.getElementById('tbtn-nr').className = 'type-btn'+(type==='non-rotating'?' sel-nr':'');
+  document.getElementById('tbtn-rot').className = 'type-btn'+(type==='rotating'?' sel-rot':'');
+  document.getElementById('qty-label').textContent =
+    type==='rotating' ? 'Planned Quantity (no. of assets) *' : 'Planned Quantity *';
+  updateItemInheritPreview();
+}
+
+function updateItemInheritPreview() {
+  const wo = currentWO(); if (!wo) return;
+  const preview = document.getElementById('item-inherit-preview');
+  const chips   = document.getElementById('item-inherit-chips');
+  if (!preview||!chips) return;
+  const parts=[];
+  if (wo.location)    parts.push(`<span class="inherit-chip">📍 ${esc(wo.location)}</span>`);
+  if (wo.assetNumber) parts.push(`<span class="inherit-chip">⚙️ ${esc(wo.assetNumber)}</span>`);
+  if (parts.length&&!state.editItemId) {
+    chips.innerHTML=parts.join('');
+    preview.style.display='block';
+  } else {
+    preview.style.display='none';
+  }
+}
+
+function openEditItem(itemId) {
+  const wo=currentWO(); if (!wo) return;
+  const item=(wo.planItems||[]).find(i=>i.id===itemId); if (!item) return;
+  state.editItemId=itemId;
+  document.getElementById('modal-item-title').textContent='Edit Planned Item';
+  document.getElementById('btn-save-item').textContent='Save Changes';
+  document.getElementById('type-row').style.display='none';
+  state.addType=item.type;
+  document.getElementById('inp-item-num').value=item.itemNumber;
+  document.getElementById('inp-storeroom').value=item.storeroom;
+  document.getElementById('inp-qty').value=item.plannedQty;
+  document.getElementById('qty-label').textContent=item.type==='rotating'?'Planned Quantity (no. of assets) *':'Planned Quantity *';
+  document.getElementById('item-inherit-preview').style.display='none';
+  ['inp-item-num','inp-storeroom','inp-qty'].forEach(id=>document.getElementById(id).classList.remove('err'));
+  openModal('modal-add-item');
+  setTimeout(()=>document.getElementById('inp-item-num').focus(),300);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// VERSION CHECK
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function checkForUpdates() {
+  if (sessionStorage.getItem('versionChecked')) return;
+  sessionStorage.setItem('versionChecked','1');
+  try {
+    const res  = await fetch('./version.json?_='+Date.now(), {cache:'no-store'});
+    const data = await res.json();
+    if (data.version && data.version !== APP_VERSION) {
+      document.getElementById('update-msg').textContent=`MaxPlan v${data.version} is available — tap to update.`;
+      document.getElementById('update-banner').classList.add('show');
+    }
+  } catch(e) {}
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// INIT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+document.addEventListener('DOMContentLoaded', () => {
+  loadState(); renderHome(); checkForUpdates();
+
+  document.getElementById('btn-back').addEventListener('click', goHome);
+  document.getElementById('btn-back-versions').addEventListener('click', goHome);
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{state.currentTab=t.dataset.tab;renderWOView();}));
+
+  // ── New WO
+  document.getElementById('fab-new-wo').addEventListener('click',()=>{
+    state.editWOMode=false;
+    document.getElementById('modal-wo-title').textContent='New Work Order';
+    document.getElementById('btn-save-wo').textContent='Create Work Order';
+    ['inp-wo-num','inp-wo-desc','inp-wo-asset','inp-wo-location','inp-wo-notes']
+      .forEach(id=>{ const el=document.getElementById(id); if(el){el.value='';el.classList.remove('err');}});
+    openModal('modal-new-wo');
+    setTimeout(()=>document.getElementById('inp-wo-num').focus(),300);
+  });
+
+  // ── Edit WO
+  document.getElementById('btn-edit-wo').addEventListener('click',()=>{
+    const wo=currentWO(); if(!wo) return;
+    state.editWOMode=true;
+    document.getElementById('modal-wo-title').textContent='Edit Work Order';
+    document.getElementById('btn-save-wo').textContent='Save Changes';
+    document.getElementById('inp-wo-num').value=wo.woNumber;
+    document.getElementById('inp-wo-desc').value=wo.description||'';
+    document.getElementById('inp-wo-asset').value=wo.assetNumber||'';
+    document.getElementById('inp-wo-location').value=wo.location||'';
+    document.getElementById('inp-wo-notes').value=wo.notes||'';
+    document.getElementById('inp-wo-num').classList.remove('err');
+    openModal('modal-new-wo');
+    setTimeout(()=>document.getElementById('inp-wo-num').focus(),300);
+  });
+
+  // ── Save WO
+  document.getElementById('btn-save-wo').addEventListener('click', saveWO);
+  document.getElementById('btn-cancel-wo').addEventListener('click',()=>closeModal('modal-new-wo'));
+
+  function saveWO(){
+    const num=document.getElementById('inp-wo-num').value.trim().toUpperCase();
+    if(!num){document.getElementById('inp-wo-num').classList.add('err');return;}
+    document.getElementById('inp-wo-num').classList.remove('err');
+    const desc      = document.getElementById('inp-wo-desc').value.trim();
+    const assetNumber = document.getElementById('inp-wo-asset').value.trim().toUpperCase();
+    const location  = document.getElementById('inp-wo-location').value.trim().toUpperCase();
+    const notes     = document.getElementById('inp-wo-notes').value.trim();
+    if (state.editWOMode) {
+      const wo=currentWO(); if(!wo)return;
+      wo.woNumber=num; wo.description=desc; wo.assetNumber=assetNumber; wo.location=location; wo.notes=notes;
+      save(); closeModal('modal-new-wo'); renderWOView();
+    } else {
+      const wo={id:uid(),woNumber:num,description:desc,assetNumber,location,notes,
+        createdAt:Date.now(),planItems:[],actuals:{}};
+      state.workOrders.push(wo); save(); closeModal('modal-new-wo'); goToWO(wo.id);
+    }
+  }
+
+  // ── FAB Add Item
+  document.getElementById('fab-add-item').addEventListener('click',()=>{
+    state.editItemId=null;
+    document.getElementById('modal-item-title').textContent='Add Planned Item';
+    document.getElementById('btn-save-item').textContent='Add to Plan';
+    document.getElementById('type-row').style.display='';
+    ['inp-item-num','inp-storeroom','inp-qty'].forEach(id=>{
+      const el=document.getElementById(id); el.value=''; el.classList.remove('err');});
+    setType('non-rotating');
+    updateItemInheritPreview();
+    openModal('modal-add-item');
+    setTimeout(()=>document.getElementById('inp-item-num').focus(),300);
+  });
+
+  // ── Save Item
+  document.getElementById('btn-save-item').addEventListener('click', saveItem);
+  document.getElementById('btn-cancel-item').addEventListener('click',()=>closeModal('modal-add-item'));
+
+  function saveItem(){
+    const itemNum   = document.getElementById('inp-item-num').value.trim().toUpperCase();
+    const storeroom = document.getElementById('inp-storeroom').value.trim().toUpperCase();
+    const qty       = parseInt(document.getElementById('inp-qty').value)||0;
     let ok=true;
-    if(!itemNum){$('iin').classList.add('err');ok=false;}else $('iin').classList.remove('err');
-    if(!sr){$('isr').classList.add('err');ok=false;}else $('isr').classList.remove('err');
-    if(qty<1){$('iq').classList.add('err');ok=false;}else $('iq').classList.remove('err');
+    if(!itemNum)  {document.getElementById('inp-item-num').classList.add('err');ok=false;}
+    else document.getElementById('inp-item-num').classList.remove('err');
+    if(!storeroom){document.getElementById('inp-storeroom').classList.add('err');ok=false;}
+    else document.getElementById('inp-storeroom').classList.remove('err');
+    if(qty<1)     {document.getElementById('inp-qty').classList.add('err');ok=false;}
+    else document.getElementById('inp-qty').classList.remove('err');
     if(!ok)return;
-    const wo=CWO();if(!wo)return;
-    if(S.eid){
-      const item=(wo.planItems||[]).find(i=>i.id===S.eid);
+
+    const wo=currentWO(); if(!wo)return;
+
+    if(state.editItemId){
+      const item=(wo.planItems||[]).find(i=>i.id===state.editItemId);
       if(item){
-        item.itemNumber=itemNum;item.storeroom=sr;item.plannedQty=qty;
-        if(item.type==='rotating'&&wo.actuals&&wo.actuals[item.id]&&wo.actuals[item.id].slots){
+        item.itemNumber=itemNum; item.storeroom=storeroom; item.plannedQty=qty;
+        // Reconcile slots
+        if(wo.actuals?.[item.id]?.slots){
           const slots=wo.actuals[item.id].slots;
-          while(slots.length<qty)slots.push({id:uid(),an:'',loc:'',dt:''});
-          if(slots.length>qty)wo.actuals[item.id].slots=slots.slice(0,qty);
+          while(slots.length<qty) slots.push({id:uid(),issued:false,rotatingAsset:'',location:item.inheritedLocation||'',woAsset:item.inheritedWoAsset||''});
+          if(slots.length>qty) wo.actuals[item.id].slots=slots.slice(0,qty);
         }
       }
     } else {
-      wo.planItems.push({id:uid(),type:S.atype,itemNumber:itemNum,storeroom:sr,plannedQty:qty,createdAt:Date.now()});
+      // Snapshot WO-level location and asset at time of plan item creation
+      const item={
+        id:uid(), type:state.addType, itemNumber:itemNum, storeroom, plannedQty:qty,
+        createdAt:Date.now(),
+        inheritedLocation: wo.location || '',
+        inheritedWoAsset:  wo.assetNumber || ''
+      };
+      wo.planItems.push(item);
     }
-    save();closeM('mi');S.eid=null;renderPlan();
+    save(); closeModal('modal-add-item'); state.editItemId=null; renderPlanTab();
+  }
+
+  // ── Delete WO
+  document.getElementById('btn-del-wo').addEventListener('click',()=>openModal('modal-del-wo'));
+  document.getElementById('btn-confirm-del').addEventListener('click',()=>{
+    state.workOrders=state.workOrders.filter(w=>w.id!==state.currentId);
+    save(); closeModal('modal-del-wo'); goHome();
   });
-  $('ci').addEventListener('click',()=>closeM('mi'));
+  document.getElementById('btn-cancel-del').addEventListener('click',()=>closeModal('modal-del-wo'));
 
-  $('cdi').addEventListener('click',()=>{
-    const wo=CWO();
-    if(wo&&S.pdel){wo.planItems=wo.planItems.filter(i=>i.id!==S.pdel);if(wo.actuals)delete wo.actuals[S.pdel];save();}
-    S.pdel=null;closeM('mdi');renderPlan();
+  // ── Delete Item
+  document.getElementById('btn-confirm-del-item').addEventListener('click',()=>{
+    const wo=currentWO();
+    if(wo&&state.pendingDelItemId){
+      wo.planItems=wo.planItems.filter(i=>i.id!==state.pendingDelItemId);
+      if(wo.actuals)delete wo.actuals[state.pendingDelItemId];
+      save();
+    }
+    state.pendingDelItemId=null; closeModal('modal-del-item'); renderPlanTab();
   });
-  $('ndi').addEventListener('click',()=>{S.pdel=null;closeM('mdi');});
-
-  document.querySelectorAll('.overlay').forEach(ov=>{
-    ov.addEventListener('click',e=>{if(e.target===ov){S.pdel=null;S.eid=null;closeM(ov.id);}});
+  document.getElementById('btn-cancel-del-item').addEventListener('click',()=>{
+    state.pendingDelItemId=null; closeModal('modal-del-item');
   });
 
-  let dp=null;
-  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('ib').classList.add('show');});
-  $('bi').addEventListener('click',async()=>{if(!dp)return;dp.prompt();const{outcome}=await dp.userChoice;if(outcome==='accepted')$('ib').classList.remove('show');dp=null;});
-  window.addEventListener('appinstalled',()=>$('ib').classList.remove('show'));
+  // ── Overlay dismiss
+  document.querySelectorAll('.overlay').forEach(overlay=>{
+    overlay.addEventListener('click',e=>{
+      if(e.target===overlay){state.pendingDelItemId=null;state.editItemId=null;closeModal(overlay.id);}
+    });
+  });
 
-  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW:',e));
+  // ── PWA Install
+  let deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault(); deferredPrompt=e;
+    document.getElementById('install-banner').classList.add('show');
+  });
+  document.getElementById('btn-install').addEventListener('click',async()=>{
+    if(!deferredPrompt)return;
+    deferredPrompt.prompt();
+    const{outcome}=await deferredPrompt.userChoice;
+    if(outcome==='accepted')document.getElementById('install-banner').classList.remove('show');
+    deferredPrompt=null;
+  });
+  window.addEventListener('appinstalled',()=>document.getElementById('install-banner').classList.remove('show'));
+
+  // ── Service Worker
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW:',e));
 });
 </script>
 </body>
