@@ -20,6 +20,12 @@
       --rot-color: #059669; --rot-bg: #ECFDF5;
       --wo-color: #7C3AED; --wo-bg: #F5F3FF;
       --danger: #DC2626; --danger-bg: #FEF2F2;
+      /* Status colours */
+      --status-planned-bg:#EFF6FF;    --status-planned-fg:#2563EB;
+      --status-inprogress-bg:#FEF3C7; --status-inprogress-fg:#92400E;
+      --status-onhold-bg:#F3F4F6;     --status-onhold-fg:#4B5563;
+      --status-complete-bg:#ECFDF5;   --status-complete-fg:#059669;
+      --status-cancelled-bg:#FEF2F2;  --status-cancelled-fg:#DC2626;
       --radius: 14px; --radius-sm: 9px;
       --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
       --font-mono: 'SF Mono','Consolas','Courier New',monospace;
@@ -32,11 +38,11 @@
       background:var(--bg);color:var(--text);height:100%;
       -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overflow:hidden}
 
-    /* VIEWS */
+    /* ── VIEWS ── */
     .view{display:none;flex-direction:column;height:100vh;overflow:hidden}
     .view.active{display:flex}
 
-    /* HEADER */
+    /* ── HEADER ── */
     .header{background:var(--primary);color:white;padding:14px 18px;
       padding-top:calc(14px + var(--safe-top));display:flex;align-items:center;
       gap:10px;flex-shrink:0;min-height:calc(60px + var(--safe-top))}
@@ -50,12 +56,23 @@
       overflow:hidden;text-overflow:ellipsis}
     .header-actions{display:flex;gap:2px;flex-shrink:0}
 
-    /* SCROLL */
+    /* ── TAPPABLE WO TITLE (replaces pencil button) ── */
+    .wo-title-btn{background:none;border:none;color:white;text-align:left;
+      cursor:pointer;padding:0;font-family:inherit;flex:1;min-width:0;
+      display:flex;flex-direction:column;gap:1px;-webkit-tap-highlight-color:transparent}
+    .wo-title-btn:active{opacity:.7}
+    .wo-title-row{display:flex;align-items:center;gap:5px}
+    .wo-title-text{font-size:17px;font-weight:700;letter-spacing:-.2px;line-height:1.2;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .wo-title-triangle{font-size:11px;opacity:.6;flex-shrink:0;margin-top:1px}
+    .wo-title-sub{font-size:12px;opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    /* ── SCROLL ── */
     .scroll-content{flex:1;overflow-y:auto;overflow-x:hidden;
       padding:18px 16px;padding-bottom:calc(88px + var(--safe-bottom));
       -webkit-overflow-scrolling:touch}
 
-    /* HOME CARDS */
+    /* ── HOME CARDS ── */
     .list-label{font-size:11px;font-weight:700;letter-spacing:.08em;
       text-transform:uppercase;color:var(--text-secondary);margin-bottom:12px}
     .wo-card{background:var(--surface);border-radius:var(--radius);
@@ -66,8 +83,9 @@
     .wo-card-dot{width:42px;height:42px;border-radius:10px;background:var(--primary);
       display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
     .wo-card-body{flex:1;min-width:0}
-    .wo-card-num{font-family:var(--font-mono);font-size:15px;font-weight:700}
-    .wo-card-desc{font-size:13px;color:var(--text-secondary);margin-top:2px;
+    .wo-card-num{font-family:var(--font-mono);font-size:15px;font-weight:700;
+      display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+    .wo-card-desc{font-size:13px;color:var(--text-secondary);margin-top:3px;
       white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .wo-card-meta{font-size:11px;color:var(--text-secondary);margin-top:2px;
       white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -76,20 +94,55 @@
     .wo-card-done{font-size:11px;color:var(--rot-color);font-weight:600;margin-top:2px}
     .wo-card-chevron{color:#CBD5E1;font-size:16px;margin-left:4px;flex-shrink:0}
 
-    /* VERSION FOOTER */
+    /* ── STATUS BADGE ── */
+    .status-badge{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+      padding:2px 8px;border-radius:20px;flex-shrink:0;line-height:1.6;white-space:nowrap}
+    .status-planned    {background:var(--status-planned-bg);   color:var(--status-planned-fg)}
+    .status-inprogress {background:var(--status-inprogress-bg);color:var(--status-inprogress-fg)}
+    .status-onhold     {background:var(--status-onhold-bg);    color:var(--status-onhold-fg)}
+    .status-complete   {background:var(--status-complete-bg);  color:var(--status-complete-fg)}
+    .status-cancelled  {background:var(--status-cancelled-bg); color:var(--status-cancelled-fg)}
+
+    /* Status badge shown in WO header (white-tinted) */
+    .header-status-badge{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+      padding:3px 10px;border-radius:20px;flex-shrink:0;line-height:1.6;white-space:nowrap;
+      background:rgba(255,255,255,.18);color:white;border:1px solid rgba(255,255,255,.25);
+      cursor:pointer;border:none;font-family:inherit;transition:background .15s}
+    .header-status-badge:active{background:rgba(255,255,255,.3)}
+
+    /* ── STATUS PICKER (inside sheet) ── */
+    .status-options{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+    .status-option{display:flex;align-items:center;gap:12px;padding:13px 14px;
+      border:2px solid var(--border);border-radius:var(--radius-sm);
+      cursor:pointer;transition:all .15s;background:none;font-family:inherit;width:100%;text-align:left}
+    .status-option:active{transform:scale(.98)}
+    .status-option.selected{border-width:2px}
+    .status-option-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+    .status-option-label{font-size:15px;font-weight:600;flex:1}
+    .status-option-check{font-size:16px;opacity:0;transition:opacity .15s}
+    .status-option.selected .status-option-check{opacity:1}
+
+    /* Status option themes */
+    .status-option.opt-planned.selected   {border-color:var(--status-planned-fg);   background:var(--status-planned-bg)}
+    .status-option.opt-inprogress.selected{border-color:var(--status-inprogress-fg);background:var(--status-inprogress-bg)}
+    .status-option.opt-onhold.selected    {border-color:var(--status-onhold-fg);    background:var(--status-onhold-bg)}
+    .status-option.opt-complete.selected  {border-color:var(--status-complete-fg);  background:var(--status-complete-bg)}
+    .status-option.opt-cancelled.selected {border-color:var(--status-cancelled-fg); background:var(--status-cancelled-bg)}
+
+    /* ── VERSION FOOTER ── */
     .version-footer{padding:14px 16px calc(14px + var(--safe-bottom));display:flex;justify-content:center}
     .version-pill{background:var(--primary);color:rgba(255,255,255,.75);border:none;
       border-radius:20px;padding:7px 18px;font-size:12px;font-weight:700;
       letter-spacing:.04em;cursor:pointer;font-family:inherit;transition:opacity .15s}
     .version-pill:active{opacity:.7}
 
-    /* EMPTY */
+    /* ── EMPTY ── */
     .empty{text-align:center;padding:52px 20px;color:var(--text-secondary)}
     .empty-icon{font-size:44px;opacity:.3;margin-bottom:14px}
     .empty h3{font-size:17px;color:var(--text);margin-bottom:8px}
     .empty p{font-size:14px;line-height:1.6;max-width:260px;margin:0 auto}
 
-    /* FAB */
+    /* ── FAB ── */
     .fab{position:fixed;bottom:calc(22px + var(--safe-bottom));right:20px;
       width:56px;height:56px;border-radius:50%;background:var(--accent);color:white;
       border:none;font-size:26px;line-height:1;cursor:pointer;
@@ -98,7 +151,7 @@
       -webkit-user-select:none;user-select:none}
     .fab:active{transform:scale(.9)}
 
-    /* TABS */
+    /* ── TABS ── */
     .tabs{display:flex;background:var(--primary-light);
       border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
     .tab{flex:1;background:none;border:none;color:rgba(255,255,255,.5);
@@ -106,13 +159,13 @@
       border-bottom:3px solid transparent;transition:color .2s,border-color .2s;font-family:inherit}
     .tab.active{color:#fff;border-bottom-color:var(--accent)}
 
-    /* BADGE */
+    /* ── BADGE ── */
     .badge{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
       padding:3px 8px;border-radius:20px;flex-shrink:0;line-height:1.4}
     .badge-nr{background:var(--nr-bg);color:var(--nr-color)}
     .badge-rot{background:var(--rot-bg);color:var(--rot-color)}
 
-    /* ITEM CARD */
+    /* ── ITEM CARD ── */
     .item-card{background:var(--surface);border-radius:var(--radius);
       padding:14px 15px;margin-bottom:10px;box-shadow:var(--shadow);border:1px solid var(--border)}
     .item-card-head{display:flex;align-items:center;gap:9px;margin-bottom:11px}
@@ -130,20 +183,20 @@
     .meta-val{font-family:var(--font-mono);font-size:14px;font-weight:600}
     .meta-val.date-stamp{font-size:12px;color:var(--text-secondary);font-family:inherit;font-weight:500}
 
-    /* WO INHERITANCE CHIP */
+    /* ── WO INHERITANCE CHIP ── */
     .inherit-chip{display:inline-flex;align-items:center;gap:5px;
       background:var(--wo-bg);color:var(--wo-color);border-radius:20px;
       padding:3px 9px;font-size:11px;font-weight:600;margin-top:6px;
       border:1px solid rgba(124,58,237,.15)}
     .inherit-chip span{opacity:.7;font-size:10px}
 
-    /* ACTUAL CARD */
+    /* ── ACTUAL CARD ── */
     .actual-card{background:var(--surface);border-radius:var(--radius);
       padding:14px 15px;margin-bottom:10px;box-shadow:var(--shadow);border:1px solid var(--border)}
     .plan-ref{font-size:12px;color:var(--text-secondary);margin-bottom:12px;line-height:1.8}
     .plan-ref strong{font-family:var(--font-mono);color:var(--text);font-weight:600}
 
-    /* PROGRESS */
+    /* ── PROGRESS ── */
     .progress-wrap{margin-top:10px;margin-bottom:14px}
     .progress-track{background:var(--border);border-radius:4px;height:5px;overflow:hidden}
     .progress-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .3s}
@@ -152,7 +205,7 @@
       font-size:11px;color:var(--text-secondary);margin-top:4px}
     .progress-legend span{font-family:var(--font-mono);font-weight:600}
 
-    /* SLOT ROWS */
+    /* ── SLOT ROWS ── */
     .slot-row{border:1.5px solid var(--border);border-radius:var(--radius-sm);
       padding:12px;margin-bottom:8px;background:var(--bg);transition:border-color .2s}
     .slot-row.issued{border-color:var(--nr-color);background:var(--nr-bg)}
@@ -167,7 +220,7 @@
     .issue-toggle.off{background:var(--border);color:var(--text-secondary)}
     .issue-toggle.on{background:var(--nr-color);color:white}
 
-    /* SLOT FIELDS */
+    /* ── SLOT FIELDS ── */
     .slot-fields{display:flex;flex-direction:column;gap:8px}
     .slot-field-group{display:flex;flex-direction:column;gap:4px}
     .slot-micro-lbl{font-size:10px;font-weight:700;text-transform:uppercase;
@@ -180,12 +233,12 @@
     .slot-input.rot-asset:focus{border-color:var(--rot-color)}
     .slot-input.inherited-val{border-color:rgba(124,58,237,.3);background:var(--wo-bg);color:var(--wo-color)}
 
-    /* NOTES */
+    /* ── NOTES ── */
     .notes-block{background:var(--accent-light);border-radius:var(--radius-sm);
       padding:10px 12px;margin-bottom:16px;border-left:3px solid var(--accent);
       font-size:13px;color:#78350F;line-height:1.5;white-space:pre-wrap;word-break:break-word}
 
-    /* SUMMARY */
+    /* ── SUMMARY ── */
     .summary-header-card{background:var(--primary);color:white;
       border-radius:var(--radius);padding:16px;margin-bottom:14px}
     .summary-header-card h3{font-size:15px;font-weight:700;margin-bottom:12px;opacity:.8}
@@ -212,13 +265,13 @@
     .summary-slot-label.done-rot{color:var(--rot-color)}
     .summary-slot-val{font-family:var(--font-mono);font-weight:600}
     .summary-slot-detail{color:var(--text-secondary);font-size:11px;line-height:1.7}
-    .status-pill{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;
+    .status-pill-sm{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;
       text-transform:uppercase;letter-spacing:.05em;flex-shrink:0}
     .pill-done{background:var(--rot-bg);color:var(--rot-color)}
     .pill-partial{background:var(--accent-light);color:#92400E}
     .pill-pending{background:var(--border);color:var(--text-secondary)}
 
-    /* EXPORT */
+    /* ── EXPORT ── */
     .export-btn{width:100%;background:var(--primary);color:white;border:none;
       border-radius:var(--radius);padding:14px;font-size:15px;font-weight:700;cursor:pointer;
       font-family:inherit;display:flex;align-items:center;justify-content:center;
@@ -230,7 +283,7 @@
 
     .section-block+.section-block{margin-top:22px}
 
-    /* MODALS */
+    /* ── MODALS ── */
     .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;
       display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .22s}
     .overlay.open{opacity:1;pointer-events:all}
@@ -241,8 +294,10 @@
     .overlay.open .sheet{transform:translateY(0)}
     .sheet-handle{width:34px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px}
     .sheet h2{font-size:20px;font-weight:800;letter-spacing:-.3px;margin-bottom:18px}
+    .sheet-section-lbl{font-size:11px;font-weight:700;letter-spacing:.07em;
+      text-transform:uppercase;color:var(--text-secondary);margin-bottom:10px;margin-top:20px}
 
-    /* FORMS */
+    /* ── FORMS ── */
     .field{margin-bottom:15px}
     .field-label{display:block;font-size:11px;font-weight:700;letter-spacing:.07em;
       text-transform:uppercase;color:var(--text-secondary);margin-bottom:6px}
@@ -256,7 +311,7 @@
     textarea.field-input{resize:none;min-height:90px;line-height:1.55}
     .field-hint{font-size:11px;color:var(--text-secondary);margin-top:5px;line-height:1.5}
 
-    /* TYPE TOGGLE */
+    /* ── TYPE TOGGLE ── */
     .type-row{display:flex;gap:8px;margin-bottom:18px}
     .type-btn{flex:1;padding:11px 8px;border:2px solid var(--border);
       border-radius:var(--radius-sm);background:none;font-size:14px;font-weight:700;
@@ -264,7 +319,7 @@
     .type-btn.sel-nr{border-color:var(--nr-color);background:var(--nr-bg);color:var(--nr-color)}
     .type-btn.sel-rot{border-color:var(--rot-color);background:var(--rot-bg);color:var(--rot-color)}
 
-    /* BUTTONS */
+    /* ── BUTTONS ── */
     .btn-primary{width:100%;background:var(--primary);color:white;border:none;
       border-radius:var(--radius);padding:15px;font-size:16px;font-weight:700;
       cursor:pointer;font-family:inherit;margin-top:6px}
@@ -276,7 +331,7 @@
       border-radius:var(--radius);padding:14px;font-size:15px;font-weight:700;
       cursor:pointer;font-family:inherit;margin-top:8px}
 
-    /* BANNERS */
+    /* ── BANNERS ── */
     .update-banner{display:none;background:#1D4ED8;color:white;
       padding:11px 16px;align-items:center;gap:10px;flex-shrink:0}
     .update-banner.show{display:flex}
@@ -290,7 +345,7 @@
     #install-banner button{background:var(--accent);color:white;border:none;border-radius:8px;
       padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0}
 
-    /* VERSION HISTORY */
+    /* ── VERSION HISTORY ── */
     .ver-card{background:var(--surface);border-radius:var(--radius);padding:16px;
       margin-bottom:14px;box-shadow:var(--shadow);border:1px solid var(--border)}
     .ver-card-head{display:flex;align-items:flex-start;justify-content:space-between;
@@ -333,14 +388,17 @@
 <div id="view-wo" class="view">
   <div class="header">
     <button class="header-icon-btn" id="btn-back">←</button>
-    <div class="header-text">
-      <h1 id="wo-title">WO-XXXXX</h1>
-      <div class="header-sub" id="wo-sub">Description</div>
-    </div>
-    <div class="header-actions">
-      <button class="header-icon-btn" id="btn-edit-wo">✏️</button>
-      <button class="header-icon-btn" id="btn-del-wo">🗑</button>
-    </div>
+    <!-- Tappable WO title — opens edit sheet -->
+    <button class="wo-title-btn" id="btn-wo-title-edit">
+      <div class="wo-title-row">
+        <span class="wo-title-text" id="wo-title">WO-XXXXX</span>
+        <span class="wo-title-triangle">▾</span>
+      </div>
+      <div class="wo-title-sub" id="wo-sub">Description</div>
+    </button>
+    <!-- Status badge in header — also tappable to change status -->
+    <button class="header-status-badge" id="btn-header-status">Planned</button>
+    <button class="header-icon-btn" id="btn-del-wo">🗑</button>
   </div>
   <div class="tabs">
     <button class="tab active" data-tab="plan">📋 Plan</button>
@@ -364,19 +422,35 @@
 
     <div class="ver-card">
       <div class="ver-card-head">
-        <div><div class="ver-num">v1.1.3</div><div class="ver-date">April Week 1 2026</div></div>
+        <div><div class="ver-num">v1.1.4</div><div class="ver-date">April Week 1 2026</div></div>
         <span class="ver-tag latest">Latest</span>
       </div>
       <div class="ver-body">
         <ul>
+          <li><strong>Work order status</strong> — each WO now has a status: Planned, In Progress, On Hold, Complete, or Cancelled. Status is shown as a colour-coded badge on the home screen card and in the WO header</li>
+          <li>Status can be changed two ways: tap the coloured status badge in the WO header, or change it inside the Edit Work Order sheet</li>
+          <li><strong>Tappable WO number with ▾ triangle</strong> in the WO header — tap the WO number to open the Edit Work Order sheet directly, replacing the separate pencil button</li>
+          <li>WO status is included in the exported clipboard summary</li>
+          <li>All features from v1.1.3 retained (WO-level location &amp; asset inheritance, Location of Work field, Rotating Asset Number, per-unit slot tracking)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ver-card">
+      <div class="ver-card-head">
+        <div><div class="ver-num">v1.1.3</div><div class="ver-date">April Week 1 2026</div></div>
+        <span class="ver-tag">Previous</span>
+      </div>
+      <div class="ver-body">
+        <ul>
           <li>Work order creation and edit page now includes an <strong>Asset Number</strong> field and a <strong>Location of Work</strong> field at the WO level</li>
-          <li>Any plan items (rotating or non-rotating) added <em>after</em> a WO-level location or asset number is set will automatically inherit those values in the Actual tab</li>
-          <li>Inherited location and asset number fields are highlighted in purple in the Actual tab to indicate they originated from the work order — they remain editable per slot</li>
-          <li>If location or asset number is later changed on the WO, only <em>newly added</em> plan items will reflect the updated values; existing plan items retain the values that were set at the time they were planned (delete and re-add an item to pick up the new WO values)</li>
-          <li>Plan items show inheritance chips in the Plan tab indicating which WO-level values they carry</li>
-          <li><strong>Rotating Asset Number</strong> field (per slot) renamed to clearly differentiate the unique rotating asset being issued vs the WO-level asset number the work is being done on</li>
-          <li>Location field label changed to <strong>Location of Work</strong> throughout the app</li>
-          <li>WO cards on the home screen now show location and asset number if set</li>
+          <li>Plan items added after a WO-level location or asset number is set automatically inherit those values in the Actual tab (highlighted in purple)</li>
+          <li>Inherited fields remain editable per slot in the Actual tab</li>
+          <li>Existing plan items are unaffected when WO location/asset is later changed — delete and re-add an item to pick up updated WO values</li>
+          <li>Plan items show inheritance chips indicating which WO-level values they carry</li>
+          <li><strong>Rotating Asset Number</strong> field renamed to clearly differentiate the unique rotating asset being issued vs the WO-level asset number</li>
+          <li>Location field label changed to <strong>Location of Work</strong> throughout</li>
+          <li>WO home cards show location and asset number if set</li>
         </ul>
       </div>
     </div>
@@ -388,14 +462,13 @@
       </div>
       <div class="ver-body">
         <ul>
-          <li>Rotating items now include a <strong>planned quantity</strong> field in the Plan tab</li>
+          <li>Rotating items now include a planned quantity field in the Plan tab</li>
           <li>Actual tab shows an individual slot per planned rotating quantity — each with a unique asset number and location</li>
           <li>Non-rotating items support per-unit location tracking in the Actual tab</li>
-          <li>Both item types include a <strong>Maximo Location</strong> field per issued unit</li>
           <li>Added edit work order (number, description, notes)</li>
           <li>Added Notes field on work orders</li>
           <li>New Summary tab with planned vs actual totals and completion percentage</li>
-          <li>Export / copy to clipboard — formatted summary of all planned and actual materials</li>
+          <li>Export / copy to clipboard</li>
           <li>Reservation timestamps on every planned item (DD/MMM/YYYY 0:00am format)</li>
           <li>Confirmation dialogs before deleting items or work orders</li>
           <li>In-app version history page and automatic update check</li>
@@ -430,6 +503,7 @@
   <div class="sheet">
     <div class="sheet-handle"></div>
     <h2 id="modal-wo-title">New Work Order</h2>
+
     <div class="field">
       <label class="field-label">WO Number *</label>
       <input class="field-input mono" id="inp-wo-num" placeholder="e.g. WO-12345"
@@ -439,6 +513,37 @@
       <label class="field-label optional">Description</label>
       <input class="field-input" id="inp-wo-desc" placeholder="Brief description of the work" autocomplete="off">
     </div>
+
+    <div class="sheet-section-lbl">Work Order Status</div>
+    <div class="status-options" id="status-options">
+      <button class="status-option opt-planned" data-status="planned" onclick="selectStatus('planned')">
+        <div class="status-option-dot" style="background:var(--status-planned-fg)"></div>
+        <span class="status-option-label" style="color:var(--status-planned-fg)">Planned</span>
+        <span class="status-option-check" style="color:var(--status-planned-fg)">✓</span>
+      </button>
+      <button class="status-option opt-inprogress" data-status="inprogress" onclick="selectStatus('inprogress')">
+        <div class="status-option-dot" style="background:var(--status-inprogress-fg)"></div>
+        <span class="status-option-label" style="color:var(--status-inprogress-fg)">In Progress</span>
+        <span class="status-option-check" style="color:var(--status-inprogress-fg)">✓</span>
+      </button>
+      <button class="status-option opt-onhold" data-status="onhold" onclick="selectStatus('onhold')">
+        <div class="status-option-dot" style="background:var(--status-onhold-fg)"></div>
+        <span class="status-option-label" style="color:var(--status-onhold-fg)">On Hold</span>
+        <span class="status-option-check" style="color:var(--status-onhold-fg)">✓</span>
+      </button>
+      <button class="status-option opt-complete" data-status="complete" onclick="selectStatus('complete')">
+        <div class="status-option-dot" style="background:var(--status-complete-fg)"></div>
+        <span class="status-option-label" style="color:var(--status-complete-fg)">Complete</span>
+        <span class="status-option-check" style="color:var(--status-complete-fg)">✓</span>
+      </button>
+      <button class="status-option opt-cancelled" data-status="cancelled" onclick="selectStatus('cancelled')">
+        <div class="status-option-dot" style="background:var(--status-cancelled-fg)"></div>
+        <span class="status-option-label" style="color:var(--status-cancelled-fg)">Cancelled</span>
+        <span class="status-option-check" style="color:var(--status-cancelled-fg)">✓</span>
+      </button>
+    </div>
+
+    <div class="sheet-section-lbl">Work Details</div>
     <div class="field">
       <label class="field-label optional">Asset Number</label>
       <input class="field-input mono" id="inp-wo-asset" placeholder="e.g. EQ-00456"
@@ -456,8 +561,45 @@
       <textarea class="field-input" id="inp-wo-notes"
         placeholder="Any additional notes, instructions, or context…" rows="3"></textarea>
     </div>
+
     <button class="btn-primary" id="btn-save-wo">Create Work Order</button>
     <button class="btn-muted" id="btn-cancel-wo">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL: QUICK STATUS CHANGE ═══ -->
+<div class="overlay" id="modal-status">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2>Change Status</h2>
+    <div class="status-options" id="quick-status-options">
+      <button class="status-option opt-planned" data-status="planned" onclick="quickSetStatus('planned')">
+        <div class="status-option-dot" style="background:var(--status-planned-fg)"></div>
+        <span class="status-option-label" style="color:var(--status-planned-fg)">Planned</span>
+        <span class="status-option-check" style="color:var(--status-planned-fg)">✓</span>
+      </button>
+      <button class="status-option opt-inprogress" data-status="inprogress" onclick="quickSetStatus('inprogress')">
+        <div class="status-option-dot" style="background:var(--status-inprogress-fg)"></div>
+        <span class="status-option-label" style="color:var(--status-inprogress-fg)">In Progress</span>
+        <span class="status-option-check" style="color:var(--status-inprogress-fg)">✓</span>
+      </button>
+      <button class="status-option opt-onhold" data-status="onhold" onclick="quickSetStatus('onhold')">
+        <div class="status-option-dot" style="background:var(--status-onhold-fg)"></div>
+        <span class="status-option-label" style="color:var(--status-onhold-fg)">On Hold</span>
+        <span class="status-option-check" style="color:var(--status-onhold-fg)">✓</span>
+      </button>
+      <button class="status-option opt-complete" data-status="complete" onclick="quickSetStatus('complete')">
+        <div class="status-option-dot" style="background:var(--status-complete-fg)"></div>
+        <span class="status-option-label" style="color:var(--status-complete-fg)">Complete</span>
+        <span class="status-option-check" style="color:var(--status-complete-fg)">✓</span>
+      </button>
+      <button class="status-option opt-cancelled" data-status="cancelled" onclick="quickSetStatus('cancelled')">
+        <div class="status-option-dot" style="background:var(--status-cancelled-fg)"></div>
+        <span class="status-option-label" style="color:var(--status-cancelled-fg)">Cancelled</span>
+        <span class="status-option-check" style="color:var(--status-cancelled-fg)">✓</span>
+      </button>
+    </div>
+    <button class="btn-muted" id="btn-cancel-status">Cancel</button>
   </div>
 </div>
 
@@ -523,39 +665,50 @@
 
 <script>
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CONSTANTS & STATE
+// CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VERSION = '1.1.3';
-const STORE_KEY   = 'maxplan_v113';
+const APP_VERSION = '1.1.4';
+const STORE_KEY   = 'maxplan_v114';
 
+const STATUS_META = {
+  planned:    { label: 'Planned',     cls: 'status-planned' },
+  inprogress: { label: 'In Progress', cls: 'status-inprogress' },
+  onhold:     { label: 'On Hold',     cls: 'status-onhold' },
+  complete:   { label: 'Complete',    cls: 'status-complete' },
+  cancelled:  { label: 'Cancelled',   cls: 'status-cancelled' }
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// STATE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 let state = {
   workOrders: [],
   currentId: null, currentTab: 'plan',
   addType: 'non-rotating',
   editItemId: null, editWOMode: false,
-  pendingDelItemId: null
+  pendingDelItemId: null,
+  modalWOStatus: 'planned'   // tracks selection inside the WO modal
 };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // UTILS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
-
 function esc(s) {
-  return String(s ?? '')
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
 function formatDT(ts) {
   if (!ts) return '—';
-  const d = new Date(ts);
-  const dd  = String(d.getDate()).padStart(2,'0');
-  const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
-  let h = d.getHours(), m = String(d.getMinutes()).padStart(2,'0');
-  const ap = h >= 12 ? 'pm' : 'am';
-  h = h % 12 || 12;
+  const d=new Date(ts);
+  const dd=String(d.getDate()).padStart(2,'0');
+  const mon=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+  let h=d.getHours(), m=String(d.getMinutes()).padStart(2,'0');
+  const ap=h>=12?'pm':'am'; h=h%12||12;
   return `${dd}/${mon}/${d.getFullYear()} ${h}:${m}${ap}`;
+}
+function statusBadgeHtml(status, extraClass='') {
+  const s=STATUS_META[status]||STATUS_META.planned;
+  return `<span class="status-badge ${s.cls} ${extraClass}">${s.label}</span>`;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -563,45 +716,64 @@ function formatDT(ts) {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function loadState() {
   try {
-    const raw = localStorage.getItem(STORE_KEY);
-    if (raw) state.workOrders = JSON.parse(raw).workOrders || [];
-  } catch(e) {}
+    const raw=localStorage.getItem(STORE_KEY);
+    if (raw) state.workOrders=JSON.parse(raw).workOrders||[];
+    // Back-fill status for older WOs that don't have one
+    state.workOrders.forEach(wo => { if (!wo.status) wo.status='planned'; });
+  } catch(e){}
 }
 function save() {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify({ workOrders: state.workOrders })); } catch(e) {}
+  try { localStorage.setItem(STORE_KEY,JSON.stringify({workOrders:state.workOrders})); } catch(e){}
 }
-function currentWO() { return state.workOrders.find(w => w.id === state.currentId) || null; }
+function currentWO() { return state.workOrders.find(w=>w.id===state.currentId)||null; }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// STATUS HELPERS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// Used inside the New/Edit WO modal status picker
+function selectStatus(s) {
+  state.modalWOStatus = s;
+  document.querySelectorAll('#status-options .status-option').forEach(opt => {
+    opt.classList.toggle('selected', opt.dataset.status === s);
+  });
+}
+
+// Used inside the quick-change status modal
+function quickSetStatus(s) {
+  const wo=currentWO(); if (!wo) return;
+  wo.status=s; save();
+  closeModal('modal-status');
+  updateHeaderStatus(s);
+}
+
+function updateHeaderStatus(status) {
+  const btn=document.getElementById('btn-header-status');
+  if (!btn) return;
+  const s=STATUS_META[status]||STATUS_META.planned;
+  btn.textContent=s.label;
+}
+
+function refreshQuickStatusPicker(current) {
+  document.querySelectorAll('#quick-status-options .status-option').forEach(opt => {
+    opt.classList.toggle('selected', opt.dataset.status === current);
+  });
+}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // SLOT MANAGEMENT
-// Each slot = one issued unit line in the Actual tab.
-// Fields per slot:
-//   Non-rotating: issued(bool), location(str), woAsset(str)
-//   Rotating:     rotatingAsset(str), location(str), woAsset(str)
-//
-// inheritedLocation / inheritedWoAsset are snapshotted from
-// the WO at the time the plan item was created. They are used
-// to PRE-FILL newly initialised slots only.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function getSlots(wo, item) {
-  if (!wo.actuals) wo.actuals = {};
-  if (!wo.actuals[item.id]) wo.actuals[item.id] = { slots: [] };
-  const act = wo.actuals[item.id];
-  if (!act.slots) act.slots = [];
-  const needed = item.plannedQty || 1;
-
-  // Grow: pre-fill new slots with the inherited values from the plan item
-  while (act.slots.length < needed) {
-    act.slots.push({
-      id: uid(),
-      issued: false,
-      rotatingAsset: '',
-      location: item.inheritedLocation || '',
-      woAsset: item.inheritedWoAsset || ''
-    });
+  if (!wo.actuals) wo.actuals={};
+  if (!wo.actuals[item.id]) wo.actuals[item.id]={slots:[]};
+  const act=wo.actuals[item.id];
+  if (!act.slots) act.slots=[];
+  const needed=item.plannedQty||1;
+  while (act.slots.length<needed) {
+    act.slots.push({id:uid(),issued:false,rotatingAsset:'',
+      location:item.inheritedLocation||'',woAsset:item.inheritedWoAsset||''});
   }
-  // Trim if qty reduced
-  if (act.slots.length > needed) act.slots = act.slots.slice(0, needed);
+  if (act.slots.length>needed) act.slots=act.slots.slice(0,needed);
   return act.slots;
 }
 
@@ -609,44 +781,43 @@ function getSlots(wo, item) {
 // NAVIGATION
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function showView(id) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
-function goHome()     { state.currentId = null; showView('view-home');     renderHome(); }
-function goToWO(id)   { state.currentId = id; state.currentTab = 'plan'; showView('view-wo'); renderWOView(); }
+function goHome()     { state.currentId=null; showView('view-home');     renderHome(); }
+function goToWO(id)   { state.currentId=id; state.currentTab='plan'; showView('view-wo'); renderWOView(); }
 function goVersions() { showView('view-versions'); }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // RENDER HOME
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderHome() {
-  const el  = document.getElementById('home-list');
-  const wos = [...state.workOrders].sort((a,b) => b.createdAt - a.createdAt);
-  let html  = '';
+  const el=document.getElementById('home-list');
+  const wos=[...state.workOrders].sort((a,b)=>b.createdAt-a.createdAt);
+  let html='';
 
-  if (wos.length === 0) {
-    html = `<div class="empty">
-      <div class="empty-icon">📋</div><h3>No Work Orders</h3>
-      <p>Tap <strong>+</strong> to create your first work order and start planning materials.</p>
-    </div>`;
+  if (wos.length===0) {
+    html=`<div class="empty"><div class="empty-icon">📋</div><h3>No Work Orders</h3>
+      <p>Tap <strong>+</strong> to create your first work order and start planning materials.</p></div>`;
   } else {
-    html += `<div class="list-label">${wos.length} work order${wos.length!==1?'s':''}</div>`;
-    wos.forEach(wo => {
-      const planCount  = (wo.planItems||[]).length;
-      const actuals    = wo.actuals||{};
-      const doneCount  = (wo.planItems||[]).filter(item => {
-        const a = actuals[item.id];
-        if (!a||!a.slots) return false;
-        return item.type==='non-rotating' ? a.slots.some(s=>s.issued) : a.slots.some(s=>s.rotatingAsset&&s.rotatingAsset.trim());
+    html+=`<div class="list-label">${wos.length} work order${wos.length!==1?'s':''}</div>`;
+    wos.forEach(wo=>{
+      const planCount=(wo.planItems||[]).length;
+      const actuals=wo.actuals||{};
+      const doneCount=(wo.planItems||[]).filter(item=>{
+        const a=actuals[item.id]; if(!a||!a.slots)return false;
+        return item.type==='non-rotating'?a.slots.some(s=>s.issued):a.slots.some(s=>s.rotatingAsset&&s.rotatingAsset.trim());
       }).length;
-      // Build meta line
-      const metaParts = [];
-      if (wo.location) metaParts.push('📍 ' + wo.location);
-      if (wo.assetNumber) metaParts.push('⚙️ ' + wo.assetNumber);
-      html += `<div class="wo-card" data-id="${wo.id}">
+      const metaParts=[];
+      if (wo.location)     metaParts.push('📍 '+wo.location);
+      if (wo.assetNumber)  metaParts.push('⚙️ '+wo.assetNumber);
+      html+=`<div class="wo-card" data-id="${wo.id}">
         <div class="wo-card-dot">🔧</div>
         <div class="wo-card-body">
-          <div class="wo-card-num">${esc(wo.woNumber)}</div>
+          <div class="wo-card-num">
+            ${esc(wo.woNumber)}
+            ${statusBadgeHtml(wo.status||'planned')}
+          </div>
           <div class="wo-card-desc">${wo.description?esc(wo.description):'<em style="opacity:.5">No description</em>'}</div>
           ${metaParts.length?`<div class="wo-card-meta">${esc(metaParts.join('  '))}</div>`:''}
         </div>
@@ -659,24 +830,25 @@ function renderHome() {
     });
   }
 
-  html += `<div class="version-footer">
+  html+=`<div class="version-footer">
     <button class="version-pill" id="btn-show-versions">MaxPlan v${APP_VERSION}</button>
   </div>`;
 
-  el.innerHTML = html;
-  el.querySelectorAll('.wo-card').forEach(c => c.addEventListener('click', () => goToWO(c.dataset.id)));
-  document.getElementById('btn-show-versions').addEventListener('click', goVersions);
+  el.innerHTML=html;
+  el.querySelectorAll('.wo-card').forEach(c=>c.addEventListener('click',()=>goToWO(c.dataset.id)));
+  document.getElementById('btn-show-versions').addEventListener('click',goVersions);
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // RENDER WO VIEW
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderWOView() {
-  const wo = currentWO(); if (!wo) return goHome();
-  document.getElementById('wo-title').textContent = wo.woNumber;
-  document.getElementById('wo-sub').textContent   = wo.description || 'No description';
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === state.currentTab));
-  document.getElementById('fab-add-item').style.display = state.currentTab==='plan' ? 'flex' : 'none';
+  const wo=currentWO(); if(!wo)return goHome();
+  document.getElementById('wo-title').textContent=wo.woNumber;
+  document.getElementById('wo-sub').textContent=wo.description||'No description';
+  updateHeaderStatus(wo.status||'planned');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===state.currentTab));
+  document.getElementById('fab-add-item').style.display=state.currentTab==='plan'?'flex':'none';
   if      (state.currentTab==='plan')   renderPlanTab();
   else if (state.currentTab==='actual') renderActualTab();
   else                                  renderSummaryTab();
@@ -686,38 +858,34 @@ function renderWOView() {
 // RENDER PLAN TAB
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderPlanTab() {
-  const wo    = currentWO();
-  const el    = document.getElementById('wo-content');
-  const items = wo.planItems || [];
+  const wo=currentWO();
+  const el=document.getElementById('wo-content');
+  const items=wo.planItems||[];
 
-  let notesHtml = '';
-  if (wo.notes) notesHtml += `<div class="notes-block">📝 ${esc(wo.notes)}</div>`;
-
-  // WO-level info banner
-  if (wo.location || wo.assetNumber) {
-    notesHtml += `<div style="background:var(--wo-bg);border:1px solid rgba(124,58,237,.2);
+  let notesHtml='';
+  if (wo.notes) notesHtml+=`<div class="notes-block">📝 ${esc(wo.notes)}</div>`;
+  if (wo.location||wo.assetNumber) {
+    notesHtml+=`<div style="background:var(--wo-bg);border:1px solid rgba(124,58,237,.2);
       border-radius:var(--radius-sm);padding:11px 13px;margin-bottom:16px;font-size:13px;color:var(--wo-color)">
       <strong>WO-level defaults</strong> — new items added to the plan will inherit these values in the Actual tab:
-      ${wo.location ? `<div style="margin-top:5px">📍 <strong>Location of Work:</strong> ${esc(wo.location)}</div>` : ''}
-      ${wo.assetNumber ? `<div style="margin-top:3px">⚙️ <strong>Asset Number:</strong> ${esc(wo.assetNumber)}</div>` : ''}
+      ${wo.location?`<div style="margin-top:5px">📍 <strong>Location of Work:</strong> ${esc(wo.location)}</div>`:''}
+      ${wo.assetNumber?`<div style="margin-top:3px">⚙️ <strong>Asset Number:</strong> ${esc(wo.assetNumber)}</div>`:''}
       <div style="font-size:11px;opacity:.7;margin-top:6px">To apply updated values to existing items, remove and re-add them.</div>
     </div>`;
   }
 
-  if (items.length === 0) {
-    el.innerHTML = notesHtml + `<div class="empty">
-      <div class="empty-icon">📦</div><h3>No Planned Items</h3>
-      <p>Tap <strong>+</strong> to add non-rotating or rotating items.</p>
-    </div>`;
+  if (items.length===0) {
+    el.innerHTML=notesHtml+`<div class="empty"><div class="empty-icon">📦</div>
+      <h3>No Planned Items</h3><p>Tap <strong>+</strong> to add non-rotating or rotating items.</p></div>`;
     return;
   }
 
-  const nr  = items.filter(i => i.type==='non-rotating');
-  const rot = items.filter(i => i.type==='rotating');
+  const nr=items.filter(i=>i.type==='non-rotating');
+  const rot=items.filter(i=>i.type==='rotating');
 
-  const itemCard = item => {
-    const isRot = item.type==='rotating';
-    const chips = [];
+  const itemCard=item=>{
+    const isRot=item.type==='rotating';
+    const chips=[];
     if (item.inheritedLocation) chips.push(`📍 ${esc(item.inheritedLocation)}`);
     if (item.inheritedWoAsset)  chips.push(`⚙️ ${esc(item.inheritedWoAsset)}`);
     return `<div class="item-card">
@@ -734,20 +902,20 @@ function renderPlanTab() {
         <div class="meta-col"><span class="meta-lbl">Planned Qty</span><span class="meta-val">${item.plannedQty}</span></div>
         <div class="meta-col"><span class="meta-lbl">Reserved</span><span class="meta-val date-stamp">${formatDT(item.createdAt)}</span></div>
       </div>
-      ${chips.length ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">
+      ${chips.length?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">
         ${chips.map(c=>`<span class="inherit-chip"><span>inherits</span> ${c}</span>`).join('')}
-      </div>` : ''}
+      </div>`:''}
     </div>`;
   };
 
-  let html = notesHtml;
-  if (nr.length>0)  html += `<div class="section-block"><div class="list-label">Non-Rotating (${nr.length})</div>${nr.map(itemCard).join('')}</div>`;
-  if (rot.length>0) html += `<div class="section-block"><div class="list-label">Rotating (${rot.length})</div>${rot.map(itemCard).join('')}</div>`;
+  let html=notesHtml;
+  if (nr.length>0)  html+=`<div class="section-block"><div class="list-label">Non-Rotating (${nr.length})</div>${nr.map(itemCard).join('')}</div>`;
+  if (rot.length>0) html+=`<div class="section-block"><div class="list-label">Rotating (${rot.length})</div>${rot.map(itemCard).join('')}</div>`;
 
-  el.innerHTML = html;
-  el.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openEditItem(b.dataset.edit)));
-  el.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
-    state.pendingDelItemId = b.dataset.del; openModal('modal-del-item');
+  el.innerHTML=html;
+  el.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openEditItem(b.dataset.edit)));
+  el.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{
+    state.pendingDelItemId=b.dataset.del; openModal('modal-del-item');
   }));
 }
 
@@ -755,29 +923,27 @@ function renderPlanTab() {
 // RENDER ACTUAL TAB
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderActualTab() {
-  const wo    = currentWO();
-  const el    = document.getElementById('wo-content');
-  const items = wo.planItems || [];
+  const wo=currentWO();
+  const el=document.getElementById('wo-content');
+  const items=wo.planItems||[];
 
   if (items.length===0) {
-    el.innerHTML = `<div class="empty">
-      <div class="empty-icon">✅</div><h3>No Items to Record</h3>
-      <p>Add planned items in the <strong>Plan</strong> tab first.</p>
-    </div>`; return;
+    el.innerHTML=`<div class="empty"><div class="empty-icon">✅</div><h3>No Items to Record</h3>
+      <p>Add planned items in the <strong>Plan</strong> tab first.</p></div>`; return;
   }
 
-  const nr  = items.filter(i=>i.type==='non-rotating');
-  const rot = items.filter(i=>i.type==='rotating');
-  let html  = '';
+  const nr=items.filter(i=>i.type==='non-rotating');
+  const rot=items.filter(i=>i.type==='rotating');
+  let html='';
 
   // ── NON-ROTATING ──
   if (nr.length>0) {
-    html += `<div class="section-block"><div class="list-label">Non-Rotating Actuals (${nr.length})</div>`;
-    nr.forEach(item => {
-      const slots   = getSlots(wo, item);
-      const issuedN = slots.filter(s=>s.issued).length;
-      const pct     = item.plannedQty>0 ? Math.round((issuedN/item.plannedQty)*100) : 0;
-      html += `<div class="actual-card">
+    html+=`<div class="section-block"><div class="list-label">Non-Rotating Actuals (${nr.length})</div>`;
+    nr.forEach(item=>{
+      const slots=getSlots(wo,item);
+      const issuedN=slots.filter(s=>s.issued).length;
+      const pct=item.plannedQty>0?Math.round((issuedN/item.plannedQty)*100):0;
+      html+=`<div class="actual-card">
         <div class="item-card-head" style="margin-bottom:9px">
           <span class="badge badge-nr">Non-Rotating</span>
           <span class="item-num">${esc(item.itemNumber)}</span>
@@ -794,52 +960,46 @@ function renderActualTab() {
             <span>${pct}%</span>
           </div>
         </div>`;
-      slots.forEach((slot, idx) => {
-        const hasLoc    = !!(slot.location && slot.location.trim());
-        const hasAsset  = !!(slot.woAsset && slot.woAsset.trim());
-        const locInherited   = hasLoc  && slot.location === item.inheritedLocation;
-        const assetInherited = hasAsset && slot.woAsset  === item.inheritedWoAsset;
-        html += `<div class="slot-row${slot.issued?' issued':''}" id="slot-${slot.id}">
+      slots.forEach((slot,idx)=>{
+        const locInherited  =!!(slot.location&&slot.location.trim()&&slot.location===item.inheritedLocation);
+        const assetInherited=!!(slot.woAsset&&slot.woAsset.trim()&&slot.woAsset===item.inheritedWoAsset);
+        html+=`<div class="slot-row${slot.issued?' issued':''}" id="slot-${slot.id}">
           <div class="slot-header">
             <span class="slot-label${slot.issued?' done-nr':''}" id="slbl-${slot.id}">Unit ${idx+1} of ${item.plannedQty}</span>
             <button class="issue-toggle ${slot.issued?'on':'off'}"
               data-item="${item.id}" data-slot="${slot.id}" onclick="toggleIssue(this)">
-              ${slot.issued ? '✓ Issued' : 'Not Issued'}
+              ${slot.issued?'✓ Issued':'Not Issued'}
             </button>
           </div>
           <div class="slot-fields">
             <div class="slot-field-group">
               <div class="slot-micro-lbl${assetInherited?' inherited':''}">Asset Number${assetInherited?' (from WO)':''}</div>
-              <input class="slot-input${assetInherited?' inherited-val':''}" type="text"
-                placeholder="e.g. EQ-00456"
+              <input class="slot-input${assetInherited?' inherited-val':''}" type="text" placeholder="e.g. EQ-00456"
                 value="${esc(slot.woAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
-                data-item="${item.id}" data-slot="${slot.id}" data-field="woAsset"
-                oninput="handleSlotInput(this)">
+                data-item="${item.id}" data-slot="${slot.id}" data-field="woAsset" oninput="handleSlotInput(this)">
             </div>
             <div class="slot-field-group">
               <div class="slot-micro-lbl${locInherited?' inherited':''}">Location of Work${locInherited?' (from WO)':''}</div>
-              <input class="slot-input${locInherited?' inherited-val':''}" type="text"
-                placeholder="e.g. PUMP-ROOM-A"
+              <input class="slot-input${locInherited?' inherited-val':''}" type="text" placeholder="e.g. PUMP-ROOM-A"
                 value="${esc(slot.location)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
-                data-item="${item.id}" data-slot="${slot.id}" data-field="location"
-                oninput="handleSlotInput(this)">
+                data-item="${item.id}" data-slot="${slot.id}" data-field="location" oninput="handleSlotInput(this)">
             </div>
           </div>
         </div>`;
       });
-      html += `</div>`;
+      html+=`</div>`;
     });
-    html += `</div>`;
+    html+=`</div>`;
   }
 
   // ── ROTATING ──
   if (rot.length>0) {
-    html += `<div class="section-block"><div class="list-label">Rotating Actuals (${rot.length})</div>`;
-    rot.forEach(item => {
-      const slots  = getSlots(wo, item);
-      const doneN  = slots.filter(s=>s.rotatingAsset&&s.rotatingAsset.trim()).length;
-      const pct    = item.plannedQty>0 ? Math.round((doneN/item.plannedQty)*100) : 0;
-      html += `<div class="actual-card">
+    html+=`<div class="section-block"><div class="list-label">Rotating Actuals (${rot.length})</div>`;
+    rot.forEach(item=>{
+      const slots=getSlots(wo,item);
+      const doneN=slots.filter(s=>s.rotatingAsset&&s.rotatingAsset.trim()).length;
+      const pct=item.plannedQty>0?Math.round((doneN/item.plannedQty)*100):0;
+      html+=`<div class="actual-card">
         <div class="item-card-head" style="margin-bottom:9px">
           <span class="badge badge-rot">Rotating</span>
           <span class="item-num">${esc(item.itemNumber)}</span>
@@ -856,13 +1016,11 @@ function renderActualTab() {
             <span>${pct}%</span>
           </div>
         </div>`;
-      slots.forEach((slot, idx) => {
-        const hasDone   = !!(slot.rotatingAsset&&slot.rotatingAsset.trim());
-        const hasLoc    = !!(slot.location&&slot.location.trim());
-        const hasAsset  = !!(slot.woAsset&&slot.woAsset.trim());
-        const locInherited   = hasLoc  && slot.location === item.inheritedLocation;
-        const assetInherited = hasAsset && slot.woAsset  === item.inheritedWoAsset;
-        html += `<div class="slot-row${hasDone?' has-asset':''}" id="slot-${slot.id}">
+      slots.forEach((slot,idx)=>{
+        const hasDone=!!(slot.rotatingAsset&&slot.rotatingAsset.trim());
+        const locInherited  =!!(slot.location&&slot.location.trim()&&slot.location===item.inheritedLocation);
+        const assetInherited=!!(slot.woAsset&&slot.woAsset.trim()&&slot.woAsset===item.inheritedWoAsset);
+        html+=`<div class="slot-row${hasDone?' has-asset':''}" id="slot-${slot.id}">
           <div class="slot-header">
             <span class="slot-label${hasDone?' done-rot':''}" id="slbl-${slot.id}">Asset ${idx+1} of ${item.plannedQty}</span>
             ${hasDone?`<span style="font-size:13px;color:var(--rot-color);font-weight:700">✓</span>`:''}
@@ -870,99 +1028,86 @@ function renderActualTab() {
           <div class="slot-fields">
             <div class="slot-field-group">
               <div class="slot-micro-lbl" style="color:var(--rot-color)">Rotating Asset Number</div>
-              <input class="slot-input rot-asset" type="text"
-                placeholder="e.g. EQ-00123"
+              <input class="slot-input rot-asset" type="text" placeholder="e.g. EQ-00123"
                 value="${esc(slot.rotatingAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
-                data-item="${item.id}" data-slot="${slot.id}" data-field="rotatingAsset"
-                oninput="handleSlotInput(this)">
+                data-item="${item.id}" data-slot="${slot.id}" data-field="rotatingAsset" oninput="handleSlotInput(this)">
             </div>
             <div class="slot-field-group">
               <div class="slot-micro-lbl${assetInherited?' inherited':''}">Asset Number${assetInherited?' (from WO)':''}</div>
-              <input class="slot-input${assetInherited?' inherited-val':''}" type="text"
-                placeholder="e.g. EQ-00456"
+              <input class="slot-input${assetInherited?' inherited-val':''}" type="text" placeholder="e.g. EQ-00456"
                 value="${esc(slot.woAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
-                data-item="${item.id}" data-slot="${slot.id}" data-field="woAsset"
-                oninput="handleSlotInput(this)">
+                data-item="${item.id}" data-slot="${slot.id}" data-field="woAsset" oninput="handleSlotInput(this)">
             </div>
             <div class="slot-field-group">
               <div class="slot-micro-lbl${locInherited?' inherited':''}">Location of Work${locInherited?' (from WO)':''}</div>
-              <input class="slot-input${locInherited?' inherited-val':''}" type="text"
-                placeholder="e.g. PUMP-ROOM-A"
+              <input class="slot-input${locInherited?' inherited-val':''}" type="text" placeholder="e.g. PUMP-ROOM-A"
                 value="${esc(slot.location)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
-                data-item="${item.id}" data-slot="${slot.id}" data-field="location"
-                oninput="handleSlotInput(this)">
+                data-item="${item.id}" data-slot="${slot.id}" data-field="location" oninput="handleSlotInput(this)">
             </div>
           </div>
         </div>`;
       });
-      html += `</div>`;
+      html+=`</div>`;
     });
-    html += `</div>`;
+    html+=`</div>`;
   }
 
-  save(); // persist slot initialisation
-  el.innerHTML = html;
+  save();
+  el.innerHTML=html;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ACTUAL SLOT HANDLERS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function toggleIssue(btn) {
-  const wo = currentWO(); if (!wo) return;
-  const {item: itemId, slot: slotId} = btn.dataset;
-  if (!wo.actuals?.[itemId]) return;
-  const slot = wo.actuals[itemId].slots.find(s => s.id===slotId);
-  if (!slot) return;
-  slot.issued = !slot.issued; save();
-
-  btn.textContent  = slot.issued ? '✓ Issued' : 'Not Issued';
-  btn.className    = `issue-toggle ${slot.issued?'on':'off'}`;
-  const row = document.getElementById(`slot-${slotId}`);
-  if (row) {
-    row.classList.toggle('issued', slot.issued);
-    const lbl = document.getElementById(`slbl-${slotId}`);
-    if (lbl) lbl.className = `slot-label${slot.issued?' done-nr':''}`;
+  const wo=currentWO(); if(!wo)return;
+  const {item:itemId,slot:slotId}=btn.dataset;
+  const slot=wo.actuals?.[itemId]?.slots?.find(s=>s.id===slotId); if(!slot)return;
+  slot.issued=!slot.issued; save();
+  btn.textContent=slot.issued?'✓ Issued':'Not Issued';
+  btn.className=`issue-toggle ${slot.issued?'on':'off'}`;
+  const row=document.getElementById(`slot-${slotId}`);
+  if(row){
+    row.classList.toggle('issued',slot.issued);
+    const lbl=document.getElementById(`slbl-${slotId}`);
+    if(lbl)lbl.className=`slot-label${slot.issued?' done-nr':''}`;
   }
-  // Update progress bar
-  const item = (wo.planItems||[]).find(i=>i.id===itemId);
-  if (item) {
-    const slots   = wo.actuals[itemId].slots;
-    const issuedN = slots.filter(s=>s.issued).length;
-    const pct     = item.plannedQty>0 ? Math.round((issuedN/item.plannedQty)*100) : 0;
-    const pf = document.getElementById(`pf-${itemId}`);
-    const pl = document.getElementById(`prog-lbl-${itemId}`);
-    if (pf) pf.style.width = `${pct}%`;
-    if (pl) pl.textContent = `${issuedN} of ${item.plannedQty} issued`;
+  const item=(wo.planItems||[]).find(i=>i.id===itemId);
+  if(item){
+    const slots=wo.actuals[itemId].slots;
+    const n=slots.filter(s=>s.issued).length;
+    const p=item.plannedQty>0?Math.round((n/item.plannedQty)*100):0;
+    const pf=document.getElementById(`pf-${itemId}`);
+    const pl=document.getElementById(`prog-lbl-${itemId}`);
+    if(pf)pf.style.width=`${p}%`;
+    if(pl)pl.textContent=`${n} of ${item.plannedQty} issued`;
   }
 }
 
 function handleSlotInput(input) {
-  const {item: itemId, slot: slotId, field} = input.dataset;
-  const wo = currentWO(); if (!wo) return;
-  const slot = wo.actuals?.[itemId]?.slots?.find(s=>s.id===slotId);
-  if (!slot) return;
-  slot[field] = input.value; save();
-
-  if (field === 'rotatingAsset') {
-    const hasDone = !!(input.value && input.value.trim());
-    const row = document.getElementById(`slot-${slotId}`);
-    if (row) {
-      row.classList.toggle('has-asset', hasDone);
-      const lbl = document.getElementById(`slbl-${slotId}`);
-      if (lbl) lbl.className = `slot-label${hasDone?' done-rot':''}`;
-      const tick = row.querySelector('.slot-header span:not(.slot-label)');
-      if (tick) { tick.textContent = hasDone?'✓':''; }
+  const {item:itemId,slot:slotId,field}=input.dataset;
+  const wo=currentWO(); if(!wo)return;
+  const slot=wo.actuals?.[itemId]?.slots?.find(s=>s.id===slotId); if(!slot)return;
+  slot[field]=input.value; save();
+  if(field==='rotatingAsset'){
+    const hasDone=!!(input.value&&input.value.trim());
+    const row=document.getElementById(`slot-${slotId}`);
+    if(row){
+      row.classList.toggle('has-asset',hasDone);
+      const lbl=document.getElementById(`slbl-${slotId}`);
+      if(lbl)lbl.className=`slot-label${hasDone?' done-rot':''}`;
+      const tick=row.querySelector('.slot-header span:not(.slot-label)');
+      if(tick)tick.textContent=hasDone?'✓':'';
     }
-    // Update rotating progress
-    const item = (wo.planItems||[]).find(i=>i.id===itemId);
-    if (item) {
-      const slots = wo.actuals[itemId].slots;
-      const doneN = slots.filter(s=>s.rotatingAsset&&s.rotatingAsset.trim()).length;
-      const pct   = item.plannedQty>0 ? Math.round((doneN/item.plannedQty)*100) : 0;
-      const pf = document.getElementById(`pf-${itemId}`);
-      const pl = document.getElementById(`prog-lbl-${itemId}`);
-      if (pf) pf.style.width = `${pct}%`;
-      if (pl) pl.textContent = `${doneN} of ${item.plannedQty} assets recorded`;
+    const item=(wo.planItems||[]).find(i=>i.id===itemId);
+    if(item){
+      const slots=wo.actuals[itemId].slots;
+      const n=slots.filter(s=>s.rotatingAsset&&s.rotatingAsset.trim()).length;
+      const p=item.plannedQty>0?Math.round((n/item.plannedQty)*100):0;
+      const pf=document.getElementById(`pf-${itemId}`);
+      const pl=document.getElementById(`prog-lbl-${itemId}`);
+      if(pf)pf.style.width=`${p}%`;
+      if(pl)pl.textContent=`${n} of ${item.plannedQty} assets recorded`;
     }
   }
 }
@@ -971,223 +1116,192 @@ function handleSlotInput(input) {
 // RENDER SUMMARY TAB
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderSummaryTab() {
-  const wo    = currentWO();
-  const el    = document.getElementById('wo-content');
-  const items = wo.planItems||[];
+  const wo=currentWO();
+  const el=document.getElementById('wo-content');
+  const items=wo.planItems||[];
 
-  if (items.length===0) {
+  if(items.length===0){
     el.innerHTML=`<div class="empty"><div class="empty-icon">📊</div><h3>No Data Yet</h3>
       <p>Add planned items in the <strong>Plan</strong> tab.</p></div>`; return;
   }
 
-  const getStatus = item => {
-    const a = (wo.actuals||{})[item.id];
-    if (!a||!a.slots||!a.slots.length) return 'pending';
-    if (item.type==='non-rotating') {
-      const n = a.slots.filter(s=>s.issued).length;
-      return n===0?'pending':n<item.plannedQty?'partial':'done';
-    }
-    const n = a.slots.filter(s=>s.rotatingAsset&&s.rotatingAsset.trim()).length;
+  const getStatus=item=>{
+    const a=(wo.actuals||{})[item.id];
+    if(!a||!a.slots||!a.slots.length)return'pending';
+    if(item.type==='non-rotating'){const n=a.slots.filter(s=>s.issued).length;return n===0?'pending':n<item.plannedQty?'partial':'done';}
+    const n=a.slots.filter(s=>s.rotatingAsset&&s.rotatingAsset.trim()).length;
     return n===0?'pending':n<item.plannedQty?'partial':'done';
   };
+  const nr=items.filter(i=>i.type==='non-rotating'),rot=items.filter(i=>i.type==='rotating');
+  const doneN=items.filter(i=>getStatus(i)==='done').length;
+  const partN=items.filter(i=>getStatus(i)==='partial').length;
+  const pct=items.length>0?Math.round(((doneN+partN*0.5)/items.length)*100):0;
+  const pill=s=>s==='done'?`<span class="status-pill-sm pill-done">✓ Done</span>`:
+    s==='partial'?`<span class="status-pill-sm pill-partial">Partial</span>`:
+    `<span class="status-pill-sm pill-pending">Pending</span>`;
 
-  const nr=items.filter(i=>i.type==='non-rotating'), rot=items.filter(i=>i.type==='rotating');
-  const doneN    = items.filter(i=>getStatus(i)==='done').length;
-  const partialN = items.filter(i=>getStatus(i)==='partial').length;
-  const pct      = items.length>0?Math.round(((doneN+partialN*0.5)/items.length)*100):0;
-
-  const pill = s => s==='done'?`<span class="status-pill pill-done">✓ Done</span>`:
-    s==='partial'?`<span class="status-pill pill-partial">Partial</span>`:
-    `<span class="status-pill pill-pending">Pending</span>`;
-
-  let html=`
-    <div class="summary-header-card">
-      <h3>Work Order Summary</h3>
-      <div class="summary-stats">
-        <div class="stat-box"><span class="stat-val">${items.length}</span><span class="stat-lbl">Total Items</span></div>
-        <div class="stat-box"><span class="stat-val">${doneN}</span><span class="stat-lbl">Completed</span></div>
-        <div class="stat-box"><span class="stat-val">${pct}%</span><span class="stat-lbl">Progress</span></div>
-      </div>
+  let html=`<div class="summary-header-card">
+    <h3>Work Order Summary</h3>
+    <div class="summary-stats">
+      <div class="stat-box"><span class="stat-val">${items.length}</span><span class="stat-lbl">Total Items</span></div>
+      <div class="stat-box"><span class="stat-val">${doneN}</span><span class="stat-lbl">Completed</span></div>
+      <div class="stat-box"><span class="stat-val">${pct}%</span><span class="stat-lbl">Progress</span></div>
     </div>
-    <button class="export-btn" id="btn-export">📋 &nbsp;Copy Summary to Clipboard</button>
-    <div class="copy-success" id="copy-success">✓ Copied to clipboard!</div>`;
+  </div>
+  <button class="export-btn" id="btn-export">📋 &nbsp;Copy Summary to Clipboard</button>
+  <div class="copy-success" id="copy-success">✓ Copied to clipboard!</div>`;
 
-  if (wo.assetNumber||wo.location) {
-    html+=`<div class="summary-section"><div class="list-label">Work Order Details</div>
-      <div class="summary-item">
-        ${wo.assetNumber?`<div class="summary-row"><span>Asset Number</span><strong>${esc(wo.assetNumber)}</strong></div>`:''}
-        ${wo.location?`<div class="summary-row"><span>Location of Work</span><strong>${esc(wo.location)}</strong></div>`:''}
-      </div></div>`;
-  }
+  // WO details row
+  html+=`<div class="summary-section"><div class="list-label">Work Order Details</div>
+    <div class="summary-item">
+      <div class="summary-row"><span>Status</span><strong>${statusBadgeHtml(wo.status||'planned')}</strong></div>
+      ${wo.assetNumber?`<div class="summary-row"><span>Asset Number</span><strong>${esc(wo.assetNumber)}</strong></div>`:''}
+      ${wo.location?`<div class="summary-row"><span>Location of Work</span><strong>${esc(wo.location)}</strong></div>`:''}
+    </div></div>`;
 
-  if (nr.length>0) {
+  if(nr.length>0){
     html+=`<div class="summary-section"><div class="list-label">Non-Rotating Items</div>`;
-    nr.forEach(item => {
-      const slots   = ((wo.actuals||{})[item.id]||{}).slots||[];
-      const issuedN = slots.filter(s=>s.issued).length;
-      const st      = getStatus(item);
+    nr.forEach(item=>{
+      const slots=((wo.actuals||{})[item.id]||{}).slots||[];
+      const issuedN=slots.filter(s=>s.issued).length;
       html+=`<div class="summary-item">
-        <div class="summary-item-head">
-          <span class="badge badge-nr">Non-Rot</span>
-          <span class="summary-item-num">${esc(item.itemNumber)}</span>${pill(st)}
-        </div>
+        <div class="summary-item-head"><span class="badge badge-nr">Non-Rot</span>
+          <span class="summary-item-num">${esc(item.itemNumber)}</span>${pill(getStatus(item))}</div>
         <div class="summary-row"><span>Storeroom</span><strong>${esc(item.storeroom)}</strong></div>
         <div class="summary-row"><span>Planned / Issued</span><strong>${item.plannedQty} / ${issuedN}</strong></div>
         <div class="summary-row"><span>Reserved</span><strong style="font-family:inherit;font-size:12px">${formatDT(item.createdAt)}</strong></div>
         <div style="margin-top:10px"><div class="meta-lbl" style="margin-bottom:6px">Issue Details</div>
-          ${slots.map((s,i)=>{
-            const done=s.issued;
-            return `<div class="summary-slot ${done?'done-nr':''}">
-              <div class="summary-slot-head">
-                <span class="summary-slot-label ${done?'done-nr':''}">Unit ${i+1}</span>
-                <span class="summary-slot-val">${done?'✓ Issued':'Pending'}</span>
-              </div>
-              <div class="summary-slot-detail">
-                ${s.woAsset?`Asset: ${esc(s.woAsset)}<br>`:''}
-                ${s.location?`Location: ${esc(s.location)}`:''}
-              </div>
-            </div>`;
-          }).join('')}
+          ${slots.map((s,i)=>{const done=s.issued;return`<div class="summary-slot ${done?'done-nr':''}">
+            <div class="summary-slot-head"><span class="summary-slot-label ${done?'done-nr':''}">Unit ${i+1}</span>
+              <span class="summary-slot-val">${done?'✓ Issued':'Pending'}</span></div>
+            <div class="summary-slot-detail">${s.woAsset?`Asset: ${esc(s.woAsset)}<br>`:''}${s.location?`Location: ${esc(s.location)}`:''}</div>
+          </div>`;}).join('')}
         </div>
       </div>`;
     });
     html+=`</div>`;
   }
 
-  if (rot.length>0) {
+  if(rot.length>0){
     html+=`<div class="summary-section"><div class="list-label">Rotating Items</div>`;
-    rot.forEach(item => {
-      const slots = ((wo.actuals||{})[item.id]||{}).slots||[];
-      const doneN2 = slots.filter(s=>s.rotatingAsset&&s.rotatingAsset.trim()).length;
-      const st = getStatus(item);
+    rot.forEach(item=>{
+      const slots=((wo.actuals||{})[item.id]||{}).slots||[];
+      const doneN2=slots.filter(s=>s.rotatingAsset&&s.rotatingAsset.trim()).length;
       html+=`<div class="summary-item">
-        <div class="summary-item-head">
-          <span class="badge badge-rot">Rotating</span>
-          <span class="summary-item-num">${esc(item.itemNumber)}</span>${pill(st)}
-        </div>
+        <div class="summary-item-head"><span class="badge badge-rot">Rotating</span>
+          <span class="summary-item-num">${esc(item.itemNumber)}</span>${pill(getStatus(item))}</div>
         <div class="summary-row"><span>Storeroom</span><strong>${esc(item.storeroom)}</strong></div>
         <div class="summary-row"><span>Planned / Recorded</span><strong>${item.plannedQty} / ${doneN2}</strong></div>
         <div class="summary-row"><span>Reserved</span><strong style="font-family:inherit;font-size:12px">${formatDT(item.createdAt)}</strong></div>
         <div style="margin-top:10px"><div class="meta-lbl" style="margin-bottom:6px">Asset Details</div>
-          ${slots.map((s,i)=>{
-            const done=!!(s.rotatingAsset&&s.rotatingAsset.trim());
-            return `<div class="summary-slot ${done?'done-rot':''}">
-              <div class="summary-slot-head">
-                <span class="summary-slot-label ${done?'done-rot':''}">Asset ${i+1}</span>
-                <span class="summary-slot-val">${done?esc(s.rotatingAsset):'Pending'}</span>
-              </div>
-              <div class="summary-slot-detail">
-                ${s.woAsset?`Asset #: ${esc(s.woAsset)}<br>`:''}
-                ${s.location?`Location: ${esc(s.location)}`:''}
-              </div>
-            </div>`;
-          }).join('')}
+          ${slots.map((s,i)=>{const done=!!(s.rotatingAsset&&s.rotatingAsset.trim());return`<div class="summary-slot ${done?'done-rot':''}">
+            <div class="summary-slot-head"><span class="summary-slot-label ${done?'done-rot':''}">Asset ${i+1}</span>
+              <span class="summary-slot-val">${done?esc(s.rotatingAsset):'Pending'}</span></div>
+            <div class="summary-slot-detail">${s.woAsset?`Asset #: ${esc(s.woAsset)}<br>`:''}${s.location?`Location: ${esc(s.location)}`:''}</div>
+          </div>`;}).join('')}
         </div>
       </div>`;
     });
     html+=`</div>`;
   }
 
-  if (wo.notes) html+=`<div class="summary-section"><div class="list-label">Work Order Notes</div>
+  if(wo.notes)html+=`<div class="summary-section"><div class="list-label">Work Order Notes</div>
     <div class="notes-block">📝 ${esc(wo.notes)}</div></div>`;
 
   el.innerHTML=html;
-  document.getElementById('btn-export').addEventListener('click', exportSummary);
+  document.getElementById('btn-export').addEventListener('click',exportSummary);
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // EXPORT
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function exportSummary() {
-  const wo=currentWO(); if (!wo) return;
-  const lines=['============================','MAXPLAN — WO MATERIAL SUMMARY',
-    '============================',`Work Order : ${wo.woNumber}`];
-  if (wo.description) lines.push(`Description: ${wo.description}`);
-  if (wo.assetNumber) lines.push(`Asset No.  : ${wo.assetNumber}`);
-  if (wo.location)    lines.push(`Location   : ${wo.location}`);
-  if (wo.notes)       lines.push(`Notes      : ${wo.notes}`);
+function exportSummary(){
+  const wo=currentWO(); if(!wo)return;
+  const sm=STATUS_META[wo.status||'planned']||STATUS_META.planned;
+  const lines=['============================','MAXPLAN — WO MATERIAL SUMMARY','============================',
+    `Work Order : ${wo.woNumber}`,`Status     : ${sm.label}`];
+  if(wo.description)lines.push(`Description: ${wo.description}`);
+  if(wo.assetNumber)lines.push(`Asset No.  : ${wo.assetNumber}`);
+  if(wo.location)   lines.push(`Location   : ${wo.location}`);
+  if(wo.notes)      lines.push(`Notes      : ${wo.notes}`);
   lines.push(`Exported   : ${formatDT(Date.now())}`,``);
 
   (wo.planItems||[]).filter(i=>i.type==='non-rotating').forEach(item=>{
-    const slots   = ((wo.actuals||{})[item.id]||{}).slots||[];
-    const issuedN = slots.filter(s=>s.issued).length;
+    const slots=((wo.actuals||{})[item.id]||{}).slots||[];
+    const n=slots.filter(s=>s.issued).length;
     lines.push(`── NON-ROTATING: ${item.itemNumber}`,`   Storeroom  : ${item.storeroom}`,
-      `   Planned Qty: ${item.plannedQty}`,`   Issued     : ${issuedN} of ${item.plannedQty}`,
+      `   Planned Qty: ${item.plannedQty}`,`   Issued     : ${n} of ${item.plannedQty}`,
       `   Reserved   : ${formatDT(item.createdAt)}`);
     slots.forEach((s,i)=>{
-      let detail=`   Unit ${i+1}     : ${s.issued?'Issued':'Pending'}`;
-      if (s.woAsset)  detail+=` · Asset: ${s.woAsset}`;
-      if (s.location) detail+=` · Location: ${s.location}`;
-      lines.push(detail);
+      let d=`   Unit ${i+1}     : ${s.issued?'Issued':'Pending'}`;
+      if(s.woAsset)d+=` · Asset: ${s.woAsset}`;
+      if(s.location)d+=` · Location: ${s.location}`;
+      lines.push(d);
     }); lines.push(``);
   });
 
   (wo.planItems||[]).filter(i=>i.type==='rotating').forEach(item=>{
-    const slots = ((wo.actuals||{})[item.id]||{}).slots||[];
-    const doneN = slots.filter(s=>s.rotatingAsset&&s.rotatingAsset.trim()).length;
+    const slots=((wo.actuals||{})[item.id]||{}).slots||[];
+    const n=slots.filter(s=>s.rotatingAsset&&s.rotatingAsset.trim()).length;
     lines.push(`── ROTATING: ${item.itemNumber}`,`   Storeroom  : ${item.storeroom}`,
-      `   Planned Qty: ${item.plannedQty}`,`   Assets Done: ${doneN} of ${item.plannedQty}`,
+      `   Planned Qty: ${item.plannedQty}`,`   Assets Done: ${n} of ${item.plannedQty}`,
       `   Reserved   : ${formatDT(item.createdAt)}`);
     slots.forEach((s,i)=>{
-      const hasDone=!!(s.rotatingAsset&&s.rotatingAsset.trim());
-      let detail=`   Asset ${i+1}    : ${hasDone?s.rotatingAsset:'Pending'}`;
-      if (s.woAsset)  detail+=` · Asset: ${s.woAsset}`;
-      if (s.location) detail+=` · Location: ${s.location}`;
-      lines.push(detail);
+      const done=!!(s.rotatingAsset&&s.rotatingAsset.trim());
+      let d=`   Asset ${i+1}    : ${done?s.rotatingAsset:'Pending'}`;
+      if(s.woAsset)d+=` · Asset: ${s.woAsset}`;
+      if(s.location)d+=` · Location: ${s.location}`;
+      lines.push(d);
     }); lines.push(``);
   });
 
   lines.push('============================');
   const text=lines.join('\n');
-  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(showCopied).catch(()=>fallbackCopy(text));
+  if(navigator.clipboard?.writeText)navigator.clipboard.writeText(text).then(showCopied).catch(()=>fallbackCopy(text));
   else fallbackCopy(text);
 }
 function fallbackCopy(text){
-  const ta=document.createElement('textarea'); ta.value=text;
+  const ta=document.createElement('textarea');ta.value=text;
   ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';
-  document.body.appendChild(ta); ta.select();
+  document.body.appendChild(ta);ta.select();
   try{document.execCommand('copy');showCopied();}catch(e){alert(text);}
   document.body.removeChild(ta);
 }
 function showCopied(){
-  const el=document.getElementById('copy-success'); if(!el)return;
-  el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2800);
+  const el=document.getElementById('copy-success');if(!el)return;
+  el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2800);
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // MODALS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
 
-function setType(type) {
-  state.addType = type;
-  document.getElementById('tbtn-nr').className = 'type-btn'+(type==='non-rotating'?' sel-nr':'');
-  document.getElementById('tbtn-rot').className = 'type-btn'+(type==='rotating'?' sel-rot':'');
-  document.getElementById('qty-label').textContent =
-    type==='rotating' ? 'Planned Quantity (no. of assets) *' : 'Planned Quantity *';
+function setType(type){
+  state.addType=type;
+  document.getElementById('tbtn-nr').className='type-btn'+(type==='non-rotating'?' sel-nr':'');
+  document.getElementById('tbtn-rot').className='type-btn'+(type==='rotating'?' sel-rot':'');
+  document.getElementById('qty-label').textContent=
+    type==='rotating'?'Planned Quantity (no. of assets) *':'Planned Quantity *';
   updateItemInheritPreview();
 }
 
-function updateItemInheritPreview() {
-  const wo = currentWO(); if (!wo) return;
-  const preview = document.getElementById('item-inherit-preview');
-  const chips   = document.getElementById('item-inherit-chips');
-  if (!preview||!chips) return;
+function updateItemInheritPreview(){
+  const wo=currentWO();if(!wo)return;
+  const preview=document.getElementById('item-inherit-preview');
+  const chips=document.getElementById('item-inherit-chips');
+  if(!preview||!chips)return;
   const parts=[];
-  if (wo.location)    parts.push(`<span class="inherit-chip">📍 ${esc(wo.location)}</span>`);
-  if (wo.assetNumber) parts.push(`<span class="inherit-chip">⚙️ ${esc(wo.assetNumber)}</span>`);
-  if (parts.length&&!state.editItemId) {
-    chips.innerHTML=parts.join('');
-    preview.style.display='block';
-  } else {
-    preview.style.display='none';
-  }
+  if(wo.location)    parts.push(`<span class="inherit-chip">📍 ${esc(wo.location)}</span>`);
+  if(wo.assetNumber) parts.push(`<span class="inherit-chip">⚙️ ${esc(wo.assetNumber)}</span>`);
+  if(parts.length&&!state.editItemId){chips.innerHTML=parts.join('');preview.style.display='block';}
+  else preview.style.display='none';
 }
 
-function openEditItem(itemId) {
-  const wo=currentWO(); if (!wo) return;
-  const item=(wo.planItems||[]).find(i=>i.id===itemId); if (!item) return;
+function openEditItem(itemId){
+  const wo=currentWO();if(!wo)return;
+  const item=(wo.planItems||[]).find(i=>i.id===itemId);if(!item)return;
   state.editItemId=itemId;
   document.getElementById('modal-item-title').textContent='Edit Planned Item';
   document.getElementById('btn-save-item').textContent='Save Changes';
@@ -1203,79 +1317,94 @@ function openEditItem(itemId) {
   setTimeout(()=>document.getElementById('inp-item-num').focus(),300);
 }
 
+function openEditWO(){
+  const wo=currentWO();if(!wo)return;
+  state.editWOMode=true;
+  document.getElementById('modal-wo-title').textContent='Edit Work Order';
+  document.getElementById('btn-save-wo').textContent='Save Changes';
+  document.getElementById('inp-wo-num').value=wo.woNumber;
+  document.getElementById('inp-wo-desc').value=wo.description||'';
+  document.getElementById('inp-wo-asset').value=wo.assetNumber||'';
+  document.getElementById('inp-wo-location').value=wo.location||'';
+  document.getElementById('inp-wo-notes').value=wo.notes||'';
+  document.getElementById('inp-wo-num').classList.remove('err');
+  const st=wo.status||'planned';
+  state.modalWOStatus=st;
+  selectStatus(st);
+  openModal('modal-new-wo');
+  setTimeout(()=>document.getElementById('inp-wo-num').focus(),300);
+}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // VERSION CHECK
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function checkForUpdates() {
-  if (sessionStorage.getItem('versionChecked')) return;
+async function checkForUpdates(){
+  if(sessionStorage.getItem('versionChecked'))return;
   sessionStorage.setItem('versionChecked','1');
-  try {
-    const res  = await fetch('./version.json?_='+Date.now(), {cache:'no-store'});
-    const data = await res.json();
-    if (data.version && data.version !== APP_VERSION) {
+  try{
+    const res=await fetch('./version.json?_='+Date.now(),{cache:'no-store'});
+    const data=await res.json();
+    if(data.version&&data.version!==APP_VERSION){
       document.getElementById('update-msg').textContent=`MaxPlan v${data.version} is available — tap to update.`;
       document.getElementById('update-banner').classList.add('show');
     }
-  } catch(e) {}
+  }catch(e){}
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // INIT
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded',()=>{
   loadState(); renderHome(); checkForUpdates();
 
-  document.getElementById('btn-back').addEventListener('click', goHome);
-  document.getElementById('btn-back-versions').addEventListener('click', goHome);
+  document.getElementById('btn-back').addEventListener('click',goHome);
+  document.getElementById('btn-back-versions').addEventListener('click',goHome);
   document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{state.currentTab=t.dataset.tab;renderWOView();}));
 
-  // ── New WO
+  // ── Tappable WO title → opens Edit WO sheet
+  document.getElementById('btn-wo-title-edit').addEventListener('click', openEditWO);
+
+  // ── Status badge in header → quick status modal
+  document.getElementById('btn-header-status').addEventListener('click',()=>{
+    const wo=currentWO();if(!wo)return;
+    refreshQuickStatusPicker(wo.status||'planned');
+    openModal('modal-status');
+  });
+  document.getElementById('btn-cancel-status').addEventListener('click',()=>closeModal('modal-status'));
+
+  // ── FAB New WO
   document.getElementById('fab-new-wo').addEventListener('click',()=>{
     state.editWOMode=false;
     document.getElementById('modal-wo-title').textContent='New Work Order';
     document.getElementById('btn-save-wo').textContent='Create Work Order';
     ['inp-wo-num','inp-wo-desc','inp-wo-asset','inp-wo-location','inp-wo-notes']
-      .forEach(id=>{ const el=document.getElementById(id); if(el){el.value='';el.classList.remove('err');}});
-    openModal('modal-new-wo');
-    setTimeout(()=>document.getElementById('inp-wo-num').focus(),300);
-  });
-
-  // ── Edit WO
-  document.getElementById('btn-edit-wo').addEventListener('click',()=>{
-    const wo=currentWO(); if(!wo) return;
-    state.editWOMode=true;
-    document.getElementById('modal-wo-title').textContent='Edit Work Order';
-    document.getElementById('btn-save-wo').textContent='Save Changes';
-    document.getElementById('inp-wo-num').value=wo.woNumber;
-    document.getElementById('inp-wo-desc').value=wo.description||'';
-    document.getElementById('inp-wo-asset').value=wo.assetNumber||'';
-    document.getElementById('inp-wo-location').value=wo.location||'';
-    document.getElementById('inp-wo-notes').value=wo.notes||'';
-    document.getElementById('inp-wo-num').classList.remove('err');
+      .forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.classList.remove('err');}});
+    state.modalWOStatus='planned'; selectStatus('planned');
     openModal('modal-new-wo');
     setTimeout(()=>document.getElementById('inp-wo-num').focus(),300);
   });
 
   // ── Save WO
-  document.getElementById('btn-save-wo').addEventListener('click', saveWO);
+  document.getElementById('btn-save-wo').addEventListener('click',saveWO);
   document.getElementById('btn-cancel-wo').addEventListener('click',()=>closeModal('modal-new-wo'));
 
   function saveWO(){
     const num=document.getElementById('inp-wo-num').value.trim().toUpperCase();
     if(!num){document.getElementById('inp-wo-num').classList.add('err');return;}
     document.getElementById('inp-wo-num').classList.remove('err');
-    const desc      = document.getElementById('inp-wo-desc').value.trim();
-    const assetNumber = document.getElementById('inp-wo-asset').value.trim().toUpperCase();
-    const location  = document.getElementById('inp-wo-location').value.trim().toUpperCase();
-    const notes     = document.getElementById('inp-wo-notes').value.trim();
-    if (state.editWOMode) {
-      const wo=currentWO(); if(!wo)return;
-      wo.woNumber=num; wo.description=desc; wo.assetNumber=assetNumber; wo.location=location; wo.notes=notes;
-      save(); closeModal('modal-new-wo'); renderWOView();
-    } else {
-      const wo={id:uid(),woNumber:num,description:desc,assetNumber,location,notes,
+    const desc=document.getElementById('inp-wo-desc').value.trim();
+    const assetNumber=document.getElementById('inp-wo-asset').value.trim().toUpperCase();
+    const location=document.getElementById('inp-wo-location').value.trim().toUpperCase();
+    const notes=document.getElementById('inp-wo-notes').value.trim();
+    const status=state.modalWOStatus||'planned';
+    if(state.editWOMode){
+      const wo=currentWO();if(!wo)return;
+      wo.woNumber=num;wo.description=desc;wo.assetNumber=assetNumber;wo.location=location;wo.notes=notes;wo.status=status;
+      save();closeModal('modal-new-wo');renderWOView();
+    }else{
+      const wo={id:uid(),woNumber:num,description:desc,assetNumber,location,notes,status,
         createdAt:Date.now(),planItems:[],actuals:{}};
-      state.workOrders.push(wo); save(); closeModal('modal-new-wo'); goToWO(wo.id);
+      state.workOrders.push(wo);save();closeModal('modal-new-wo');goToWO(wo.id);
     }
   }
 
@@ -1286,61 +1415,52 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-save-item').textContent='Add to Plan';
     document.getElementById('type-row').style.display='';
     ['inp-item-num','inp-storeroom','inp-qty'].forEach(id=>{
-      const el=document.getElementById(id); el.value=''; el.classList.remove('err');});
-    setType('non-rotating');
-    updateItemInheritPreview();
+      const el=document.getElementById(id);el.value='';el.classList.remove('err');});
+    setType('non-rotating');updateItemInheritPreview();
     openModal('modal-add-item');
     setTimeout(()=>document.getElementById('inp-item-num').focus(),300);
   });
 
   // ── Save Item
-  document.getElementById('btn-save-item').addEventListener('click', saveItem);
+  document.getElementById('btn-save-item').addEventListener('click',saveItem);
   document.getElementById('btn-cancel-item').addEventListener('click',()=>closeModal('modal-add-item'));
 
   function saveItem(){
-    const itemNum   = document.getElementById('inp-item-num').value.trim().toUpperCase();
-    const storeroom = document.getElementById('inp-storeroom').value.trim().toUpperCase();
-    const qty       = parseInt(document.getElementById('inp-qty').value)||0;
+    const itemNum=document.getElementById('inp-item-num').value.trim().toUpperCase();
+    const storeroom=document.getElementById('inp-storeroom').value.trim().toUpperCase();
+    const qty=parseInt(document.getElementById('inp-qty').value)||0;
     let ok=true;
-    if(!itemNum)  {document.getElementById('inp-item-num').classList.add('err');ok=false;}
+    if(!itemNum){document.getElementById('inp-item-num').classList.add('err');ok=false;}
     else document.getElementById('inp-item-num').classList.remove('err');
     if(!storeroom){document.getElementById('inp-storeroom').classList.add('err');ok=false;}
     else document.getElementById('inp-storeroom').classList.remove('err');
-    if(qty<1)     {document.getElementById('inp-qty').classList.add('err');ok=false;}
+    if(qty<1){document.getElementById('inp-qty').classList.add('err');ok=false;}
     else document.getElementById('inp-qty').classList.remove('err');
     if(!ok)return;
-
-    const wo=currentWO(); if(!wo)return;
-
+    const wo=currentWO();if(!wo)return;
     if(state.editItemId){
       const item=(wo.planItems||[]).find(i=>i.id===state.editItemId);
       if(item){
-        item.itemNumber=itemNum; item.storeroom=storeroom; item.plannedQty=qty;
-        // Reconcile slots
+        item.itemNumber=itemNum;item.storeroom=storeroom;item.plannedQty=qty;
         if(wo.actuals?.[item.id]?.slots){
           const slots=wo.actuals[item.id].slots;
-          while(slots.length<qty) slots.push({id:uid(),issued:false,rotatingAsset:'',location:item.inheritedLocation||'',woAsset:item.inheritedWoAsset||''});
-          if(slots.length>qty) wo.actuals[item.id].slots=slots.slice(0,qty);
+          while(slots.length<qty)slots.push({id:uid(),issued:false,rotatingAsset:'',location:item.inheritedLocation||'',woAsset:item.inheritedWoAsset||''});
+          if(slots.length>qty)wo.actuals[item.id].slots=slots.slice(0,qty);
         }
       }
-    } else {
-      // Snapshot WO-level location and asset at time of plan item creation
-      const item={
-        id:uid(), type:state.addType, itemNumber:itemNum, storeroom, plannedQty:qty,
-        createdAt:Date.now(),
-        inheritedLocation: wo.location || '',
-        inheritedWoAsset:  wo.assetNumber || ''
-      };
+    }else{
+      const item={id:uid(),type:state.addType,itemNumber:itemNum,storeroom,plannedQty:qty,
+        createdAt:Date.now(),inheritedLocation:wo.location||'',inheritedWoAsset:wo.assetNumber||''};
       wo.planItems.push(item);
     }
-    save(); closeModal('modal-add-item'); state.editItemId=null; renderPlanTab();
+    save();closeModal('modal-add-item');state.editItemId=null;renderPlanTab();
   }
 
   // ── Delete WO
   document.getElementById('btn-del-wo').addEventListener('click',()=>openModal('modal-del-wo'));
   document.getElementById('btn-confirm-del').addEventListener('click',()=>{
     state.workOrders=state.workOrders.filter(w=>w.id!==state.currentId);
-    save(); closeModal('modal-del-wo'); goHome();
+    save();closeModal('modal-del-wo');goHome();
   });
   document.getElementById('btn-cancel-del').addEventListener('click',()=>closeModal('modal-del-wo'));
 
@@ -1352,13 +1472,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if(wo.actuals)delete wo.actuals[state.pendingDelItemId];
       save();
     }
-    state.pendingDelItemId=null; closeModal('modal-del-item'); renderPlanTab();
+    state.pendingDelItemId=null;closeModal('modal-del-item');renderPlanTab();
   });
   document.getElementById('btn-cancel-del-item').addEventListener('click',()=>{
-    state.pendingDelItemId=null; closeModal('modal-del-item');
+    state.pendingDelItemId=null;closeModal('modal-del-item');
   });
 
-  // ── Overlay dismiss
+  // ── Overlay dismiss on background tap
   document.querySelectorAll('.overlay').forEach(overlay=>{
     overlay.addEventListener('click',e=>{
       if(e.target===overlay){state.pendingDelItemId=null;state.editItemId=null;closeModal(overlay.id);}
@@ -1367,13 +1487,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── PWA Install
   let deferredPrompt=null;
-  window.addEventListener('beforeinstallprompt',e=>{
-    e.preventDefault(); deferredPrompt=e;
-    document.getElementById('install-banner').classList.add('show');
-  });
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('install-banner').classList.add('show');});
   document.getElementById('btn-install').addEventListener('click',async()=>{
-    if(!deferredPrompt)return;
-    deferredPrompt.prompt();
+    if(!deferredPrompt)return;deferredPrompt.prompt();
     const{outcome}=await deferredPrompt.userChoice;
     if(outcome==='accepted')document.getElementById('install-banner').classList.remove('show');
     deferredPrompt=null;
@@ -1381,7 +1497,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('appinstalled',()=>document.getElementById('install-banner').classList.remove('show'));
 
   // ── Service Worker
-  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW:',e));
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW:',e));
 });
 </script>
 </body>
