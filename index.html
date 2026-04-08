@@ -10,6 +10,8 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon.svg">
   <title>MaxPlan — WO Material Planner</title>
+  <!-- ZXing barcode library — loaded once, then cached by service worker for offline use -->
+  <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
   <style>
     :root {
       --bg:#F5F4F1; --surface:#FFF;
@@ -362,6 +364,51 @@
     .vb ul{padding-left:18px}
     .vb li{margin-bottom:4px}
     .vb li::marker{color:var(--accent)}
+
+    /* ── SCANNER ── */
+    .scan-wrap{display:flex;gap:8px;align-items:flex-start}
+    .scan-wrap .fi{flex:1;min-width:0}
+    .scan-btn{flex-shrink:0;width:46px;height:46px;border-radius:var(--radius-sm);
+      background:var(--primary);color:#fff;border:none;font-size:20px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      transition:opacity .15s;margin-top:0;align-self:flex-end}
+    .scan-btn:active{opacity:.7}
+    .scan-btn:disabled{opacity:.4;cursor:not-allowed}
+
+    /* Scanner full-screen overlay */
+    #scan-overlay{position:fixed;inset:0;background:#000;z-index:500;
+      display:none;flex-direction:column;align-items:center;justify-content:center}
+    #scan-overlay.open{display:flex}
+    #scan-video{width:100%;max-width:500px;height:100%;object-fit:cover;
+      position:absolute;inset:0}
+    .scan-ui{position:relative;z-index:10;display:flex;flex-direction:column;
+      align-items:center;width:100%;height:100%;padding:calc(20px + var(--st)) 0 calc(20px + var(--sb))}
+    .scan-top{width:100%;display:flex;align-items:center;justify-content:space-between;
+      padding:0 18px;margin-bottom:auto}
+    .scan-title{color:#fff;font-size:17px;font-weight:700;letter-spacing:-.2px}
+    .scan-close{background:rgba(255,255,255,.15);border:none;color:#fff;
+      font-size:22px;cursor:pointer;width:38px;height:38px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      backdrop-filter:blur(4px);font-family:inherit}
+    .scan-close:active{background:rgba(255,255,255,.3)}
+    .scan-frame-wrap{flex:1;display:flex;align-items:center;justify-content:center;
+      width:100%;padding:0 32px}
+    .scan-frame{width:100%;max-width:320px;aspect-ratio:3/1.6;position:relative}
+    .scan-frame svg{position:absolute;inset:0;width:100%;height:100%}
+    .scan-line{position:absolute;left:4%;right:4%;height:2px;
+      background:var(--accent);box-shadow:0 0 8px var(--accent);
+      animation:scanline 2s ease-in-out infinite;top:20%}
+    @keyframes scanline{0%{top:15%}50%{top:80%}100%{top:15%}}
+    .scan-bottom{margin-top:auto;padding:0 18px 10px;text-align:center;width:100%}
+    .scan-status{color:rgba(255,255,255,.8);font-size:14px;
+      background:rgba(0,0,0,.5);border-radius:20px;padding:8px 18px;
+      display:inline-block;backdrop-filter:blur(4px)}
+    .scan-status.success{color:#6EE7B7;background:rgba(5,150,105,.4)}
+    .scan-status.error{color:#FCA5A5;background:rgba(220,38,38,.4)}
+    .scan-manual{margin-top:12px;background:rgba(255,255,255,.15);border:none;color:#fff;
+      font-size:14px;font-weight:600;padding:10px 22px;border-radius:20px;cursor:pointer;
+      font-family:inherit;backdrop-filter:blur(4px)}
+    .scan-manual:active{background:rgba(255,255,255,.25)}
   </style>
 </head>
 <body>
@@ -411,7 +458,33 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.1.5</div><div class="vd">April Week 1 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.2</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li><strong>Code 128 barcode scanner</strong> — a scan button (barcode icon) appears next to the Item Number field when adding or editing a planned item</li>
+        <li>Tapping the scan button opens a full-screen camera view with a targeting frame and animated scan line</li>
+        <li>The scanner decodes <strong>Code 128 barcodes</strong> using the ZXing library and auto-fills the Item Number field on a successful scan</li>
+        <li>Works for both <strong>non-rotating and rotating</strong> item types — the same Item Number field is used for both</li>
+        <li>Provides clear status messages for: scanning, success, permission denied, and no camera found</li>
+        <li>On success, a brief vibration (on supported devices) confirms the scan and the scanner closes automatically after 0.9 seconds</li>
+        <li>An <em>Enter manually instead</em> button lets the user dismiss the scanner and type the item number by hand</li>
+        <li>All v1.1.6 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.1.6</div><div class="vd">April Week 1 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vb"><ul>
+        <li>In Work Details, <strong>Location</strong> now appears above <strong>Asset</strong> (previously Asset Number)</li>
+        <li>Work Details field labels renamed: <strong>Asset Number → Asset</strong>, <strong>Location of Work → Location</strong></li>
+        <li>Asset field placeholder changed to <strong>e.g. A58817</strong> throughout the app</li>
+        <li>Location field placeholder changed to <strong>Location of work</strong></li>
+        <li>Home screen WO grouping order changed to <strong>Approved → In Progress → Completed</strong></li>
+        <li>All v1.1.5 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.1.5</div><div class="vd">April Week 1 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li>Work order status simplified to <strong>APPR → INPRG → COMP</strong>; removed the five-status system introduced in v1.1.4</li>
         <li>APPR (Approved) is the default status on creation; INPRG auto-stamps date &amp; time when set; COMP auto-stamps date &amp; time when set — both dates remain manually editable</li>
@@ -503,16 +576,16 @@
 
     <div class="sheet-sec-lbl">Work Details</div>
     <div class="field">
-      <label class="fl opt">Asset Number</label>
-      <input class="fi mono" id="iwa" placeholder="e.g. EQ-00456"
-        autocomplete="off" autocorrect="off" autocapitalize="characters">
-      <div class="fi-hint">Items added to the plan after this is set will auto-fill this asset number in the Actual tab.</div>
-    </div>
-    <div class="field">
-      <label class="fl opt">Location of Work</label>
-      <input class="fi mono" id="iwl" placeholder="Identifies the work order's location"
+      <label class="fl opt">Location</label>
+      <input class="fi mono" id="iwl" placeholder="Location of work"
         autocomplete="off" autocorrect="off" autocapitalize="characters">
       <div class="fi-hint">Items added to the plan after this is set will auto-fill this location in the Actual tab.</div>
+    </div>
+    <div class="field">
+      <label class="fl opt">Asset</label>
+      <input class="fi mono" id="iwa" placeholder="e.g. A58817"
+        autocomplete="off" autocorrect="off" autocapitalize="characters">
+      <div class="fi-hint">Items added to the plan after this is set will auto-fill this asset number in the Actual tab.</div>
     </div>
 
     <!-- Status section — shown only when editing -->
@@ -550,8 +623,19 @@
     </div>
     <div class="field">
       <label class="fl">Item Number *</label>
-      <input class="fi mono" id="iin" placeholder="e.g. I27317"
-        autocomplete="off" autocorrect="off" autocapitalize="characters">
+      <div class="scan-wrap">
+        <input class="fi mono" id="iin" placeholder="e.g. I27317"
+          autocomplete="off" autocorrect="off" autocapitalize="characters">
+        <button class="scan-btn" id="btn-scan-item" title="Scan Code 128 barcode" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+            <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+            <line x1="7" y1="8" x2="7" y2="16"/><line x1="10" y1="8" x2="10" y2="16"/>
+            <line x1="13" y1="8" x2="13" y2="16"/><line x1="16.5" y1="8" x2="16.5" y2="16"/>
+            <line x1="19" y1="8" x2="19" y2="16"/>
+          </svg>
+        </button>
+      </div>
     </div>
     <div class="field">
       <label class="fl">Storeroom *</label>
@@ -601,8 +685,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.1.5';
-const KEY     = 'maxplan_v115';
+const APP_VER = '1.2';
+const KEY     = 'maxplan_v12';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -698,8 +782,8 @@ function renderHome() {
   const el = $('hl');
   const wos = [...S.wos].sort((a,b) => b.createdAt - a.createdAt);
   const secs = [
-    {k:'INPRG', cls:'sb-inprg', lbl:'In Progress'},
     {k:'APPR',  cls:'sb-appr',  lbl:'Approved'},
+    {k:'INPRG', cls:'sb-inprg', lbl:'In Progress'},
     {k:'COMP',  cls:'sb-comp',  lbl:'Completed'}
   ];
   let html = '', any = false;
@@ -936,7 +1020,7 @@ function nrLineHtml(iid, line, idx, tot) {
     </div>
     <div class="sf">
       <span class="sf-l${assetInh?' inh':''}">Asset Number${assetInh?' (from WO)':''}</span>
-      <input class="sf-i${assetInh?' inh-val':''}" type="text" placeholder="e.g. EQ-00456"
+      <input class="sf-i${assetInh?' inh-val':''}" type="text" placeholder="e.g. A58817"
         value="${esc(line.woAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
         data-i="${iid}" data-l="${line.id}" data-f="woAsset" oninput="nrIn(this)">
     </div>
@@ -966,7 +1050,7 @@ function rotSlotHtml(item, slot, idx) {
     </div>
     <div class="sf" style="margin-top:8px">
       <span class="sf-l${assetInh?' inh':''}">Asset Number${assetInh?' (from WO)':''}</span>
-      <input class="sf-i${assetInh?' inh-val':''}" type="text" placeholder="e.g. EQ-00456"
+      <input class="sf-i${assetInh?' inh-val':''}" type="text" placeholder="e.g. A58817"
         value="${esc(slot.woAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
         data-i="${item.id}" data-s="${slot.id}" data-f="woAsset" oninput="rotIn(this)">
     </div>
@@ -1452,6 +1536,192 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Service Worker
   if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW:',e));
+});
+</script>
+
+<!-- ═══ SCANNER OVERLAY ═══ -->
+<div id="scan-overlay">
+  <video id="scan-video" autoplay muted playsinline></video>
+  <div class="scan-ui">
+    <div class="scan-top">
+      <span class="scan-title">Scan Item Barcode</span>
+      <button class="scan-close" id="scan-close-btn">✕</button>
+    </div>
+    <div class="scan-frame-wrap">
+      <div class="scan-frame">
+        <!-- Corner marks -->
+        <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#fff" stroke-width="3" fill="none" opacity="0.9">
+            <!-- TL --><path d="M10,30 L10,10 L30,10"/>
+            <!-- TR --><path d="M290,10 L310,10 L310,30"/>
+            <!-- BL --><path d="M10,170 L10,190 L30,190"/>
+            <!-- BR --><path d="M290,190 L310,190 L310,170"/>
+          </g>
+        </svg>
+        <div class="scan-line"></div>
+      </div>
+    </div>
+    <div class="scan-bottom">
+      <div class="scan-status" id="scan-status">Point at a Code 128 barcode</div>
+      <br>
+      <button class="scan-manual" id="scan-manual-btn">Enter manually instead</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// BARCODE SCANNER
+// Uses ZXing BrowserMultiFormatReader with Code128 format hint.
+// Falls back gracefully if camera is unavailable or permission denied.
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+(function() {
+  let _reader   = null;
+  let _stream   = null;
+  let _targetId = null;   // ID of the input field to populate
+  let _active   = false;
+
+  const overlay  = document.getElementById('scan-overlay');
+  const videoEl  = document.getElementById('scan-video');
+  const statusEl = document.getElementById('scan-status');
+
+  function setStatus(msg, cls) {
+    statusEl.textContent = msg;
+    statusEl.className   = 'scan-status' + (cls ? ' ' + cls : '');
+  }
+
+  async function openScanner(targetInputId) {
+    _targetId = targetInputId;
+
+    // Check ZXing loaded
+    if (typeof ZXing === 'undefined') {
+      alert('Barcode scanner library is not loaded. Please check your internet connection and try again.');
+      return;
+    }
+
+    // Check camera permission / availability
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('Camera access is not supported on this device or browser.');
+      return;
+    }
+
+    overlay.classList.add('open');
+    setStatus('Starting camera…');
+    _active = true;
+
+    try {
+      const hints = new Map();
+      const formats = [ZXing.BarcodeFormat.CODE_128];
+      hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
+      // Improve detection speed
+      hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+
+      _reader = new ZXing.BrowserMultiFormatReader(hints, {
+        delayBetweenScanAttempts: 150
+      });
+
+      // Request rear camera
+      const constraints = {
+        video: {
+          facingMode: { ideal: 'environment' },
+          width:  { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      };
+
+      _stream = await navigator.mediaDevices.getUserMedia(constraints);
+      videoEl.srcObject = _stream;
+      await videoEl.play();
+
+      setStatus('Point at a Code 128 barcode');
+
+      // Start continuous decode
+      _reader.decodeFromStream(_stream, videoEl, (result, err) => {
+        if (!_active) return;
+        if (result) {
+          const text = result.getText();
+          onScanSuccess(text);
+        } else if (err && !(err instanceof ZXing.NotFoundException)) {
+          // Real error, not just "nothing found yet"
+          console.warn('ZXing decode error:', err);
+        }
+      });
+
+    } catch (err) {
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setStatus('Camera permission denied. Please allow camera access in your browser settings.', 'error');
+      } else if (err.name === 'NotFoundError') {
+        setStatus('No camera found on this device.', 'error');
+      } else {
+        setStatus('Camera error: ' + err.message, 'error');
+      }
+    }
+  }
+
+  function onScanSuccess(text) {
+    if (!_active) return;
+    setStatus('✓ Scanned: ' + text, 'success');
+
+    // Short haptic if supported
+    if (navigator.vibrate) navigator.vibrate(50);
+
+    // Populate the target input
+    const inp = document.getElementById(_targetId);
+    if (inp) {
+      inp.value = text.toUpperCase();
+      inp.dispatchEvent(new Event('input', {bubbles: true}));
+      inp.classList.remove('err');
+    }
+
+    // Brief pause so user can see the result, then close
+    setTimeout(() => closeScanner(), 900);
+  }
+
+  function closeScanner() {
+    _active = false;
+    overlay.classList.remove('open');
+    setStatus('Point at a Code 128 barcode');
+    statusEl.className = 'scan-status';
+
+    if (_reader) {
+      try { _reader.reset(); } catch(e) {}
+      _reader = null;
+    }
+    if (_stream) {
+      _stream.getTracks().forEach(t => t.stop());
+      _stream = null;
+    }
+    videoEl.srcObject = null;
+  }
+
+  // Wire up buttons
+  document.getElementById('scan-close-btn').addEventListener('click', closeScanner);
+  document.getElementById('scan-manual-btn').addEventListener('click', () => {
+    closeScanner();
+    // Re-focus the target input
+    setTimeout(() => {
+      const inp = document.getElementById(_targetId);
+      if (inp) inp.focus();
+    }, 350);
+  });
+
+  // Close if user taps the raw video background (outside the UI)
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay || e.target === videoEl) closeScanner();
+  });
+
+  // Expose globally so the init code can call it
+  window.openScanner = openScanner;
+})();
+
+// Wire scan button after DOM ready (inline — DOMContentLoaded already fired above)
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('btn-scan-item');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      window.openScanner('iin');
+    });
+  }
 });
 </script>
 </body>
