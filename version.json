@@ -1,1 +1,1 @@
-{"version":"1.2.1","date":"2026-04-09","notes":"Native BarcodeDetector scanner, fully offline, canvas polling, fixed Code 128 decode"}
+{"version":"1.2.1","date":"2026-04-09","notes":"Pure JS Code128 decoder, works on all browsers, fully offline"}
