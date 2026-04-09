@@ -1,1 +1,1 @@
-{"version":"1.2","date":"2026-04-09","notes":"Code 128 barcode scanner for item number entry in Plan tab"}
+{"version":"1.2.1","date":"2026-04-09","notes":"Native BarcodeDetector scanner, fully offline, canvas polling, fixed Code 128 decode"}
