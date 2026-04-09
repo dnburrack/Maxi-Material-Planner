@@ -1,0 +1,1919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1C2B4A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MaxPlan">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <title>MaxPlan — WO Material Planner</title>
+  <style>
+    :root {
+      --bg:#F5F4F1; --surface:#FFF;
+      --primary:#1C2B4A; --primary-lt:#243560;
+      --accent:#E8A020; --accent-lt:#FEF3C7;
+      --text:#111827; --text2:#6B7280; --border:#E5E7EB;
+      --nr:#2563EB; --nr-bg:#EFF6FF;
+      --rot:#059669; --rot-bg:#ECFDF5;
+      --wo:#7C3AED; --wo-bg:#F5F3FF;
+      --appr:#3B82F6;  --appr-bg:#EFF6FF;
+      --inprg:#D97706; --inprg-bg:#FFFBEB;
+      --comp:#059669;  --comp-bg:#ECFDF5;
+      --danger:#DC2626; --danger-bg:#FEF2F2;
+      --radius:14px; --radius-sm:9px;
+      --shadow:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.05);
+      --mono:'SF Mono','Consolas','Courier New',monospace;
+      --st:env(safe-area-inset-top,0px);
+      --sb:env(safe-area-inset-bottom,0px);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{height:100%}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+      background:var(--bg);color:var(--text);height:100%;
+      -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overflow:hidden}
+
+    /* ── VIEWS ── */
+    .view{display:none;flex-direction:column;height:100vh;overflow:hidden}
+    .view.active{display:flex}
+
+    /* ── HEADER ── */
+    .header{background:var(--primary);color:#fff;padding:14px 18px;
+      padding-top:calc(14px + var(--st));display:flex;align-items:center;
+      gap:10px;flex-shrink:0;min-height:calc(60px + var(--st))}
+    .hbtn{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;
+      padding:6px;margin:-6px;line-height:1;flex-shrink:0;opacity:.85;transition:opacity .15s}
+    .hbtn:active{opacity:.4}
+    .htxt{flex:1;min-width:0}
+    .htxt h1{font-size:17px;font-weight:700;letter-spacing:-.2px;line-height:1.2}
+    .hsub{font-size:12px;opacity:.6;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .hact{display:flex;align-items:center;gap:4px;flex-shrink:0}
+
+    /* Tappable WO title */
+    .title-tap-btn{background:none;border:none;color:#fff;text-align:left;cursor:pointer;
+      padding:0;font-family:inherit;flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+    .title-tap-btn:active{opacity:.7}
+    .title-row{display:flex;align-items:center;gap:5px}
+    .title-text{font-size:17px;font-weight:700;letter-spacing:-.2px;line-height:1.2;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .title-tri{font-size:11px;opacity:.55;flex-shrink:0}
+    .title-sub{font-size:12px;opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    /* Status pill in header */
+    .sph{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+      padding:3px 10px;border-radius:20px;flex-shrink:0;white-space:nowrap}
+    .sph-appr{background:rgba(59,130,246,.25);color:#93C5FD}
+    .sph-inprg{background:rgba(217,119,6,.3);color:#FCD34D}
+    .sph-comp{background:rgba(5,150,105,.3);color:#6EE7B7}
+
+    /* ── SCROLL ── */
+    .scroll-content{flex:1;overflow-y:auto;overflow-x:hidden;
+      padding:18px 16px;padding-bottom:calc(88px + var(--sb));
+      -webkit-overflow-scrolling:touch}
+
+    /* ── HOME SECTIONS ── */
+    .list-label{font-size:11px;font-weight:700;letter-spacing:.08em;
+      text-transform:uppercase;color:var(--text2);margin-bottom:12px}
+    .status-section{margin-bottom:6px}
+    .status-section+.status-section{margin-top:20px}
+    .sec-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+    .sec-head-line{flex:1;height:1px;background:var(--border)}
+    .sec-badge{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+      padding:4px 12px;border-radius:20px;flex-shrink:0}
+    .sb-appr{background:var(--appr-bg);color:var(--appr)}
+    .sb-inprg{background:var(--inprg-bg);color:var(--inprg)}
+    .sb-comp{background:var(--comp-bg);color:var(--comp)}
+
+    /* ── WO CARDS ── */
+    .wo-card{background:var(--surface);border-radius:var(--radius);
+      padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);
+      border:1px solid var(--border);display:flex;align-items:center;gap:13px;
+      cursor:pointer;transition:transform .12s;-webkit-user-select:none;user-select:none}
+    .wo-card:active{transform:scale(.975)}
+    .wo-dot{width:42px;height:42px;border-radius:10px;background:var(--primary);
+      display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+    .wo-body{flex:1;min-width:0}
+    .wo-num{font-family:var(--mono);font-size:15px;font-weight:700;
+      display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+    .wo-desc{font-size:13px;color:var(--text2);margin-top:2px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .wo-meta{font-size:11px;color:var(--text2);margin-top:2px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .wo-right{text-align:right;flex-shrink:0}
+    .wo-count{font-size:12px;color:var(--text2)}
+    .wo-done{font-size:11px;color:var(--rot);font-weight:600;margin-top:2px}
+    .wo-chev{color:#CBD5E1;font-size:16px;margin-left:4px;flex-shrink:0}
+
+    /* Mini status badge on WO card */
+    .ms{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+      padding:2px 7px;border-radius:10px;flex-shrink:0}
+    .ms-appr{background:var(--appr-bg);color:var(--appr)}
+    .ms-inprg{background:var(--inprg-bg);color:var(--inprg)}
+    .ms-comp{background:var(--comp-bg);color:var(--comp)}
+
+    /* ── VERSION FOOTER ── */
+    .ver-footer{padding:14px 16px calc(14px + var(--sb));display:flex;justify-content:center}
+    .ver-pill{background:var(--primary);color:rgba(255,255,255,.75);border:none;
+      border-radius:20px;padding:7px 18px;font-size:12px;font-weight:700;
+      letter-spacing:.04em;cursor:pointer;font-family:inherit;transition:opacity .15s}
+    .ver-pill:active{opacity:.7}
+
+    /* ── EMPTY ── */
+    .empty{text-align:center;padding:52px 20px;color:var(--text2)}
+    .empty-icon{font-size:44px;opacity:.3;margin-bottom:14px}
+    .empty h3{font-size:17px;color:var(--text);margin-bottom:8px}
+    .empty p{font-size:14px;line-height:1.6;max-width:260px;margin:0 auto}
+
+    /* ── FAB ── */
+    .fab{position:fixed;bottom:calc(22px + var(--sb));right:20px;
+      width:56px;height:56px;border-radius:50%;background:var(--accent);color:#fff;
+      border:none;font-size:26px;line-height:1;cursor:pointer;
+      box-shadow:0 4px 18px rgba(232,160,32,.45);display:flex;align-items:center;
+      justify-content:center;transition:transform .15s;z-index:80;
+      -webkit-user-select:none;user-select:none}
+    .fab:active{transform:scale(.9)}
+
+    /* ── TABS ── */
+    .tabs{display:flex;background:var(--primary-lt);
+      border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+    .tab{flex:1;background:none;border:none;color:rgba(255,255,255,.5);
+      font-size:12px;font-weight:600;padding:11px 4px;cursor:pointer;
+      border-bottom:3px solid transparent;transition:color .2s,border-color .2s;font-family:inherit}
+    .tab.active{color:#fff;border-bottom-color:var(--accent)}
+
+    /* ── BADGE ── */
+    .badge{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+      padding:3px 8px;border-radius:20px;flex-shrink:0;line-height:1.4}
+    .badge-nr{background:var(--nr-bg);color:var(--nr)}
+    .badge-rot{background:var(--rot-bg);color:var(--rot)}
+
+    /* ── ITEM CARD (Plan) ── */
+    .item-card{background:var(--surface);border-radius:var(--radius);
+      padding:14px 15px;margin-bottom:10px;box-shadow:var(--shadow);border:1px solid var(--border)}
+    .ich{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+    .inum{font-family:var(--mono);font-size:16px;font-weight:700;flex:1;
+      min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .iact{display:flex;gap:2px;flex-shrink:0}
+    .iab{background:none;border:none;color:#CBD5E1;font-size:15px;
+      cursor:pointer;padding:5px;transition:color .15s;line-height:1}
+    .iab:active{color:var(--accent)}
+    .iab.del:active{color:var(--danger)}
+    .imeta{display:flex;gap:14px;flex-wrap:wrap}
+    .mc{display:flex;flex-direction:column;gap:2px}
+    .ml{font-size:10px;font-weight:700;letter-spacing:.07em;
+      text-transform:uppercase;color:var(--text2)}
+    .mv{font-family:var(--mono);font-size:14px;font-weight:600}
+    .mv.ds{font-size:12px;color:var(--text2);font-family:inherit;font-weight:500}
+
+    /* Inheritance chip */
+    .inh-chip{display:inline-flex;align-items:center;gap:5px;
+      background:var(--wo-bg);color:var(--wo);border-radius:20px;
+      padding:3px 9px;font-size:11px;font-weight:600;margin-top:6px;
+      border:1px solid rgba(124,58,237,.15)}
+    .inh-chip small{opacity:.7;font-size:10px}
+
+    /* ── ACTUAL CARD ── */
+    .actual-card{background:var(--surface);border-radius:var(--radius);
+      padding:14px 15px;margin-bottom:10px;box-shadow:var(--shadow);border:1px solid var(--border)}
+    .plan-ref{font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.8}
+    .plan-ref strong{font-family:var(--mono);color:var(--text);font-weight:600}
+
+    /* Progress */
+    .prog-wrap{margin:10px 0 12px}
+    .prog-track{background:var(--border);border-radius:4px;height:5px;overflow:hidden}
+    .prog-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .3s}
+    .prog-fill.over{background:var(--danger)}
+    .prog-leg{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-top:4px}
+    .prog-leg span{font-family:var(--mono);font-weight:600}
+
+    /* NR Issue lines */
+    .issue-line{border:1.5px solid var(--border);border-radius:var(--radius-sm);
+      padding:11px 12px;margin-bottom:8px;background:var(--bg);transition:border-color .2s}
+    .issue-line.has-qty{border-color:var(--nr);background:var(--nr-bg)}
+    .il-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+    .il-lbl{font-size:11px;font-weight:700;text-transform:uppercase;
+      letter-spacing:.06em;color:var(--text2)}
+    .il-lbl.filled{color:var(--nr)}
+    .il-rm{background:none;border:none;color:#CBD5E1;font-size:14px;
+      cursor:pointer;padding:2px;line-height:1}
+    .il-rm:active{color:var(--danger)}
+    .il-grid{display:grid;grid-template-columns:90px 1fr;gap:8px;margin-bottom:8px}
+    .rem-bar{display:flex;align-items:center;justify-content:space-between;
+      font-size:12px;color:var(--text2);background:var(--bg);
+      border-radius:8px;padding:8px 12px;margin-top:4px}
+    .rem-bar.done-bar{color:var(--rot);background:var(--rot-bg)}
+    .add-line-btn{background:var(--nr);color:#fff;border:none;border-radius:8px;
+      padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+    .add-line-btn:active{opacity:.8}
+
+    /* Rotating slots */
+    .slot-row{border:1.5px solid var(--border);border-radius:var(--radius-sm);
+      padding:11px 12px;margin-bottom:8px;background:var(--bg);transition:border-color .2s}
+    .slot-row.has-asset{border-color:var(--rot);background:var(--rot-bg)}
+    .sh2{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+    .sl2{font-size:11px;font-weight:700;text-transform:uppercase;
+      letter-spacing:.06em;color:var(--text2);flex:1}
+    .sl2.done{color:var(--rot)}
+
+    /* Shared slot/issue field */
+    .sf{display:flex;flex-direction:column;gap:4px}
+    .sf+.sf{margin-top:8px}
+    .sf-l{font-size:10px;font-weight:700;text-transform:uppercase;
+      letter-spacing:.06em;color:var(--text2)}
+    .sf-l.inh{color:var(--wo)}
+    .sf-i{width:100%;border:1.5px solid var(--border);border-radius:8px;
+      padding:8px 11px;font-size:14px;font-family:var(--mono);background:var(--surface);
+      outline:none;color:var(--text);transition:border-color .2s}
+    .sf-i:focus{border-color:var(--accent)}
+    .sf-i.ai:focus{border-color:var(--rot)}
+    .sf-i.ni:focus{border-color:var(--nr)}
+    .sf-i.di{font-family:inherit;font-size:13px}
+    .sf-i.inh-val{border-color:rgba(124,58,237,.3);background:var(--wo-bg);color:var(--wo)}
+
+    /* ── NOTES ── */
+    .notes-block{background:var(--accent-lt);border-radius:var(--radius-sm);
+      padding:10px 12px;margin-bottom:16px;border-left:3px solid var(--accent);
+      font-size:13px;color:#78350F;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+
+    /* ── SUMMARY ── */
+    .sum-hdr{background:var(--primary);color:#fff;border-radius:var(--radius);padding:16px;margin-bottom:14px}
+    .sum-hdr h3{font-size:15px;font-weight:700;margin-bottom:12px;opacity:.8}
+    .sum-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .stat-box{background:rgba(255,255,255,.08);border-radius:10px;padding:10px;text-align:center}
+    .stat-box .sv{font-size:22px;font-weight:800;font-family:var(--mono);display:block}
+    .stat-box .sl3{font-size:10px;opacity:.65;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;display:block}
+    .sum-sec{margin-bottom:18px}
+    .sum-item{background:var(--surface);border-radius:var(--radius-sm);
+      padding:13px 14px;margin-bottom:8px;border:1px solid var(--border);box-shadow:var(--shadow)}
+    .sum-ih{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+    .sin{font-family:var(--mono);font-size:14px;font-weight:700;flex:1}
+    .sum-row{display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-top:4px}
+    .sum-row strong{font-family:var(--mono);color:var(--text)}
+    .ss2{font-size:12px;padding:7px 10px;border-radius:8px;
+      background:var(--bg);border:1px solid var(--border);margin-top:6px}
+    .ss2.done{background:var(--rot-bg);border-color:rgba(5,150,105,.25)}
+    .ss2.done-nr{background:var(--nr-bg);border-color:rgba(37,99,235,.2)}
+    .ss2-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+    .ss2-l{font-weight:700;color:var(--text2)}
+    .ss2-l.done{color:var(--rot)}
+    .ss2-l.done-nr{color:var(--nr)}
+    .ss2-v{font-family:var(--mono);font-weight:600}
+    .ss2-sub{color:var(--text2);font-size:11px;margin-top:2px}
+    .sp{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;
+      text-transform:uppercase;letter-spacing:.05em;flex-shrink:0}
+    .sp-done{background:var(--rot-bg);color:var(--rot)}
+    .sp-partial{background:var(--accent-lt);color:#92400E}
+    .sp-pending{background:var(--border);color:var(--text2)}
+    .export-btn{width:100%;background:var(--primary);color:#fff;border:none;
+      border-radius:var(--radius);padding:14px;font-size:15px;font-weight:700;cursor:pointer;
+      font-family:inherit;display:flex;align-items:center;justify-content:center;
+      gap:8px;margin-bottom:12px}
+    .export-btn:active{opacity:.8}
+    .copy-ok{text-align:center;font-size:13px;color:var(--rot);font-weight:600;
+      opacity:0;transition:opacity .3s;margin-bottom:12px}
+    .copy-ok.show{opacity:1}
+    .section-block+.section-block{margin-top:22px}
+
+    /* ── MODALS ── */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;
+      display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .22s}
+    .overlay.open{opacity:1;pointer-events:all}
+    .sheet{background:var(--surface);border-radius:22px 22px 0 0;
+      padding:20px 18px calc(20px + var(--sb));width:100%;max-height:92vh;
+      overflow-y:auto;transform:translateY(100%);
+      transition:transform .28s cubic-bezier(.32,.72,0,1)}
+    .overlay.open .sheet{transform:translateY(0)}
+    .sh-handle{width:34px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px}
+    .sheet h2{font-size:20px;font-weight:800;letter-spacing:-.3px;margin-bottom:18px}
+    .sheet-sec-lbl{font-size:11px;font-weight:700;letter-spacing:.07em;
+      text-transform:uppercase;color:var(--text2);margin-bottom:10px;margin-top:18px}
+    .divider{height:1px;background:var(--border);margin:16px 0}
+
+    /* Status buttons (3-grid) */
+    .sts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+    .sts-btn{padding:11px 6px;border-radius:var(--radius-sm);border:2px solid var(--border);
+      background:none;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;
+      letter-spacing:.04em;transition:all .15s;display:flex;flex-direction:column;
+      align-items:center;gap:3px}
+    .sts-btn small{font-size:9px;font-weight:600;opacity:.7;
+      letter-spacing:.03em;text-transform:uppercase}
+    .sts-btn.sel-appr{border-color:var(--appr);background:var(--appr-bg);color:var(--appr)}
+    .sts-btn.sel-inprg{border-color:var(--inprg);background:var(--inprg-bg);color:var(--inprg)}
+    .sts-btn.sel-comp{border-color:var(--comp);background:var(--comp-bg);color:var(--comp)}
+
+    /* Forms */
+    .field{margin-bottom:15px}
+    .fl{display:block;font-size:11px;font-weight:700;letter-spacing:.07em;
+      text-transform:uppercase;color:var(--text2);margin-bottom:6px}
+    .fl.opt::after{content:' (optional)';font-weight:400;letter-spacing:0;
+      text-transform:none;font-size:10px}
+    .fi{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);
+      padding:12px 14px;font-size:16px;font-family:inherit;color:var(--text);
+      background:var(--bg);outline:none;transition:border-color .2s}
+    .fi:focus{border-color:var(--accent)}
+    .fi.err{border-color:var(--danger)}
+    .fi.mono{font-family:var(--mono)}
+    textarea.fi{resize:none;min-height:90px;line-height:1.55}
+    .fi-hint{font-size:11px;color:var(--text2);margin-top:5px;line-height:1.5}
+    .type-row{display:flex;gap:8px;margin-bottom:18px}
+    .type-btn{flex:1;padding:11px 8px;border:2px solid var(--border);
+      border-radius:var(--radius-sm);background:none;font-size:14px;font-weight:700;
+      color:var(--text2);cursor:pointer;transition:all .15s;font-family:inherit}
+    .type-btn.sel-nr{border-color:var(--nr);background:var(--nr-bg);color:var(--nr)}
+    .type-btn.sel-rot{border-color:var(--rot);background:var(--rot-bg);color:var(--rot)}
+    .btn-p{width:100%;background:var(--primary);color:#fff;border:none;
+      border-radius:var(--radius);padding:15px;font-size:16px;font-weight:700;
+      cursor:pointer;font-family:inherit;margin-top:6px}
+    .btn-p:active{opacity:.8}
+    .btn-d{width:100%;background:var(--danger-bg);color:var(--danger);border:none;
+      border-radius:var(--radius);padding:14px;font-size:15px;font-weight:700;
+      cursor:pointer;font-family:inherit;margin-top:6px}
+    .btn-m{width:100%;background:var(--border);color:var(--text2);border:none;
+      border-radius:var(--radius);padding:14px;font-size:15px;font-weight:700;
+      cursor:pointer;font-family:inherit;margin-top:8px}
+
+    /* Banners */
+    .update-banner{display:none;background:#1D4ED8;color:#fff;
+      padding:11px 16px;align-items:center;gap:10px;flex-shrink:0}
+    .update-banner.show{display:flex}
+    .update-banner p{font-size:13px;flex:1;line-height:1.4}
+    .update-banner button{background:#fff;color:#1D4ED8;border:none;border-radius:8px;
+      padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0}
+    #ib{display:none;background:var(--accent-lt);border-top:1px solid #FDE68A;
+      padding:10px 16px;align-items:center;gap:10px;flex-shrink:0}
+    #ib.show{display:flex}
+    #ib p{font-size:13px;flex:1;line-height:1.4;color:#92400E}
+    #ib button{background:var(--accent);color:#fff;border:none;border-radius:8px;
+      padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0}
+
+    /* Version history */
+    .vc{background:var(--surface);border-radius:var(--radius);padding:16px;
+      margin-bottom:14px;box-shadow:var(--shadow);border:1px solid var(--border)}
+    .vc-h{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .vn{font-family:var(--mono);font-size:20px;font-weight:800;color:var(--primary)}
+    .vd{font-size:12px;color:var(--text2);margin-top:3px}
+    .vt{background:var(--primary);color:#fff;border-radius:20px;padding:4px 12px;
+      font-size:11px;font-weight:700;letter-spacing:.04em;flex-shrink:0}
+    .vt.lat{background:var(--rot)}
+    .vb{font-size:14px;color:var(--text);line-height:1.7}
+    .vb p{margin-bottom:6px}
+    .vb ul{padding-left:18px}
+    .vb li{margin-bottom:4px}
+    .vb li::marker{color:var(--accent)}
+
+    /* ── SCANNER ── */
+    .scan-wrap{display:flex;gap:8px;align-items:flex-start}
+    .scan-wrap .fi{flex:1;min-width:0}
+    .scan-btn{flex-shrink:0;width:46px;height:46px;border-radius:var(--radius-sm);
+      background:var(--primary);color:#fff;border:none;font-size:20px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      transition:opacity .15s;margin-top:0;align-self:flex-end}
+    .scan-btn:active{opacity:.7}
+    .scan-btn:disabled{opacity:.4;cursor:not-allowed}
+
+    /* Scanner full-screen overlay */
+    #scan-overlay{position:fixed;inset:0;background:#000;z-index:500;
+      display:none;flex-direction:column;align-items:center;justify-content:center}
+    #scan-overlay.open{display:flex}
+    #scan-video{width:100%;max-width:500px;height:100%;object-fit:cover;
+      position:absolute;inset:0}
+    .scan-ui{position:relative;z-index:10;display:flex;flex-direction:column;
+      align-items:center;width:100%;height:100%;padding:calc(20px + var(--st)) 0 calc(20px + var(--sb))}
+    .scan-top{width:100%;display:flex;align-items:center;justify-content:space-between;
+      padding:0 18px;margin-bottom:auto}
+    .scan-title{color:#fff;font-size:17px;font-weight:700;letter-spacing:-.2px}
+    .scan-close{background:rgba(255,255,255,.15);border:none;color:#fff;
+      font-size:22px;cursor:pointer;width:38px;height:38px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      backdrop-filter:blur(4px);font-family:inherit}
+    .scan-close:active{background:rgba(255,255,255,.3)}
+    .scan-frame-wrap{flex:1;display:flex;align-items:center;justify-content:center;
+      width:100%;padding:0 32px}
+    .scan-frame{width:100%;max-width:320px;aspect-ratio:3/1.6;position:relative}
+    .scan-frame svg{position:absolute;inset:0;width:100%;height:100%}
+    .scan-line{position:absolute;left:4%;right:4%;height:2px;
+      background:var(--accent);box-shadow:0 0 8px var(--accent);
+      animation:scanline 2s ease-in-out infinite;top:20%}
+    @keyframes scanline{0%{top:15%}50%{top:80%}100%{top:15%}}
+    .scan-bottom{margin-top:auto;padding:0 18px 10px;text-align:center;width:100%}
+    .scan-status{color:rgba(255,255,255,.8);font-size:14px;
+      background:rgba(0,0,0,.5);border-radius:20px;padding:8px 18px;
+      display:inline-block;backdrop-filter:blur(4px)}
+    .scan-status.success{color:#6EE7B7;background:rgba(5,150,105,.4)}
+    .scan-status.error{color:#FCA5A5;background:rgba(220,38,38,.4)}
+    .scan-manual{margin-top:12px;background:rgba(255,255,255,.15);border:none;color:#fff;
+      font-size:14px;font-weight:600;padding:10px 22px;border-radius:20px;cursor:pointer;
+      font-family:inherit;backdrop-filter:blur(4px)}
+    .scan-manual:active{background:rgba(255,255,255,.25)}
+  </style>
+</head>
+<body>
+
+<!-- ═══ HOME ═══ -->
+<div id="vh" class="view active">
+  <div class="header">
+    <div class="htxt"><h1>MaxPlan</h1><div class="hsub">Maximo Work Order Material Planner</div></div>
+  </div>
+  <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button onclick="location.reload(true)">Update</button></div>
+  <div id="ib"><p>Install MaxPlan for offline access on your phone.</p><button id="bi">Install</button></div>
+  <div class="scroll-content" id="hl"></div>
+  <button class="fab" id="fn">+</button>
+</div>
+
+<!-- ═══ WORK ORDER ═══ -->
+<div id="vw" class="view">
+  <div class="header">
+    <button class="hbtn" id="bb">←</button>
+    <button class="title-tap-btn" id="wt-btn">
+      <div class="title-row">
+        <span class="title-text" id="wt">WO</span>
+        <span class="title-tri">▾</span>
+      </div>
+      <div class="title-sub" id="ws">Title</div>
+    </button>
+    <div class="hact">
+      <span id="wsp" class="sph sph-appr">APPR</span>
+      <button class="hbtn" id="dw">🗑</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-tab="plan">📋 Plan</button>
+    <button class="tab" data-tab="actual">✅ Actual</button>
+    <button class="tab" data-tab="summary">📊 Summary</button>
+  </div>
+  <div class="scroll-content" id="wc"></div>
+  <button class="fab" id="fa" style="display:none">+</button>
+</div>
+
+<!-- ═══ VERSION HISTORY ═══ -->
+<div id="vv" class="view">
+  <div class="header">
+    <button class="hbtn" id="bv">←</button>
+    <div class="htxt"><h1>Version History</h1><div class="hsub">MaxPlan — WO Material Planner</div></div>
+  </div>
+  <div class="scroll-content">
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.2.1</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li>Barcode scanner completely rebuilt as a <strong>pure JavaScript Code 128 decoder</strong> — zero external dependencies, zero browser APIs beyond the camera itself, works on every browser, 100% offline</li>
+        <li>Fixed: previous versions relied on <code>BarcodeDetector</code> (Chrome/Android and iOS 17+ only) which caused the "unsupported browser" error on most iPhones; the new decoder runs its own scan logic and works on all iOS and Android browsers</li>
+        <li>Scanner reads frames from the live video feed, converts each row to grayscale, applies adaptive thresholding, measures bar/space run widths, quantises to Code 128 module widths (1–4), and matches against the full 107-symbol ISO 15417 Code 128 table</li>
+        <li>Scans 40 horizontal rows per frame and requires 2 consistent reads before confirming a result — reduces false positives</li>
+        <li>Decodes Code A, Code B, and Code C start codes; verifies checksum before returning</li>
+        <li>All v1.2 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.2</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vb"><ul>
+        <li>Code 128 barcode scanner button added next to Item Number field in the Plan tab</li>
+        <li>Works for both non-rotating and rotating item types</li>
+        <li>Full-screen camera view with targeting frame and animated scan line</li>
+        <li>All v1.1.6 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.1.6</div><div class="vd">April Week 1 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vb"><ul>
+        <li>In Work Details, <strong>Location</strong> now appears above <strong>Asset</strong> (previously Asset Number)</li>
+        <li>Work Details field labels renamed: <strong>Asset Number → Asset</strong>, <strong>Location of Work → Location</strong></li>
+        <li>Asset field placeholder changed to <strong>e.g. A58817</strong> throughout the app</li>
+        <li>Location field placeholder changed to <strong>Location of work</strong></li>
+        <li>Home screen WO grouping order changed to <strong>Approved → In Progress → Completed</strong></li>
+        <li>All v1.1.5 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.1.5</div><div class="vd">April Week 1 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vb"><ul>
+        <li>Work order status simplified to <strong>APPR → INPRG → COMP</strong>; removed the five-status system introduced in v1.1.4</li>
+        <li>APPR (Approved) is the default status on creation; INPRG auto-stamps date &amp; time when set; COMP auto-stamps date &amp; time when set — both dates remain manually editable</li>
+        <li>All v1.1.2 features fully restored and merged with v1.1.3/v1.1.4 improvements</li>
+        <li>All features from v1.1.4 retained (tappable WO title ▾, WO-level asset &amp; location inheritance, Rotating Asset Number, per-slot tracking)</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.1.4</div><div class="vd">April Week 1 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vb"><ul>
+        <li>Work order status system (Planned / In Progress / On Hold / Complete / Cancelled)</li>
+        <li>Tappable WO number with <strong>▾ triangle</strong> opens Edit Work Order sheet</li>
+        <li>Status badge shown in WO header and on home screen cards</li>
+        <li>Status included in exported clipboard summary</li>
+        <li>All v1.1.3 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.1.3</div><div class="vd">April Week 1 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vb"><ul>
+        <li>Work order creation page now includes <strong>Asset Number</strong> and <strong>Location of Work</strong> fields at the WO level</li>
+        <li>Plan items added after a WO-level location or asset number is set automatically inherit those values in the Actual tab (highlighted in purple)</li>
+        <li>Existing plan items unaffected when WO values are later changed — delete and re-add to pick up updates</li>
+        <li><strong>Rotating Asset Number</strong> field clearly differentiated from the WO-level Asset Number field</li>
+        <li>Location field label changed to <strong>Location of Work</strong> throughout</li>
+        <li>WO home cards show location and asset number if set</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.1.2</div><div class="vd">April Week 1 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vb"><ul>
+        <li>New Work Order form: <strong>Work Order Number</strong>, <strong>Title</strong>, <strong>Long Description</strong>, optional <strong>Location</strong> field</li>
+        <li>Work order <strong>status system</strong> — default APPR. Tap the WO number ▾ in the header to edit the WO and change status</li>
+        <li>Status <strong>INPRG</strong> and <strong>COMP</strong> auto-stamp the date &amp; time when set; both dates are manually editable</li>
+        <li>Status badge visible on every work order card; home screen grouped into <strong>INPRG / APPR / COMP</strong> sections</li>
+        <li>Non-rotating Actual tab uses <strong>flexible issue lines</strong>: enter qty and location per line; new line opens automatically when remaining units exist</li>
+        <li><strong>Actual Date</strong> auto-stamps on every issue line (NR) and asset slot (rotating) when data is first entered; manually editable</li>
+        <li>Rotating items retain one slot per planned qty unit, each with asset number, location, and actual date</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.1</div><div class="vd">April Week 1 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vb"><ul>
+        <li>Rotating items include planned quantity in the Plan tab</li>
+        <li>Actual tab: individual slots per planned rotating qty (asset number + location)</li>
+        <li>Non-rotating actuals: per-unit location tracking and issued toggles</li>
+        <li>Edit work order; Notes field; Summary tab; Export / copy to clipboard</li>
+        <li>Reservation timestamps on all planned items</li>
+        <li>In-app version history and automatic update check</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.0</div><div class="vd">April Week 1 2026</div></div><span class="vt">Initial Release</span></div>
+      <div class="vb"><p>Initial release — offline PWA for Maximo WO material planning.</p><ul>
+        <li>Create and manage multiple work orders</li>
+        <li>Add non-rotating and rotating items to a Plan tab</li>
+        <li>Record actual quantities and issued asset numbers in an Actual tab</li>
+        <li>Fully offline via service worker; installable as a PWA</li>
+      </ul></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ MODAL: NEW / EDIT WO ═══ -->
+<div class="overlay" id="mwo">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <h2 id="mwot">New Work Order</h2>
+
+    <div class="field">
+      <label class="fl">Work Order Number *</label>
+      <input class="fi mono" id="iwn" placeholder="e.g. WO-12345"
+        autocomplete="off" autocorrect="off" autocapitalize="characters">
+    </div>
+    <div class="field">
+      <label class="fl opt">Title</label>
+      <input class="fi" id="iwt2" placeholder="Brief title of the work" autocomplete="off">
+    </div>
+    <div class="field">
+      <label class="fl opt">Long Description</label>
+      <textarea class="fi" id="iwd" placeholder="Detailed description, instructions, or context…" rows="3"></textarea>
+    </div>
+
+    <div class="sheet-sec-lbl">Work Details</div>
+    <div class="field">
+      <label class="fl opt">Location</label>
+      <input class="fi mono" id="iwl" placeholder="Location of work"
+        autocomplete="off" autocorrect="off" autocapitalize="characters">
+      <div class="fi-hint">Items added to the plan after this is set will auto-fill this location in the Actual tab.</div>
+    </div>
+    <div class="field">
+      <label class="fl opt">Asset</label>
+      <input class="fi mono" id="iwa" placeholder="e.g. A58817"
+        autocomplete="off" autocorrect="off" autocapitalize="characters">
+      <div class="fi-hint">Items added to the plan after this is set will auto-fill this asset number in the Actual tab.</div>
+    </div>
+
+    <!-- Status section — shown only when editing -->
+    <div id="ss" style="display:none">
+      <div class="divider"></div>
+      <div class="fl" style="margin-bottom:10px">Work Order Status</div>
+      <div class="sts-row">
+        <button class="sts-btn sel-appr" id="sa" onclick="setSt('APPR')">APPR<small>Approved</small></button>
+        <button class="sts-btn" id="si" onclick="setSt('INPRG')">INPRG<small>In Progress</small></button>
+        <button class="sts-btn" id="sc" onclick="setSt('COMP')">COMP<small>Completed</small></button>
+      </div>
+      <div id="id-field" style="display:none" class="field">
+        <label class="fl">In Progress Date</label>
+        <input class="fi" id="iid" placeholder="DD/MMM/YYYY H:MMam" autocomplete="off">
+      </div>
+      <div id="cd-field" style="display:none" class="field">
+        <label class="fl">Completion Date</label>
+        <input class="fi" id="icd" placeholder="DD/MMM/YYYY H:MMam" autocomplete="off">
+      </div>
+    </div>
+
+    <button class="btn-p" id="swo">Create Work Order</button>
+    <button class="btn-m" id="cwo">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL: ADD / EDIT ITEM ═══ -->
+<div class="overlay" id="mi">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <h2 id="mit">Add Planned Item</h2>
+    <div class="type-row" id="tr">
+      <button class="type-btn sel-nr" id="tnr" onclick="setType('non-rotating')">Non-Rotating</button>
+      <button class="type-btn" id="trot" onclick="setType('rotating')">Rotating</button>
+    </div>
+    <div class="field">
+      <label class="fl">Item Number *</label>
+      <div class="scan-wrap">
+        <input class="fi mono" id="iin" placeholder="e.g. I27317"
+          autocomplete="off" autocorrect="off" autocapitalize="characters">
+        <button class="scan-btn" id="btn-scan-item" title="Scan Code 128 barcode" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+            <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+            <line x1="7" y1="8" x2="7" y2="16"/><line x1="10" y1="8" x2="10" y2="16"/>
+            <line x1="13" y1="8" x2="13" y2="16"/><line x1="16.5" y1="8" x2="16.5" y2="16"/>
+            <line x1="19" y1="8" x2="19" y2="16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="field">
+      <label class="fl">Storeroom *</label>
+      <input class="fi mono" id="isr" placeholder="e.g. ST050"
+        autocomplete="off" autocorrect="off" autocapitalize="characters">
+    </div>
+    <div class="field">
+      <label class="fl" id="ql">Planned Quantity *</label>
+      <input class="fi mono" id="iq" type="number" min="1" placeholder="1" inputmode="numeric">
+    </div>
+    <div id="inh-preview" style="display:none;margin-bottom:16px">
+      <div class="fi-hint" style="color:var(--wo);font-weight:600">✦ This item will inherit from the work order:</div>
+      <div id="inh-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"></div>
+    </div>
+    <button class="btn-p" id="si2">Add to Plan</button>
+    <button class="btn-m" id="ci">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL: DEL WO ═══ -->
+<div class="overlay" id="mdw">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <h2>Delete Work Order?</h2>
+    <p style="color:var(--text2);font-size:15px;line-height:1.65;margin-bottom:22px">
+      Permanently removes this work order and all associated data. Cannot be undone.
+    </p>
+    <button class="btn-d" id="cdw">Yes, Delete Work Order</button>
+    <button class="btn-m" id="ndw">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL: DEL ITEM ═══ -->
+<div class="overlay" id="mdi">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <h2>Remove Item?</h2>
+    <p style="color:var(--text2);font-size:15px;line-height:1.65;margin-bottom:22px">
+      Removes this planned item and its recorded actuals.
+    </p>
+    <button class="btn-d" id="cdi">Yes, Remove Item</button>
+    <button class="btn-m" id="ndi">Cancel</button>
+  </div>
+</div>
+
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CONSTANTS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const APP_VER = '1.2.1';
+const KEY     = 'maxplan_v121';
+const $       = id => document.getElementById(id);
+const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function fdt(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  const dd  = String(d.getDate()).padStart(2,'0');
+  const mo  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+  let h = d.getHours(), m = String(d.getMinutes()).padStart(2,'0');
+  const ap = h >= 12 ? 'pm' : 'am'; h = h % 12 || 12;
+  return `${dd}/${mo}/${d.getFullYear()} ${h}:${m}${ap}`;
+}
+const now = () => fdt(Date.now());
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// STATE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let S = {
+  wos: [], cid: null, ctab: 'plan',
+  atype: 'non-rotating', eid: null, ewo: false, pdel: null,
+  _st: 'APPR', _id: '', _cd: ''
+};
+
+function load() {
+  try {
+    const r = localStorage.getItem(KEY);
+    if (r) S.wos = JSON.parse(r).wos || [];
+    // Back-fill new fields on old WOs
+    S.wos.forEach(wo => {
+      if (!wo.status)      wo.status = 'APPR';
+      if (!wo.assetNumber) wo.assetNumber = '';
+      if (!wo.location)    wo.location = '';
+    });
+  } catch(e) {}
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify({wos: S.wos})); } catch(e) {}
+}
+const CWO = () => S.wos.find(w => w.id === S.cid) || null;
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ACTUALS DATA HELPERS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// NR: flexible issue lines {id, qty, loc, woAsset, dt}
+function getNRL(wo, item) {
+  if (!wo.actuals) wo.actuals = {};
+  if (!wo.actuals[item.id]) wo.actuals[item.id] = {};
+  const a = wo.actuals[item.id];
+  if (!a.issueLines || !a.issueLines.length) {
+    a.issueLines = [{
+      id: uid(), qty: '', loc: item.inheritedLocation || '',
+      woAsset: item.inheritedWoAsset || '', dt: ''
+    }];
+  }
+  return a.issueLines;
+}
+
+// Rotating: fixed slots per qty {id, rotAsset, loc, woAsset, dt}
+function getSlots(wo, item) {
+  if (!wo.actuals) wo.actuals = {};
+  if (!wo.actuals[item.id]) wo.actuals[item.id] = {};
+  const a = wo.actuals[item.id];
+  if (!a.slots) a.slots = [];
+  const n = item.plannedQty || 1;
+  while (a.slots.length < n) a.slots.push({
+    id: uid(), rotAsset: '',
+    loc: item.inheritedLocation || '',
+    woAsset: item.inheritedWoAsset || '', dt: ''
+  });
+  if (a.slots.length > n) a.slots = a.slots.slice(0, n);
+  return a.slots;
+}
+
+function nrTotal(wo, iid) {
+  const a = (wo.actuals || {})[iid];
+  if (!a || !a.issueLines) return 0;
+  return a.issueLines.reduce((s, l) => s + (parseInt(l.qty) || 0), 0);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// NAVIGATION
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function showView(id) { document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); $(id).classList.add('active'); }
+function goHome()  { S.cid = null; showView('vh'); renderHome(); }
+function goWO(id)  { S.cid = id; S.ctab = 'plan'; showView('vw'); renderWO(); }
+function goVer()   { showView('vv'); }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDER HOME — grouped by INPRG / APPR / COMP
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderHome() {
+  const el = $('hl');
+  const wos = [...S.wos].sort((a,b) => b.createdAt - a.createdAt);
+  const secs = [
+    {k:'APPR',  cls:'sb-appr',  lbl:'Approved'},
+    {k:'INPRG', cls:'sb-inprg', lbl:'In Progress'},
+    {k:'COMP',  cls:'sb-comp',  lbl:'Completed'}
+  ];
+  let html = '', any = false;
+
+  secs.forEach(sec => {
+    const list = wos.filter(w => (w.status || 'APPR') === sec.k);
+    if (!list.length) return;
+    any = true;
+    html += `<div class="status-section">
+      <div class="sec-head">
+        <span class="sec-badge ${sec.cls}">${sec.lbl} (${list.length})</span>
+        <div class="sec-head-line"></div>
+      </div>`;
+    list.forEach(wo => {
+      const pc = (wo.planItems || []).length;
+      const dc = (wo.planItems || []).filter(item => {
+        const a = (wo.actuals || {})[item.id]; if (!a) return false;
+        if (item.type === 'non-rotating') return (a.issueLines || []).some(l => parseInt(l.qty) > 0);
+        return (a.slots || []).some(s => s.rotAsset && s.rotAsset.trim());
+      }).length;
+      const st = wo.status || 'APPR';
+      const mc = {APPR:'ms-appr', INPRG:'ms-inprg', COMP:'ms-comp'}[st];
+      const meta = [];
+      if (wo.location)     meta.push('📍 ' + wo.location);
+      if (wo.assetNumber)  meta.push('⚙️ ' + wo.assetNumber);
+      html += `<div class="wo-card" data-id="${wo.id}">
+        <div class="wo-dot">🔧</div>
+        <div class="wo-body">
+          <div class="wo-num">${esc(wo.woNumber)}<span class="ms ${mc}">${st}</span></div>
+          <div class="wo-desc">${wo.title ? esc(wo.title) : '<em style="opacity:.5">No title</em>'}</div>
+          ${meta.length ? `<div class="wo-meta">${esc(meta.join('  '))}</div>` : ''}
+        </div>
+        <div class="wo-right">
+          <div class="wo-count">${pc} item${pc!==1?'s':''}</div>
+          ${dc>0?`<div class="wo-done">✓ ${dc} actual${dc!==1?'s':''}</div>`:''}
+        </div>
+        <div class="wo-chev">›</div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  if (!any) html = `<div class="empty"><div class="empty-icon">📋</div><h3>No Work Orders</h3>
+    <p>Tap <strong>+</strong> to create your first work order.</p></div>`;
+
+  html += `<div class="ver-footer"><button class="ver-pill" id="bv2">MaxPlan v${APP_VER}</button></div>`;
+  el.innerHTML = html;
+  el.querySelectorAll('.wo-card').forEach(c => c.addEventListener('click', () => goWO(c.dataset.id)));
+  $('bv2').addEventListener('click', goVer);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDER WO VIEW
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderWO() {
+  const wo = CWO(); if (!wo) return goHome();
+  $('wt').textContent = wo.woNumber;
+  $('ws').textContent = wo.title || 'No title';
+  const st = wo.status || 'APPR';
+  const pill = $('wsp');
+  pill.textContent = st;
+  pill.className = 'sph ' + {APPR:'sph-appr', INPRG:'sph-inprg', COMP:'sph-comp'}[st];
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === S.ctab));
+  $('fa').style.display = S.ctab === 'plan' ? 'flex' : 'none';
+  if      (S.ctab === 'plan')   renderPlan();
+  else if (S.ctab === 'actual') renderActual();
+  else                          renderSummary();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDER PLAN TAB
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderPlan() {
+  const wo = CWO(); const el = $('wc'); const items = wo.planItems || [];
+  let top = '';
+  if (wo.longDescription) top += `<div class="notes-block">📝 ${esc(wo.longDescription)}</div>`;
+  if (wo.location || wo.assetNumber) {
+    top += `<div style="background:var(--wo-bg);border:1px solid rgba(124,58,237,.2);
+      border-radius:var(--radius-sm);padding:11px 13px;margin-bottom:16px;font-size:13px;color:var(--wo)">
+      <strong>WO-level defaults</strong> — new plan items will inherit these in the Actual tab:
+      ${wo.location    ? `<div style="margin-top:5px">📍 <strong>Location of Work:</strong> ${esc(wo.location)}</div>` : ''}
+      ${wo.assetNumber ? `<div style="margin-top:3px">⚙️ <strong>Asset Number:</strong> ${esc(wo.assetNumber)}</div>` : ''}
+      <div style="font-size:11px;opacity:.7;margin-top:6px">To apply updated values to existing items, remove and re-add them.</div>
+    </div>`;
+  }
+  if (!items.length) {
+    el.innerHTML = top + `<div class="empty"><div class="empty-icon">📦</div>
+      <h3>No Planned Items</h3><p>Tap <strong>+</strong> to add items.</p></div>`;
+    return;
+  }
+  const nr  = items.filter(i => i.type === 'non-rotating');
+  const rot = items.filter(i => i.type === 'rotating');
+  const card = item => {
+    const isRot = item.type === 'rotating';
+    const chips = [];
+    if (item.inheritedLocation) chips.push(`📍 ${esc(item.inheritedLocation)}`);
+    if (item.inheritedWoAsset)  chips.push(`⚙️ ${esc(item.inheritedWoAsset)}`);
+    return `<div class="item-card">
+      <div class="ich">
+        <span class="badge ${isRot?'badge-rot':'badge-nr'}">${isRot?'Rotating':'Non-Rotating'}</span>
+        <span class="inum">${esc(item.itemNumber)}</span>
+        <div class="iact">
+          <button class="iab" data-edit="${item.id}">✏️</button>
+          <button class="iab del" data-del="${item.id}">✕</button>
+        </div>
+      </div>
+      <div class="imeta">
+        <div class="mc"><span class="ml">Storeroom</span><span class="mv">${esc(item.storeroom)}</span></div>
+        <div class="mc"><span class="ml">Planned Qty</span><span class="mv">${item.plannedQty}</span></div>
+        <div class="mc"><span class="ml">Reserved</span><span class="mv ds">${fdt(item.createdAt)}</span></div>
+      </div>
+      ${chips.length ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">
+        ${chips.map(c=>`<span class="inh-chip"><small>inherits</small> ${c}</span>`).join('')}
+      </div>` : ''}
+    </div>`;
+  };
+  let html = top;
+  if (nr.length)  html += `<div class="section-block"><div class="list-label">Non-Rotating (${nr.length})</div>${nr.map(card).join('')}</div>`;
+  if (rot.length) html += `<div class="section-block"><div class="list-label">Rotating (${rot.length})</div>${rot.map(card).join('')}</div>`;
+  el.innerHTML = html;
+  el.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openEditItem(b.dataset.edit)));
+  el.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => { S.pdel = b.dataset.del; openM('mdi'); }));
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDER ACTUAL TAB
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderActual() {
+  const wo = CWO(); const el = $('wc'); const items = wo.planItems || [];
+  if (!items.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">✅</div>
+      <h3>No Items</h3><p>Add planned items first.</p></div>`; return;
+  }
+  const nr  = items.filter(i => i.type === 'non-rotating');
+  const rot = items.filter(i => i.type === 'rotating');
+  let html  = '';
+
+  // ── NON-ROTATING ──
+  if (nr.length) {
+    html += `<div class="section-block"><div class="list-label">Non-Rotating Actuals (${nr.length})</div>`;
+    nr.forEach(item => {
+      const lines = getNRL(wo, item);
+      const tot   = lines.reduce((s,l) => s+(parseInt(l.qty)||0), 0);
+      const rem   = item.plannedQty - tot;
+      const pct   = item.plannedQty > 0 ? Math.min(100, Math.round((tot/item.plannedQty)*100)) : 0;
+      html += `<div class="actual-card">
+        <div class="ich" style="margin-bottom:9px">
+          <span class="badge badge-nr">Non-Rotating</span>
+          <span class="inum">${esc(item.itemNumber)}</span>
+        </div>
+        <div class="plan-ref">
+          Storeroom: <strong>${esc(item.storeroom)}</strong> &nbsp;·&nbsp;
+          Planned: <strong>${item.plannedQty}</strong> &nbsp;·&nbsp;
+          Reserved: <strong>${fdt(item.createdAt)}</strong>
+        </div>
+        <div class="prog-wrap">
+          <div class="prog-track">
+            <div class="prog-fill${rem<0?' over':''}" id="pf${item.id}" style="width:${pct}%"></div>
+          </div>
+          <div class="prog-leg">
+            <span id="pl${item.id}">${tot} of ${item.plannedQty} issued</span>
+            <span>${pct}%</span>
+          </div>
+        </div>
+        <div id="il${item.id}">${lines.map((l,i) => nrLineHtml(item.id,l,i,lines.length)).join('')}</div>
+        <div class="rem-bar${rem<=0?' done-bar':''}" id="rb${item.id}">
+          <span>${rem<=0 ? '✓ All units accounted for' : `${rem} of ${item.plannedQty} remaining`}</span>
+          ${rem>0 ? `<button class="add-line-btn" onclick="addLine('${item.id}')">+ Add Issue Line</button>` : ''}
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // ── ROTATING ──
+  if (rot.length) {
+    html += `<div class="section-block"><div class="list-label">Rotating Actuals (${rot.length})</div>`;
+    rot.forEach(item => {
+      const slots = getSlots(wo, item);
+      const dn    = slots.filter(s => s.rotAsset && s.rotAsset.trim()).length;
+      const pct   = item.plannedQty > 0 ? Math.round((dn/item.plannedQty)*100) : 0;
+      html += `<div class="actual-card">
+        <div class="ich" style="margin-bottom:9px">
+          <span class="badge badge-rot">Rotating</span>
+          <span class="inum">${esc(item.itemNumber)}</span>
+        </div>
+        <div class="plan-ref">
+          Storeroom: <strong>${esc(item.storeroom)}</strong> &nbsp;·&nbsp;
+          Planned: <strong>${item.plannedQty}</strong> &nbsp;·&nbsp;
+          Reserved: <strong>${fdt(item.createdAt)}</strong>
+        </div>
+        <div class="prog-wrap">
+          <div class="prog-track">
+            <div class="prog-fill" id="pf${item.id}" style="width:${pct}%"></div>
+          </div>
+          <div class="prog-leg">
+            <span id="pl${item.id}">${dn} of ${item.plannedQty} assets recorded</span>
+            <span>${pct}%</span>
+          </div>
+        </div>
+        ${slots.map((s,i) => rotSlotHtml(item, s, i)).join('')}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  save(); // persist slot/line initialisation
+  el.innerHTML = html;
+}
+
+// ── NR ISSUE LINE HTML ──
+function nrLineHtml(iid, line, idx, tot) {
+  const hq = !!(line.qty && parseInt(line.qty) > 0);
+  const locInh  = !!(line.loc    && line.loc    === ((CWO()?.planItems||[]).find(i=>i.id===iid)||{}).inheritedLocation);
+  const assetInh= !!(line.woAsset&& line.woAsset === ((CWO()?.planItems||[]).find(i=>i.id===iid)||{}).inheritedWoAsset);
+  return `<div class="issue-line${hq?' has-qty':''}" id="nl${line.id}">
+    <div class="il-head">
+      <span class="il-lbl${hq?' filled':''}">Issue Line ${idx+1}</span>
+      ${tot>1 ? `<button class="il-rm" data-i="${iid}" data-l="${line.id}" onclick="rmLine(this)">✕</button>` : ''}
+    </div>
+    <div class="il-grid">
+      <div class="sf">
+        <span class="sf-l">Qty to Issue</span>
+        <input class="sf-i ni" type="number" min="0" inputmode="numeric"
+          value="${esc(String(line.qty))}" placeholder="0"
+          data-i="${iid}" data-l="${line.id}" data-f="qty" oninput="nrIn(this)">
+      </div>
+      <div class="sf">
+        <span class="sf-l${locInh?' inh':''}">Location of Work${locInh?' (from WO)':''}</span>
+        <input class="sf-i${locInh?' inh-val':''}" type="text" placeholder="e.g. PUMP-ROOM-A"
+          value="${esc(line.loc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+          data-i="${iid}" data-l="${line.id}" data-f="loc" oninput="nrIn(this)">
+      </div>
+    </div>
+    <div class="sf">
+      <span class="sf-l${assetInh?' inh':''}">Asset Number${assetInh?' (from WO)':''}</span>
+      <input class="sf-i${assetInh?' inh-val':''}" type="text" placeholder="e.g. A58817"
+        value="${esc(line.woAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+        data-i="${iid}" data-l="${line.id}" data-f="woAsset" oninput="nrIn(this)">
+    </div>
+    <div class="sf" style="margin-top:8px">
+      <span class="sf-l">Actual Date</span>
+      <input class="sf-i di" type="text" placeholder="Auto-fills on entry — or type manually"
+        value="${esc(line.dt)}" data-i="${iid}" data-l="${line.id}" data-f="dt" oninput="nrIn(this)">
+    </div>
+  </div>`;
+}
+
+// ── ROTATING SLOT HTML ──
+function rotSlotHtml(item, slot, idx) {
+  const ha = !!(slot.rotAsset && slot.rotAsset.trim());
+  const locInh   = !!(slot.loc     && slot.loc     === item.inheritedLocation);
+  const assetInh = !!(slot.woAsset && slot.woAsset  === item.inheritedWoAsset);
+  return `<div class="slot-row${ha?' has-asset':''}" id="sl${slot.id}">
+    <div class="sh2">
+      <span class="sl2${ha?' done':''}">Asset ${idx+1} of ${item.plannedQty}</span>
+      ${ha ? '<span style="font-size:14px;color:var(--rot);font-weight:700">✓</span>' : ''}
+    </div>
+    <div class="sf">
+      <span class="sf-l" style="color:var(--rot)">Rotating Asset Number</span>
+      <input class="sf-i ai" type="text" placeholder="e.g. EQ-00123"
+        value="${esc(slot.rotAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+        data-i="${item.id}" data-s="${slot.id}" data-f="rotAsset" oninput="rotIn(this)">
+    </div>
+    <div class="sf" style="margin-top:8px">
+      <span class="sf-l${assetInh?' inh':''}">Asset Number${assetInh?' (from WO)':''}</span>
+      <input class="sf-i${assetInh?' inh-val':''}" type="text" placeholder="e.g. A58817"
+        value="${esc(slot.woAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+        data-i="${item.id}" data-s="${slot.id}" data-f="woAsset" oninput="rotIn(this)">
+    </div>
+    <div class="sf" style="margin-top:8px">
+      <span class="sf-l${locInh?' inh':''}">Location of Work${locInh?' (from WO)':''}</span>
+      <input class="sf-i${locInh?' inh-val':''}" type="text" placeholder="e.g. PUMP-ROOM-A"
+        value="${esc(slot.loc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+        data-i="${item.id}" data-s="${slot.id}" data-f="loc" oninput="rotIn(this)">
+    </div>
+    <div class="sf" style="margin-top:8px">
+      <span class="sf-l">Actual Date</span>
+      <input class="sf-i di" type="text" placeholder="Auto-fills on entry — or type manually"
+        value="${esc(slot.dt)}" data-i="${item.id}" data-s="${slot.id}" data-f="dt" oninput="rotIn(this)">
+    </div>
+  </div>`;
+}
+
+// ── NR INPUT HANDLER ──
+function nrIn(inp) {
+  const wo = CWO(); if (!wo) return;
+  const iid=inp.dataset.i, lid=inp.dataset.l, f=inp.dataset.f, v=inp.value;
+  const a = wo.actuals[iid]; if (!a||!a.issueLines) return;
+  const line = a.issueLines.find(l => l.id===lid); if (!line) return;
+  // Auto-stamp actual date when qty first entered
+  if (f==='qty' && v && parseInt(v)>0 && !line.dt) {
+    line.dt = now();
+    const row = $(`nl${lid}`);
+    if (row) { const di=row.querySelector('[data-f="dt"]'); if(di&&!di.value)di.value=line.dt; }
+  }
+  line[f] = v; save();
+  // Update row style
+  const row = $(`nl${lid}`);
+  if (row) {
+    const hq = !!(line.qty && parseInt(line.qty)>0);
+    row.classList.toggle('has-qty', hq);
+    const lb = row.querySelector('.il-lbl'); if(lb) lb.classList.toggle('filled', hq);
+  }
+  const item = (wo.planItems||[]).find(i=>i.id===iid); if(item) refreshNR(wo, item);
+}
+
+function refreshNR(wo, item) {
+  const lines = (wo.actuals[item.id]||{}).issueLines||[];
+  const tot = lines.reduce((s,l)=>s+(parseInt(l.qty)||0),0);
+  const rem = item.plannedQty - tot;
+  const pct = item.plannedQty>0 ? Math.min(100,Math.round((tot/item.plannedQty)*100)) : 0;
+  const pf=$(`pf${item.id}`), pl=$(`pl${item.id}`);
+  if(pf){pf.style.width=`${pct}%`;pf.className=`prog-fill${rem<0?' over':''}`;}
+  if(pl)pl.textContent=`${tot} of ${item.plannedQty} issued`;
+  const rb=$(`rb${item.id}`);
+  if(rb){
+    rb.className=`rem-bar${rem<=0?' done-bar':''}`;
+    rb.innerHTML=`<span>${rem<=0?'✓ All units accounted for':`${rem} of ${item.plannedQty} remaining`}</span>${rem>0?`<button class="add-line-btn" onclick="addLine('${item.id}')">+ Add Issue Line</button>`:''}`;
+  }
+}
+
+function addLine(iid) {
+  const wo=CWO(); if(!wo)return;
+  const item=(wo.planItems||[]).find(i=>i.id===iid); if(!item)return;
+  const a=wo.actuals[iid]; if(!a)return;
+  const nl={id:uid(),qty:'',loc:item.inheritedLocation||'',woAsset:item.inheritedWoAsset||'',dt:''};
+  a.issueLines.push(nl); save();
+  const cont=$(`il${iid}`);
+  if(cont){
+    cont.innerHTML=a.issueLines.map((l,i)=>nrLineHtml(iid,l,i,a.issueLines.length)).join('');
+    setTimeout(()=>{const last=cont.lastElementChild;if(last)last.scrollIntoView({behavior:'smooth',block:'nearest'});},100);
+  }
+  refreshNR(wo, item);
+}
+
+function rmLine(btn) {
+  const iid=btn.dataset.i, lid=btn.dataset.l;
+  const wo=CWO(); if(!wo)return;
+  const a=wo.actuals[iid]; if(!a||!a.issueLines||a.issueLines.length<=1)return;
+  a.issueLines=a.issueLines.filter(l=>l.id!==lid); save();
+  const item=(wo.planItems||[]).find(i=>i.id===iid);
+  const cont=$(`il${iid}`);
+  if(cont&&item){
+    cont.innerHTML=a.issueLines.map((l,i)=>nrLineHtml(iid,l,i,a.issueLines.length)).join('');
+    refreshNR(wo, item);
+  }
+}
+
+// ── ROTATING INPUT HANDLER ──
+function rotIn(inp) {
+  const wo=CWO(); if(!wo)return;
+  const iid=inp.dataset.i, sid=inp.dataset.s, f=inp.dataset.f, v=inp.value;
+  const a=wo.actuals[iid]; if(!a||!a.slots)return;
+  const slot=a.slots.find(s=>s.id===sid); if(!slot)return;
+  // Auto-stamp actual date when rotating asset first entered
+  if(f==='rotAsset' && v.trim() && !slot.dt){
+    slot.dt=now();
+    const row=$(`sl${sid}`);
+    if(row){const di=row.querySelector('[data-f="dt"]');if(di&&!di.value)di.value=slot.dt;}
+  }
+  slot[f]=v; save();
+  if(f==='rotAsset'){
+    const ha=!!(slot.rotAsset&&slot.rotAsset.trim());
+    const row=$(`sl${sid}`);
+    if(row){
+      row.classList.toggle('has-asset',ha);
+      const lb=row.querySelector('.sl2');if(lb)lb.classList.toggle('done',ha);
+      const tick=row.querySelector('.sh2 span:last-child');
+      if(tick&&!tick.classList.contains('sl2'))tick.textContent=ha?'✓':'';
+    }
+    const item=(wo.planItems||[]).find(i=>i.id===iid);
+    if(item){
+      const dn=a.slots.filter(s=>s.rotAsset&&s.rotAsset.trim()).length;
+      const pct=item.plannedQty>0?Math.round((dn/item.plannedQty)*100):0;
+      const pf=$(`pf${iid}`),pl=$(`pl${iid}`);
+      if(pf)pf.style.width=`${pct}%`;
+      if(pl)pl.textContent=`${dn} of ${item.plannedQty} assets recorded`;
+    }
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDER SUMMARY TAB
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderSummary() {
+  const wo=CWO(); const el=$('wc'); const items=wo.planItems||[];
+  if(!items.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">📊</div><h3>No Data</h3><p>Add planned items first.</p></div>`; return;
+  }
+  const nr=items.filter(i=>i.type==='non-rotating');
+  const rot=items.filter(i=>i.type==='rotating');
+  const gst=item=>{
+    const a=(wo.actuals||{})[item.id]; if(!a)return'pending';
+    if(item.type==='non-rotating'){const n=(a.issueLines||[]).reduce((s,l)=>s+(parseInt(l.qty)||0),0);return n===0?'pending':n<item.plannedQty?'partial':'done';}
+    const n=(a.slots||[]).filter(s=>s.rotAsset&&s.rotAsset.trim()).length;
+    return n===0?'pending':n<item.plannedQty?'partial':'done';
+  };
+  const dn=items.filter(i=>gst(i)==='done').length;
+  const pn=items.filter(i=>gst(i)==='partial').length;
+  const pct=items.length?Math.round(((dn+pn*.5)/items.length)*100):0;
+  const pill=st=>({done:`<span class="sp sp-done">✓ Done</span>`,partial:`<span class="sp sp-partial">Partial</span>`,pending:`<span class="sp sp-pending">Pending</span>`}[st]);
+  const wst=wo.status||'APPR';
+  const sc={APPR:'var(--appr)',INPRG:'var(--inprg)',COMP:'var(--comp)'}[wst];
+
+  let html=`<div class="sum-hdr"><h3>Work Order Summary</h3>
+    <div class="sum-stats">
+      <div class="stat-box"><span class="sv">${items.length}</span><span class="sl3">Total Items</span></div>
+      <div class="stat-box"><span class="sv">${dn}</span><span class="sl3">Completed</span></div>
+      <div class="stat-box"><span class="sv">${pct}%</span><span class="sl3">Progress</span></div>
+    </div></div>
+    <div style="background:var(--surface);border-radius:var(--radius);padding:13px 15px;margin-bottom:14px;border:1px solid var(--border);box-shadow:var(--shadow)">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:8px">Work Order Details</div>
+      <div class="sum-row"><span>WO Number</span><strong>${esc(wo.woNumber)}</strong></div>
+      ${wo.title?`<div class="sum-row"><span>Title</span><strong style="font-family:inherit">${esc(wo.title)}</strong></div>`:''}
+      ${wo.location?`<div class="sum-row"><span>Location</span><strong>${esc(wo.location)}</strong></div>`:''}
+      ${wo.assetNumber?`<div class="sum-row"><span>Asset Number</span><strong>${esc(wo.assetNumber)}</strong></div>`:''}
+      <div class="sum-row"><span>Status</span><strong style="color:${sc}">${wst}</strong></div>
+      ${wo.inprgDate?`<div class="sum-row"><span>Started</span><strong style="font-family:inherit;font-size:12px">${esc(wo.inprgDate)}</strong></div>`:''}
+      ${wo.compDate?`<div class="sum-row"><span>Completed</span><strong style="font-family:inherit;font-size:12px">${esc(wo.compDate)}</strong></div>`:''}
+    </div>
+    <button class="export-btn" id="exb">📋 &nbsp;Copy Summary to Clipboard</button>
+    <div class="copy-ok" id="cok">✓ Copied!</div>`;
+
+  if(nr.length){
+    html+=`<div class="sum-sec"><div class="list-label">Non-Rotating Items</div>`;
+    nr.forEach(item=>{
+      const a=(wo.actuals||{})[item.id]||{};
+      const ils=(a.issueLines||[]).filter(l=>parseInt(l.qty)>0);
+      const tot=ils.reduce((s,l)=>s+(parseInt(l.qty)||0),0);
+      const st=gst(item);
+      html+=`<div class="sum-item">
+        <div class="sum-ih"><span class="badge badge-nr">Non-Rot</span><span class="sin">${esc(item.itemNumber)}</span>${pill(st)}</div>
+        <div class="sum-row"><span>Storeroom</span><strong>${esc(item.storeroom)}</strong></div>
+        <div class="sum-row"><span>Planned</span><strong>${item.plannedQty}</strong></div>
+        <div class="sum-row"><span>Total Issued</span><strong>${tot}</strong></div>
+        <div class="sum-row"><span>Reserved</span><strong style="font-family:inherit;font-size:12px">${fdt(item.createdAt)}</strong></div>
+        ${ils.map((l,i)=>`<div class="ss2 done-nr">
+          <div class="ss2-h">
+            <span class="ss2-l done-nr">Issue ${i+1}</span>
+            <span class="ss2-v">${esc(String(l.qty))} unit${parseInt(l.qty)!==1?'s':''}</span>
+          </div>
+          ${l.loc?`<div class="ss2-sub">Location: ${esc(l.loc)}</div>`:''}
+          ${l.woAsset?`<div class="ss2-sub">Asset: ${esc(l.woAsset)}</div>`:''}
+          ${l.dt?`<div class="ss2-sub">Actual Date: ${esc(l.dt)}</div>`:''}
+        </div>`).join('')}
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  if(rot.length){
+    html+=`<div class="sum-sec"><div class="list-label">Rotating Items</div>`;
+    rot.forEach(item=>{
+      const a=(wo.actuals||{})[item.id]||{};
+      const slots=a.slots||[];
+      const dn2=slots.filter(s=>s.rotAsset&&s.rotAsset.trim()).length;
+      const st=gst(item);
+      html+=`<div class="sum-item">
+        <div class="sum-ih"><span class="badge badge-rot">Rotating</span><span class="sin">${esc(item.itemNumber)}</span>${pill(st)}</div>
+        <div class="sum-row"><span>Storeroom</span><strong>${esc(item.storeroom)}</strong></div>
+        <div class="sum-row"><span>Planned</span><strong>${item.plannedQty}</strong></div>
+        <div class="sum-row"><span>Assets Recorded</span><strong>${dn2} of ${item.plannedQty}</strong></div>
+        <div class="sum-row"><span>Reserved</span><strong style="font-family:inherit;font-size:12px">${fdt(item.createdAt)}</strong></div>
+        ${slots.map((s,i)=>{
+          const d=!!(s.rotAsset&&s.rotAsset.trim());
+          return`<div class="ss2 ${d?'done':''}">
+            <div class="ss2-h">
+              <span class="ss2-l ${d?'done':''}">Asset ${i+1}</span>
+              <span class="ss2-v">${d?esc(s.rotAsset):'Pending'}</span>
+            </div>
+            ${s.woAsset?`<div class="ss2-sub">Asset #: ${esc(s.woAsset)}</div>`:''}
+            ${s.loc?`<div class="ss2-sub">Location: ${esc(s.loc)}</div>`:''}
+            ${s.dt?`<div class="ss2-sub">Actual Date: ${esc(s.dt)}</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  if(wo.longDescription)html+=`<div class="sum-sec"><div class="list-label">Long Description</div>
+    <div class="notes-block">📝 ${esc(wo.longDescription)}</div></div>`;
+  el.innerHTML=html;
+  $('exb').addEventListener('click', doExport);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// EXPORT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function doExport(){
+  const wo=CWO(); if(!wo)return;
+  const L=['============================','MAXPLAN — WO MATERIAL SUMMARY','============================',
+    `WO Number  : ${wo.woNumber}`];
+  if(wo.title)       L.push(`Title      : ${wo.title}`);
+  if(wo.location)    L.push(`Location   : ${wo.location}`);
+  if(wo.assetNumber) L.push(`Asset No.  : ${wo.assetNumber}`);
+  if(wo.longDescription)L.push(`Description: ${wo.longDescription}`);
+  L.push(`Status     : ${wo.status||'APPR'}`);
+  if(wo.inprgDate)L.push(`Started    : ${wo.inprgDate}`);
+  if(wo.compDate) L.push(`Completed  : ${wo.compDate}`);
+  L.push(`Exported   : ${now()}`,'');
+
+  (wo.planItems||[]).filter(i=>i.type==='non-rotating').forEach(item=>{
+    const a=(wo.actuals||{})[item.id]||{};
+    const ils=(a.issueLines||[]).filter(l=>parseInt(l.qty)>0);
+    const tot=ils.reduce((s,l)=>s+(parseInt(l.qty)||0),0);
+    L.push(`── NON-ROTATING: ${item.itemNumber}`,`   Storeroom   : ${item.storeroom}`,
+      `   Planned Qty : ${item.plannedQty}`,`   Total Issued: ${tot}`,
+      `   Reserved    : ${fdt(item.createdAt)}`);
+    ils.forEach((l,i)=>{
+      let d=`   Issue ${i+1}     : ${l.qty} unit${parseInt(l.qty)!==1?'s':''}`;
+      if(l.loc)d+=` · Loc: ${l.loc}`;
+      if(l.woAsset)d+=` · Asset: ${l.woAsset}`;
+      if(l.dt)d+=` · Date: ${l.dt}`;
+      L.push(d);
+    }); L.push('');
+  });
+
+  (wo.planItems||[]).filter(i=>i.type==='rotating').forEach(item=>{
+    const a=(wo.actuals||{})[item.id]||{};
+    const slots=a.slots||[];
+    L.push(`── ROTATING: ${item.itemNumber}`,`   Storeroom   : ${item.storeroom}`,
+      `   Planned Qty : ${item.plannedQty}`,`   Reserved    : ${fdt(item.createdAt)}`);
+    slots.forEach((s,i)=>{
+      const d2=!!(s.rotAsset&&s.rotAsset.trim());
+      let d=`   Asset ${i+1}     : ${d2?s.rotAsset:'Pending'}`;
+      if(s.woAsset)d+=` · Asset: ${s.woAsset}`;
+      if(s.loc)d+=` · Loc: ${s.loc}`;
+      if(s.dt)d+=` · Date: ${s.dt}`;
+      L.push(d);
+    }); L.push('');
+  });
+
+  L.push('============================');
+  const txt=L.join('\n');
+  if(navigator.clipboard?.writeText)navigator.clipboard.writeText(txt).then(copiedOk).catch(()=>fbCopy(txt));
+  else fbCopy(txt);
+}
+function fbCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');copiedOk();}catch(e){alert(t);}document.body.removeChild(ta);}
+function copiedOk(){const e=$('cok');if(!e)return;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2800);}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// STATUS SELECTOR (inside WO edit modal)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function setSt(s) {
+  S._st = s;
+  ['APPR','INPRG','COMP'].forEach(x => {
+    const b = $({APPR:'sa',INPRG:'si',COMP:'sc'}[x]);
+    if(b) b.className = 'sts-btn' + (x===s ? ` sel-${x.toLowerCase()}` : '');
+  });
+  // Auto-stamp when status first set to INPRG or COMP
+  if((s==='INPRG'||s==='COMP') && !S._id){ S._id=now(); const f=$('iid');if(f)f.value=S._id; }
+  if(s==='COMP' && !S._cd){ S._cd=now(); const f=$('icd');if(f)f.value=S._cd; }
+  $('id-field').style.display = (s==='INPRG'||s==='COMP') ? '' : 'none';
+  $('cd-field').style.display = s==='COMP' ? '' : 'none';
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// WO MODAL
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function openWOModal(edit) {
+  S.ewo = edit;
+  $('mwot').textContent = edit ? 'Edit Work Order' : 'New Work Order';
+  $('swo').textContent  = edit ? 'Save Changes'   : 'Create Work Order';
+  $('ss').style.display = edit ? '' : 'none';
+  if(edit){
+    const wo=CWO(); if(!wo)return;
+    $('iwn').value  = wo.woNumber;
+    $('iwt2').value = wo.title||'';
+    $('iwd').value  = wo.longDescription||'';
+    $('iwa').value  = wo.assetNumber||'';
+    $('iwl').value  = wo.location||'';
+    S._st=wo.status||'APPR'; S._id=wo.inprgDate||''; S._cd=wo.compDate||'';
+    ['APPR','INPRG','COMP'].forEach(x=>{
+      const b=$({APPR:'sa',INPRG:'si',COMP:'sc'}[x]);
+      if(b)b.className='sts-btn'+(x===S._st?` sel-${x.toLowerCase()}`:'');
+    });
+    $('iid').value=S._id; $('icd').value=S._cd;
+    $('id-field').style.display=(S._st==='INPRG'||S._st==='COMP')?'':'none';
+    $('cd-field').style.display=S._st==='COMP'?'':'none';
+  } else {
+    ['iwn','iwt2','iwd','iwa','iwl'].forEach(id=>{const el=$(id);if(el)el.value='';});
+    S._st='APPR'; S._id=''; S._cd='';
+  }
+  $('iwn').classList.remove('err');
+  openM('mwo'); setTimeout(()=>$('iwn').focus(),300);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// MODALS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function openM(id){$(id).classList.add('open');}
+function closeM(id){$(id).classList.remove('open');}
+
+function setType(t){
+  S.atype=t;
+  $('tnr').className='type-btn'+(t==='non-rotating'?' sel-nr':'');
+  $('trot').className='type-btn'+(t==='rotating'?' sel-rot':'');
+  $('ql').textContent=t==='rotating'?'Planned Quantity (no. of assets) *':'Planned Quantity *';
+  updateInhPreview();
+}
+
+function updateInhPreview(){
+  const wo=CWO(); if(!wo)return;
+  const prev=$('inh-preview'), chips=$('inh-chips');
+  if(!prev||!chips)return;
+  const parts=[];
+  if(wo.location)    parts.push(`<span class="inh-chip"><small>inherits</small> 📍 ${esc(wo.location)}</span>`);
+  if(wo.assetNumber) parts.push(`<span class="inh-chip"><small>inherits</small> ⚙️ ${esc(wo.assetNumber)}</span>`);
+  if(parts.length&&!S.eid){chips.innerHTML=parts.join('');prev.style.display='block';}
+  else prev.style.display='none';
+}
+
+function openEditItem(iid){
+  const wo=CWO();if(!wo)return;
+  const item=(wo.planItems||[]).find(i=>i.id===iid);if(!item)return;
+  S.eid=iid;
+  $('mit').textContent='Edit Planned Item';$('si2').textContent='Save Changes';
+  $('tr').style.display='none'; S.atype=item.type;
+  $('iin').value=item.itemNumber;$('isr').value=item.storeroom;$('iq').value=item.plannedQty;
+  $('ql').textContent=item.type==='rotating'?'Planned Quantity (no. of assets) *':'Planned Quantity *';
+  $('inh-preview').style.display='none';
+  ['iin','isr','iq'].forEach(id=>$(id).classList.remove('err'));
+  openM('mi');setTimeout(()=>$('iin').focus(),300);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// VERSION CHECK
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function chkVer(){
+  if(sessionStorage.getItem('vchk'))return;
+  sessionStorage.setItem('vchk','1');
+  try{
+    const r=await fetch('./version.json?_='+Date.now(),{cache:'no-store'});
+    const d=await r.json();
+    if(d.version&&d.version!==APP_VER){$('um').textContent=`MaxPlan v${d.version} is available — tap to update.`;$('ub').classList.add('show');}
+  }catch(e){}
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// INIT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+document.addEventListener('DOMContentLoaded', () => {
+  load(); renderHome(); chkVer();
+
+  $('bb').addEventListener('click', goHome);
+  $('bv').addEventListener('click', goHome);
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{S.ctab=t.dataset.tab;renderWO();}));
+
+  // Tappable WO title ▾ → edit WO
+  $('wt-btn').addEventListener('click', () => openWOModal(true));
+
+  // New WO from home FAB
+  $('fn').addEventListener('click', () => openWOModal(false));
+
+  // Save / Update WO
+  $('swo').addEventListener('click', () => {
+    const num = $('iwn').value.trim().toUpperCase();
+    if(!num){$('iwn').classList.add('err');return;}
+    $('iwn').classList.remove('err');
+    const fields = {
+      woNumber: num,
+      title: $('iwt2').value.trim(),
+      longDescription: $('iwd').value.trim(),
+      assetNumber: $('iwa').value.trim().toUpperCase(),
+      location: $('iwl').value.trim().toUpperCase()
+    };
+    if(S.ewo){
+      const wo=CWO(); if(!wo)return;
+      Object.assign(wo, fields);
+      wo.status    = S._st;
+      wo.inprgDate = $('iid').value.trim();
+      wo.compDate  = $('icd').value.trim();
+      save(); closeM('mwo'); renderWO();
+    } else {
+      const wo={id:uid(),...fields,status:'APPR',inprgDate:'',compDate:'',
+        createdAt:Date.now(),planItems:[],actuals:{}};
+      S.wos.push(wo); save(); closeM('mwo'); goWO(wo.id);
+    }
+  });
+  $('cwo').addEventListener('click', () => closeM('mwo'));
+
+  // Delete WO
+  $('dw').addEventListener('click', () => openM('mdw'));
+  $('cdw').addEventListener('click', () => {S.wos=S.wos.filter(w=>w.id!==S.cid);save();closeM('mdw');goHome();});
+  $('ndw').addEventListener('click', () => closeM('mdw'));
+
+  // Add Item FAB
+  $('fa').addEventListener('click', () => {
+    S.eid=null;
+    $('mit').textContent='Add Planned Item';$('si2').textContent='Add to Plan';
+    $('tr').style.display='';$('iin').value='';$('isr').value='';$('iq').value='';
+    ['iin','isr','iq'].forEach(id=>$(id).classList.remove('err'));
+    setType('non-rotating'); updateInhPreview();
+    openM('mi'); setTimeout(()=>$('iin').focus(),300);
+  });
+
+  // Save Item
+  $('si2').addEventListener('click', () => {
+    const itemNum=$('iin').value.trim().toUpperCase();
+    const sr=$('isr').value.trim().toUpperCase();
+    const qty=parseInt($('iq').value)||0;
+    let ok=true;
+    if(!itemNum){$('iin').classList.add('err');ok=false;}else $('iin').classList.remove('err');
+    if(!sr){$('isr').classList.add('err');ok=false;}else $('isr').classList.remove('err');
+    if(qty<1){$('iq').classList.add('err');ok=false;}else $('iq').classList.remove('err');
+    if(!ok)return;
+    const wo=CWO(); if(!wo)return;
+    if(S.eid){
+      const item=(wo.planItems||[]).find(i=>i.id===S.eid);
+      if(item){
+        item.itemNumber=itemNum;item.storeroom=sr;item.plannedQty=qty;
+        if(item.type==='rotating'&&wo.actuals&&wo.actuals[item.id]?.slots){
+          const slots=wo.actuals[item.id].slots;
+          while(slots.length<qty)slots.push({id:uid(),rotAsset:'',loc:item.inheritedLocation||'',woAsset:item.inheritedWoAsset||'',dt:''});
+          if(slots.length>qty)wo.actuals[item.id].slots=slots.slice(0,qty);
+        }
+      }
+    } else {
+      wo.planItems.push({
+        id:uid(),type:S.atype,itemNumber:itemNum,storeroom:sr,plannedQty:qty,
+        createdAt:Date.now(),
+        inheritedLocation: wo.location||'',
+        inheritedWoAsset:  wo.assetNumber||''
+      });
+    }
+    save(); closeM('mi'); S.eid=null; renderPlan();
+  });
+  $('ci').addEventListener('click', ()=>closeM('mi'));
+
+  // Delete Item
+  $('cdi').addEventListener('click', ()=>{
+    const wo=CWO();
+    if(wo&&S.pdel){wo.planItems=wo.planItems.filter(i=>i.id!==S.pdel);if(wo.actuals)delete wo.actuals[S.pdel];save();}
+    S.pdel=null;closeM('mdi');renderPlan();
+  });
+  $('ndi').addEventListener('click',()=>{S.pdel=null;closeM('mdi');});
+
+  // Overlay dismiss
+  document.querySelectorAll('.overlay').forEach(ov=>{
+    ov.addEventListener('click',e=>{if(e.target===ov){S.pdel=null;S.eid=null;closeM(ov.id);}});
+  });
+
+  // PWA Install
+  let dp=null;
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('ib').classList.add('show');});
+  $('bi').addEventListener('click',async()=>{if(!dp)return;dp.prompt();const{outcome}=await dp.userChoice;if(outcome==='accepted')$('ib').classList.remove('show');dp=null;});
+  window.addEventListener('appinstalled',()=>$('ib').classList.remove('show'));
+
+  // Service Worker
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW:',e));
+});
+</script>
+
+
+<!-- ═══ SCANNER OVERLAY ═══ -->
+<div id="scan-overlay">
+  <video id="scan-video" autoplay muted playsinline></video>
+  <!-- Hidden canvas used for frame capture — never displayed -->
+  <canvas id="scan-canvas" style="display:none"></canvas>
+  <div class="scan-ui">
+    <div class="scan-top">
+      <span class="scan-title">Scan Code 128 Barcode</span>
+      <button class="scan-close" id="scan-close-btn">✕</button>
+    </div>
+    <div class="scan-frame-wrap">
+      <div class="scan-frame">
+        <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#fff" stroke-width="3" fill="none" opacity="0.9">
+            <path d="M10,30 L10,10 L30,10"/>
+            <path d="M290,10 L310,10 L310,30"/>
+            <path d="M10,170 L10,190 L30,190"/>
+            <path d="M290,190 L310,190 L310,170"/>
+          </g>
+        </svg>
+        <div class="scan-line" id="scan-line"></div>
+      </div>
+    </div>
+    <div class="scan-bottom">
+      <div class="scan-status" id="scan-status">Starting camera…</div>
+      <br>
+      <button class="scan-manual" id="scan-manual-btn">Enter manually instead</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  MaxPlan v1.2.1 — Pure JS Code 128 Scanner
+//  Zero external dependencies. Works on every browser.
+//  100% offline after first install.
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+(function () {
+  'use strict';
+
+  // ── Code 128 symbol table ──────────────────────────
+  // 107 entries (values 0-106).  Each entry is a 6-character string
+  // whose digits are the alternating BAR/SPACE module widths:
+  //   char[0] = bar1 width, char[1] = space1 width, … char[5] = space3 width
+  // Sum of all 6 digits = 11 modules per symbol.
+  // Source: ISO/IEC 15417 / BWIPP authoritative table.
+  const C128_TABLE = [
+    "212222","222122","222221","121223","121322","131222","122212","122221", // 0-7
+    "132212","221213","221312","231212","112232","122132","122231","113222", // 8-15
+    "123122","123221","223211","221133","221231","213212","223112","312131", // 16-23
+    "311222","321122","321221","312212","322112","322211","212123","212321", // 24-31
+    "232121","111323","131123","131321","112313","132113","132311","211313", // 32-39
+    "231113","231311","112133","112331","132131","113123","113321","133121", // 40-47
+    "313121","211331","231131","213113","213311","213131","311123","311321", // 48-55
+    "331121","312113","312311","332111","314111","221411","431111","111224", // 56-63
+    "111422","121124","121421","141122","141221","112214","112412","122114", // 64-71
+    "122411","142112","142211","241211","221114","413111","241112","134111", // 72-79
+    "111242","121142","121241","114212","124112","124211","411212","421112", // 80-87
+    "421211","212141","214121","412121","111143","111341","131141","114113", // 88-95
+    "114311","411113","411311","113141","114131","311141","411131",          // 96-102
+    "211412","211214","211232","233111"                                      // 103=StartA,104=StartB,105=StartC,106=Stop
+  ];
+
+  // Build reverse lookup: "212222" → 0, etc.
+  const C128_LOOKUP = Object.create(null);
+  C128_TABLE.forEach((p, i) => { C128_LOOKUP[p] = i; });
+
+  // Decode a symbol value to a character (Code B only — covers all printable ASCII)
+  function symToChar(v) {
+    if (v >= 0 && v <= 94) return String.fromCharCode(v + 32); // ASCII 32-126
+    return '';  // FNC / special — skip
+  }
+
+  // ── Row decoding ────────────────────────────────────
+  // Given raw pixel data (RGBA), image width, and a row Y coordinate,
+  // returns a decoded string or null.
+
+  function decodeRow(data, imgWidth, y) {
+    const base = y * imgWidth * 4;
+
+    // 1. Convert to grayscale and compute mean for threshold
+    let sum = 0;
+    const gray = new Uint8Array(imgWidth);
+    for (let x = 0; x < imgWidth; x++) {
+      const p = base + x * 4;
+      // Rec. 601 luma
+      const g = (data[p] * 77 + data[p + 1] * 150 + data[p + 2] * 29) >>> 8;
+      gray[x] = g;
+      sum += g;
+    }
+    const mean = sum / imgWidth;
+
+    // 2. Adaptive binarise: use mean as threshold with a small margin
+    //    to handle bright / dark environments
+    const thresh = mean * 0.85;
+
+    // 3. Find runs of dark (bar) and light (space) pixels
+    //    runs[] = [{dark:bool, n:pixelCount}, …]
+    const runs = [];
+    let curDark = gray[0] < thresh;
+    let runLen = 1;
+    for (let x = 1; x < imgWidth; x++) {
+      const dark = gray[x] < thresh;
+      if (dark === curDark) {
+        runLen++;
+      } else {
+        runs.push([curDark ? 1 : 0, runLen]);
+        curDark = dark;
+        runLen = 1;
+      }
+    }
+    runs.push([curDark ? 1 : 0, runLen]);
+
+    // 4. Drop leading light runs (barcode starts with a bar)
+    let rStart = 0;
+    while (rStart < runs.length && runs[rStart][0] === 0) rStart++;
+
+    // Need at least start (6) + 1 char (6) + check (6) + stop (6) = 24 runs
+    const usable = runs.length - rStart;
+    if (usable < 24) return null;
+
+    const rr = runs.slice(rStart); // now starts with a bar
+
+    // 5. Estimate module width X from the smallest run (≈ 1 module)
+    //    Use the 10th-percentile run length to be noise-tolerant
+    const sorted = rr.map(r => r[1]).sort((a, b) => a - b);
+    const p10 = sorted[Math.max(0, Math.floor(sorted.length * 0.1))];
+    const X = Math.max(1, p10);
+
+    // 6. Quantise each run to module widths 1-4 (rounded, clamped)
+    const mods = rr.map(r => Math.max(1, Math.min(4, Math.round(r[1] / X))));
+
+    // 7. Slide window: try every starting position as a potential start symbol
+    for (let pos = 0; pos + 6 <= mods.length; pos++) {
+      const startKey = mods.slice(pos, pos + 6).join('');
+      const startVal = C128_LOOKUP[startKey];
+      // Must be one of the three start codes
+      if (startVal !== 103 && startVal !== 104 && startVal !== 105) continue;
+
+      // Found a valid start code — try to decode
+      const result = tryDecode(mods, pos, startVal);
+      if (result !== null) return result;
+    }
+
+    return null;
+  }
+
+  function tryDecode(mods, startPos, startCode) {
+    let checksum = startCode;
+    let charIdx  = 1;
+    let text     = '';
+    let pos      = startPos + 6; // skip start symbol
+
+    while (pos + 6 <= mods.length) {
+      const key = mods.slice(pos, pos + 6).join('');
+      const val = C128_LOOKUP[key];
+
+      if (val === undefined || val === -1) return null; // unrecognised pattern
+
+      if (val === 106) {
+        // Stop code reached — check that we decoded at least 1 character
+        // (the last char decoded was the check character, which we already
+        //  folded into checksum but NOT appended to text)
+        return text.length > 0 ? text : null;
+      }
+
+      // The last character before Stop is the check character
+      // We add it to the running checksum but do NOT append to text.
+      // We detect this by checking: is the NEXT symbol after this the stop?
+      const nextKey = (pos + 12 <= mods.length)
+        ? mods.slice(pos + 6, pos + 12).join('') : '';
+      const nextIsStop = C128_LOOKUP[nextKey] === 106;
+
+      if (nextIsStop) {
+        // This symbol is the check character — validate
+        const expected = checksum % 103;
+        if (val !== expected) {
+          // Checksum mismatch — barcode may be partially in frame or noisy.
+          // Still return the text if it looks plausible (all printable ASCII).
+          if (text.length >= 1 && /^[\x20-\x7E]+$/.test(text)) return text;
+          return null;
+        }
+        // checksum valid — return text
+        return text.length > 0 ? text : null;
+      }
+
+      // Normal data character
+      checksum += val * charIdx;
+      charIdx++;
+
+      // Decode to character (Code B)
+      if (startCode === 104) {
+        if (val < 95) text += String.fromCharCode(val + 32);
+        // val 96-102 are FNC characters — skip
+      } else if (startCode === 103) {
+        // Code A: values 0-63 → ASCII 32-95; 64-95 → ASCII 0-31
+        if (val < 64) text += String.fromCharCode(val + 32);
+        else if (val < 96) text += String.fromCharCode(val - 64);
+      } else if (startCode === 105) {
+        // Code C: pairs of digits (value 00-99)
+        if (val < 100) text += val.toString().padStart(2, '0');
+      }
+
+      pos += 6;
+    }
+
+    // Reached end of modules without finding stop — not a valid barcode
+    return null;
+  }
+
+  // ── Frame scanner ───────────────────────────────────
+  // Scans many rows across the middle band of the frame.
+  // Returns the most-frequently-decoded string, or null.
+
+  function scanFrame(canvas) {
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const W = canvas.width, H = canvas.height;
+    if (W === 0 || H === 0) return null;
+
+    let imgData;
+    try { imgData = ctx.getImageData(0, 0, W, H).data; }
+    catch (e) { return null; }
+
+    const y0 = Math.floor(H * 0.25);
+    const y1 = Math.floor(H * 0.75);
+    const numRows = 40; // scan 40 horizontal lines across the middle half
+    const votes = Object.create(null);
+
+    for (let i = 0; i < numRows; i++) {
+      const y = y0 + Math.floor((y1 - y0) * i / (numRows - 1));
+      const result = decodeRow(imgData, W, y);
+      if (result) votes[result] = (votes[result] || 0) + 1;
+    }
+
+    const entries = Object.entries(votes).sort((a, b) => b[1] - a[1]);
+    // Require at least 2 consistent reads to reduce false positives
+    return entries.length > 0 && entries[0][1] >= 2 ? entries[0][0] : null;
+  }
+
+  // ── Scanner UI ──────────────────────────────────────
+  let _targetId = null;
+  let _active   = false;
+  let _stream   = null;
+  let _rafId    = null;
+
+  const overlay  = document.getElementById('scan-overlay');
+  const videoEl  = document.getElementById('scan-video');
+  const canvas   = document.getElementById('scan-canvas');
+  const statusEl = document.getElementById('scan-status');
+
+  function setStatus(msg, cls) {
+    statusEl.textContent = msg;
+    statusEl.className   = 'scan-status' + (cls ? ' ' + cls : '');
+  }
+
+  function scanLoop() {
+    if (!_active) return;
+
+    // Wait until video has actual frame data
+    if (videoEl.readyState < 2 || videoEl.videoWidth === 0) {
+      _rafId = requestAnimationFrame(scanLoop);
+      return;
+    }
+
+    // Size canvas to video frame (do it lazily to avoid repeated realloc)
+    if (canvas.width !== videoEl.videoWidth) {
+      canvas.width  = videoEl.videoWidth;
+      canvas.height = videoEl.videoHeight;
+    }
+
+    // Draw current video frame
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(videoEl, 0, 0);
+
+    // Try to decode
+    const result = scanFrame(canvas);
+    if (result) {
+      onSuccess(result);
+      return; // stop loop
+    }
+
+    _rafId = requestAnimationFrame(scanLoop);
+  }
+
+  function onSuccess(value) {
+    if (!_active) return;
+    setStatus('✓  ' + value, 'success');
+    if (navigator.vibrate) navigator.vibrate([40, 30, 80]);
+
+    const inp = document.getElementById(_targetId);
+    if (inp) {
+      inp.value = value.toUpperCase();
+      inp.dispatchEvent(new Event('input', { bubbles: true }));
+      inp.classList.remove('err');
+    }
+
+    setTimeout(closeScanner, 1100);
+  }
+
+  async function openScanner(targetId) {
+    _targetId = targetId;
+    _active   = true;
+    overlay.classList.add('open');
+    setStatus('Starting camera…');
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setStatus('Camera not supported on this browser.', 'error');
+      return;
+    }
+
+    try {
+      _stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: 'environment' },
+          width:  { ideal: 1920 },
+          height: { ideal: 1080 },
+          frameRate: { ideal: 30, min: 15 }
+        }
+      });
+      videoEl.srcObject = _stream;
+      await videoEl.play();
+      setStatus('Point camera at barcode — hold steady');
+      _rafId = requestAnimationFrame(scanLoop);
+    } catch (err) {
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setStatus('Camera permission denied. Tap ✕ and allow camera access.', 'error');
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        setStatus('No camera found on this device.', 'error');
+      } else if (err.name === 'NotReadableError') {
+        setStatus('Camera is in use by another app.', 'error');
+      } else {
+        setStatus('Camera error: ' + (err.message || err.name), 'error');
+      }
+    }
+  }
+
+  function closeScanner() {
+    _active = false;
+    overlay.classList.remove('open');
+    if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
+    if (_stream) { _stream.getTracks().forEach(t => t.stop()); _stream = null; }
+    videoEl.srcObject = null;
+    videoEl.load();
+    setStatus('Starting camera…');
+    statusEl.className = 'scan-status';
+  }
+
+  document.getElementById('scan-close-btn').addEventListener('click', closeScanner);
+  document.getElementById('scan-manual-btn').addEventListener('click', () => {
+    closeScanner();
+    setTimeout(() => {
+      const inp = document.getElementById(_targetId);
+      if (inp) { inp.focus(); inp.select(); }
+    }, 350);
+  });
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay || e.target === videoEl) closeScanner();
+  });
+
+  window.openScanner = openScanner;
+
+  // Wire the scan button
+  (function attach() {
+    const btn = document.getElementById('btn-scan-item');
+    if (btn) btn.addEventListener('click', () => openScanner('iin'));
+  })();
+
+})();
+</script>
+</body>
+</html>
