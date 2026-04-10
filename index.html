@@ -456,7 +456,20 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.2.1</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.2.2</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li>Barcode scanner rebuilt using <strong>QuaggaJS</strong> — a purpose-built mobile barcode library that works on iOS Safari (14+) and all Android browsers</li>
+        <li>Fixed: previous pure-JS implementation failed to reliably decode Code 128 in real lighting conditions; QuaggaJS uses a proven computer-vision pipeline specifically tuned for 1D barcodes on mobile cameras</li>
+        <li>iOS compatibility: <code>numOfWorkers</code> is automatically set to 0 on iPhone/iPad (Safari's WKWebView does not support shared workers)</li>
+        <li>Requires 2 consistent reads of the same value before confirming — reduces false positives from partial frames</li>
+        <li>QuaggaJS is cached by the service worker on first load — scanner works fully offline after that</li>
+        <li>Scans only the middle 60% of the frame area for faster decoding on mobile hardware</li>
+        <li>All v1.2.1 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.2.1</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li>Barcode scanner completely rebuilt as a <strong>pure JavaScript Code 128 decoder</strong> — zero external dependencies, zero browser APIs beyond the camera itself, works on every browser, 100% offline</li>
         <li>Fixed: previous versions relied on <code>BarcodeDetector</code> (Chrome/Android and iOS 17+ only) which caused the "unsupported browser" error on most iPhones; the new decoder runs its own scan logic and works on all iOS and Android browsers</li>
@@ -691,8 +704,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.2.1';
-const KEY     = 'maxplan_v121';
+const APP_VER = '1.2.2';
+const KEY     = 'maxplan_v122';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1546,11 +1559,14 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 
+
 <!-- ═══ SCANNER OVERLAY ═══ -->
+<!-- QuaggaJS: purpose-built 1D barcode library, works on iOS Safari + Android Chrome -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+
 <div id="scan-overlay">
-  <video id="scan-video" autoplay muted playsinline></video>
-  <!-- Hidden canvas used for frame capture — never displayed -->
-  <canvas id="scan-canvas" style="display:none"></canvas>
+  <!-- Quagga renders its own video+canvas inside this container -->
+  <div id="quagga-viewport"></div>
   <div class="scan-ui">
     <div class="scan-top">
       <span class="scan-title">Scan Code 128 Barcode</span>
@@ -1566,7 +1582,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <path d="M290,190 L310,190 L310,170"/>
           </g>
         </svg>
-        <div class="scan-line" id="scan-line"></div>
+        <div class="scan-line"></div>
       </div>
     </div>
     <div class="scan-bottom">
@@ -1577,264 +1593,160 @@ document.addEventListener('DOMContentLoaded', () => {
   </div>
 </div>
 
+<style>
+  /* Quagga renders a video + canvas — pin them to fill the overlay */
+  #quagga-viewport {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+  #quagga-viewport video,
+  #quagga-viewport canvas {
+    position: absolute;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+  }
+  /* Hide Quagga's own debug canvas overlays — they clutter the UI */
+  #quagga-viewport canvas.drawingBuffer { display: none; }
+</style>
+
 <script>
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  MaxPlan v1.2.1 — Pure JS Code 128 Scanner
-//  Zero external dependencies. Works on every browser.
-//  100% offline after first install.
+//  MaxPlan v1.2.2 — QuaggaJS barcode scanner
+//  Uses QuaggaJS 0.12.1 (cdnjs, cached by SW).
+//  Purpose-built for 1D barcode reading on mobile.
+//  Works on iOS Safari 14+, all Android browsers.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 (function () {
   'use strict';
 
-  // ── Code 128 symbol table ──────────────────────────
-  // 107 entries (values 0-106).  Each entry is a 6-character string
-  // whose digits are the alternating BAR/SPACE module widths:
-  //   char[0] = bar1 width, char[1] = space1 width, … char[5] = space3 width
-  // Sum of all 6 digits = 11 modules per symbol.
-  // Source: ISO/IEC 15417 / BWIPP authoritative table.
-  const C128_TABLE = [
-    "212222","222122","222221","121223","121322","131222","122212","122221", // 0-7
-    "132212","221213","221312","231212","112232","122132","122231","113222", // 8-15
-    "123122","123221","223211","221133","221231","213212","223112","312131", // 16-23
-    "311222","321122","321221","312212","322112","322211","212123","212321", // 24-31
-    "232121","111323","131123","131321","112313","132113","132311","211313", // 32-39
-    "231113","231311","112133","112331","132131","113123","113321","133121", // 40-47
-    "313121","211331","231131","213113","213311","213131","311123","311321", // 48-55
-    "331121","312113","312311","332111","314111","221411","431111","111224", // 56-63
-    "111422","121124","121421","141122","141221","112214","112412","122114", // 64-71
-    "122411","142112","142211","241211","221114","413111","241112","134111", // 72-79
-    "111242","121142","121241","114212","124112","124211","411212","421112", // 80-87
-    "421211","212141","214121","412121","111143","111341","131141","114113", // 88-95
-    "114311","411113","411311","113141","114131","311141","411131",          // 96-102
-    "211412","211214","211232","233111"                                      // 103=StartA,104=StartB,105=StartC,106=Stop
-  ];
+  let _targetId    = null;
+  let _running     = false;
+  let _lastResult  = '';
+  let _resultCount = 0;
 
-  // Build reverse lookup: "212222" → 0, etc.
-  const C128_LOOKUP = Object.create(null);
-  C128_TABLE.forEach((p, i) => { C128_LOOKUP[p] = i; });
-
-  // Decode a symbol value to a character (Code B only — covers all printable ASCII)
-  function symToChar(v) {
-    if (v >= 0 && v <= 94) return String.fromCharCode(v + 32); // ASCII 32-126
-    return '';  // FNC / special — skip
-  }
-
-  // ── Row decoding ────────────────────────────────────
-  // Given raw pixel data (RGBA), image width, and a row Y coordinate,
-  // returns a decoded string or null.
-
-  function decodeRow(data, imgWidth, y) {
-    const base = y * imgWidth * 4;
-
-    // 1. Convert to grayscale and compute mean for threshold
-    let sum = 0;
-    const gray = new Uint8Array(imgWidth);
-    for (let x = 0; x < imgWidth; x++) {
-      const p = base + x * 4;
-      // Rec. 601 luma
-      const g = (data[p] * 77 + data[p + 1] * 150 + data[p + 2] * 29) >>> 8;
-      gray[x] = g;
-      sum += g;
-    }
-    const mean = sum / imgWidth;
-
-    // 2. Adaptive binarise: use mean as threshold with a small margin
-    //    to handle bright / dark environments
-    const thresh = mean * 0.85;
-
-    // 3. Find runs of dark (bar) and light (space) pixels
-    //    runs[] = [{dark:bool, n:pixelCount}, …]
-    const runs = [];
-    let curDark = gray[0] < thresh;
-    let runLen = 1;
-    for (let x = 1; x < imgWidth; x++) {
-      const dark = gray[x] < thresh;
-      if (dark === curDark) {
-        runLen++;
-      } else {
-        runs.push([curDark ? 1 : 0, runLen]);
-        curDark = dark;
-        runLen = 1;
-      }
-    }
-    runs.push([curDark ? 1 : 0, runLen]);
-
-    // 4. Drop leading light runs (barcode starts with a bar)
-    let rStart = 0;
-    while (rStart < runs.length && runs[rStart][0] === 0) rStart++;
-
-    // Need at least start (6) + 1 char (6) + check (6) + stop (6) = 24 runs
-    const usable = runs.length - rStart;
-    if (usable < 24) return null;
-
-    const rr = runs.slice(rStart); // now starts with a bar
-
-    // 5. Estimate module width X from the smallest run (≈ 1 module)
-    //    Use the 10th-percentile run length to be noise-tolerant
-    const sorted = rr.map(r => r[1]).sort((a, b) => a - b);
-    const p10 = sorted[Math.max(0, Math.floor(sorted.length * 0.1))];
-    const X = Math.max(1, p10);
-
-    // 6. Quantise each run to module widths 1-4 (rounded, clamped)
-    const mods = rr.map(r => Math.max(1, Math.min(4, Math.round(r[1] / X))));
-
-    // 7. Slide window: try every starting position as a potential start symbol
-    for (let pos = 0; pos + 6 <= mods.length; pos++) {
-      const startKey = mods.slice(pos, pos + 6).join('');
-      const startVal = C128_LOOKUP[startKey];
-      // Must be one of the three start codes
-      if (startVal !== 103 && startVal !== 104 && startVal !== 105) continue;
-
-      // Found a valid start code — try to decode
-      const result = tryDecode(mods, pos, startVal);
-      if (result !== null) return result;
-    }
-
-    return null;
-  }
-
-  function tryDecode(mods, startPos, startCode) {
-    let checksum = startCode;
-    let charIdx  = 1;
-    let text     = '';
-    let pos      = startPos + 6; // skip start symbol
-
-    while (pos + 6 <= mods.length) {
-      const key = mods.slice(pos, pos + 6).join('');
-      const val = C128_LOOKUP[key];
-
-      if (val === undefined || val === -1) return null; // unrecognised pattern
-
-      if (val === 106) {
-        // Stop code reached — check that we decoded at least 1 character
-        // (the last char decoded was the check character, which we already
-        //  folded into checksum but NOT appended to text)
-        return text.length > 0 ? text : null;
-      }
-
-      // The last character before Stop is the check character
-      // We add it to the running checksum but do NOT append to text.
-      // We detect this by checking: is the NEXT symbol after this the stop?
-      const nextKey = (pos + 12 <= mods.length)
-        ? mods.slice(pos + 6, pos + 12).join('') : '';
-      const nextIsStop = C128_LOOKUP[nextKey] === 106;
-
-      if (nextIsStop) {
-        // This symbol is the check character — validate
-        const expected = checksum % 103;
-        if (val !== expected) {
-          // Checksum mismatch — barcode may be partially in frame or noisy.
-          // Still return the text if it looks plausible (all printable ASCII).
-          if (text.length >= 1 && /^[\x20-\x7E]+$/.test(text)) return text;
-          return null;
-        }
-        // checksum valid — return text
-        return text.length > 0 ? text : null;
-      }
-
-      // Normal data character
-      checksum += val * charIdx;
-      charIdx++;
-
-      // Decode to character (Code B)
-      if (startCode === 104) {
-        if (val < 95) text += String.fromCharCode(val + 32);
-        // val 96-102 are FNC characters — skip
-      } else if (startCode === 103) {
-        // Code A: values 0-63 → ASCII 32-95; 64-95 → ASCII 0-31
-        if (val < 64) text += String.fromCharCode(val + 32);
-        else if (val < 96) text += String.fromCharCode(val - 64);
-      } else if (startCode === 105) {
-        // Code C: pairs of digits (value 00-99)
-        if (val < 100) text += val.toString().padStart(2, '0');
-      }
-
-      pos += 6;
-    }
-
-    // Reached end of modules without finding stop — not a valid barcode
-    return null;
-  }
-
-  // ── Frame scanner ───────────────────────────────────
-  // Scans many rows across the middle band of the frame.
-  // Returns the most-frequently-decoded string, or null.
-
-  function scanFrame(canvas) {
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    const W = canvas.width, H = canvas.height;
-    if (W === 0 || H === 0) return null;
-
-    let imgData;
-    try { imgData = ctx.getImageData(0, 0, W, H).data; }
-    catch (e) { return null; }
-
-    const y0 = Math.floor(H * 0.25);
-    const y1 = Math.floor(H * 0.75);
-    const numRows = 40; // scan 40 horizontal lines across the middle half
-    const votes = Object.create(null);
-
-    for (let i = 0; i < numRows; i++) {
-      const y = y0 + Math.floor((y1 - y0) * i / (numRows - 1));
-      const result = decodeRow(imgData, W, y);
-      if (result) votes[result] = (votes[result] || 0) + 1;
-    }
-
-    const entries = Object.entries(votes).sort((a, b) => b[1] - a[1]);
-    // Require at least 2 consistent reads to reduce false positives
-    return entries.length > 0 && entries[0][1] >= 2 ? entries[0][0] : null;
-  }
-
-  // ── Scanner UI ──────────────────────────────────────
-  let _targetId = null;
-  let _active   = false;
-  let _stream   = null;
-  let _rafId    = null;
-
-  const overlay  = document.getElementById('scan-overlay');
-  const videoEl  = document.getElementById('scan-video');
-  const canvas   = document.getElementById('scan-canvas');
-  const statusEl = document.getElementById('scan-status');
+  const overlay    = document.getElementById('scan-overlay');
+  const statusEl   = document.getElementById('scan-status');
 
   function setStatus(msg, cls) {
     statusEl.textContent = msg;
     statusEl.className   = 'scan-status' + (cls ? ' ' + cls : '');
   }
 
-  function scanLoop() {
-    if (!_active) return;
+  // ── Open scanner ──────────────────────────────────
+  function openScanner(targetId) {
+    _targetId    = targetId;
+    _lastResult  = '';
+    _resultCount = 0;
 
-    // Wait until video has actual frame data
-    if (videoEl.readyState < 2 || videoEl.videoWidth === 0) {
-      _rafId = requestAnimationFrame(scanLoop);
+    if (typeof Quagga === 'undefined') {
+      // Library not yet loaded (first open offline) — show helpful message
+      overlay.classList.add('open');
+      setStatus(
+        'Scanner library not loaded. Connect to the internet once to cache it, then it works offline.',
+        'error'
+      );
       return;
     }
 
-    // Size canvas to video frame (do it lazily to avoid repeated realloc)
-    if (canvas.width !== videoEl.videoWidth) {
-      canvas.width  = videoEl.videoWidth;
-      canvas.height = videoEl.videoHeight;
-    }
+    overlay.classList.add('open');
+    setStatus('Starting camera…');
 
-    // Draw current video frame
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    ctx.drawImage(videoEl, 0, 0);
+    Quagga.init({
+      inputStream: {
+        name: 'Live',
+        type: 'LiveStream',
+        target: document.getElementById('quagga-viewport'),
+        constraints: {
+          width:      { min: 640,  ideal: 1280 },
+          height:     { min: 480,  ideal: 720  },
+          frameRate:  { ideal: 30, min: 15 },
+          facingMode: 'environment'          // rear camera
+        },
+        area: {  // only scan the middle 60% of the frame — faster, less noise
+          top:    '20%',
+          right:  '10%',
+          left:   '10%',
+          bottom: '20%'
+        }
+      },
+      locator: {
+        patchSize:  'medium',  // 'small','medium','large' — medium best for phones
+        halfSample: true       // faster on mobile
+      },
+      // numOfWorkers: 0 is critical for iOS — workers fail on WKWebView/Safari
+      numOfWorkers: (typeof navigator !== 'undefined' &&
+                     /iPhone|iPad|iPod/.test(navigator.userAgent)) ? 0 : 2,
+      frequency: 15,           // decode attempts per second
+      decoder: {
+        readers: ['code_128_reader'],
+        debug: {
+          drawBoundingBox: false,
+          showFrequency:   false,
+          drawScanline:    false,
+          showPattern:     false
+        },
+        multiple: false
+      },
+      locate: true
+    }, function (err) {
+      if (err) {
+        console.error('Quagga init error:', err);
+        if (err.name === 'NotAllowedError' || String(err).includes('Permission')) {
+          setStatus('Camera permission denied. Tap ✕ then allow camera access in your browser settings.', 'error');
+        } else if (err.name === 'NotFoundError' || String(err).includes('not found')) {
+          setStatus('No camera found on this device.', 'error');
+        } else if (err.name === 'NotReadableError' || String(err).includes('in use')) {
+          setStatus('Camera is in use by another app. Close it and try again.', 'error');
+        } else {
+          setStatus('Camera error: ' + (err.message || err.name || err), 'error');
+        }
+        return;
+      }
 
-    // Try to decode
-    const result = scanFrame(canvas);
-    if (result) {
-      onSuccess(result);
-      return; // stop loop
-    }
+      Quagga.start();
+      _running = true;
+      setStatus('Point camera at barcode — hold steady');
+    });
 
-    _rafId = requestAnimationFrame(scanLoop);
+    // ── Listen for decoded results ────────────────────
+    Quagga.onDetected(function (data) {
+      if (!_running) return;
+
+      const code = (data && data.codeResult && data.codeResult.code) || '';
+      if (!code || code.trim() === '') return;
+
+      // Require the same value twice in a row to avoid partial/noisy reads
+      if (code === _lastResult) {
+        _resultCount++;
+      } else {
+        _lastResult  = code;
+        _resultCount = 1;
+      }
+
+      if (_resultCount >= 2) {
+        onSuccess(code.trim());
+      }
+    });
+
+    // Report processing errors only in development
+    Quagga.onProcessed(function (result) {
+      // Intentionally empty — keeping this listener stops Quagga from
+      // logging noisy "not detected" messages to the console.
+    });
   }
 
+  // ── Successful decode ─────────────────────────────
   function onSuccess(value) {
-    if (!_active) return;
+    if (!_running) return;
+    _running = false;
+
     setStatus('✓  ' + value, 'success');
     if (navigator.vibrate) navigator.vibrate([40, 30, 80]);
 
+    // Populate the target input field
     const inp = document.getElementById(_targetId);
     if (inp) {
       inp.value = value.toUpperCase();
@@ -1842,76 +1754,49 @@ document.addEventListener('DOMContentLoaded', () => {
       inp.classList.remove('err');
     }
 
-    setTimeout(closeScanner, 1100);
+    // Brief pause so user can see the success state, then close
+    setTimeout(closeScanner, 1000);
   }
 
-  async function openScanner(targetId) {
-    _targetId = targetId;
-    _active   = true;
-    overlay.classList.add('open');
-    setStatus('Starting camera…');
-
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setStatus('Camera not supported on this browser.', 'error');
-      return;
-    }
-
-    try {
-      _stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: 'environment' },
-          width:  { ideal: 1920 },
-          height: { ideal: 1080 },
-          frameRate: { ideal: 30, min: 15 }
-        }
-      });
-      videoEl.srcObject = _stream;
-      await videoEl.play();
-      setStatus('Point camera at barcode — hold steady');
-      _rafId = requestAnimationFrame(scanLoop);
-    } catch (err) {
-      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setStatus('Camera permission denied. Tap ✕ and allow camera access.', 'error');
-      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-        setStatus('No camera found on this device.', 'error');
-      } else if (err.name === 'NotReadableError') {
-        setStatus('Camera is in use by another app.', 'error');
-      } else {
-        setStatus('Camera error: ' + (err.message || err.name), 'error');
-      }
-    }
-  }
-
+  // ── Close / cleanup ───────────────────────────────
   function closeScanner() {
-    _active = false;
+    _running = false;
     overlay.classList.remove('open');
-    if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
-    if (_stream) { _stream.getTracks().forEach(t => t.stop()); _stream = null; }
-    videoEl.srcObject = null;
-    videoEl.load();
-    setStatus('Starting camera…');
-    statusEl.className = 'scan-status';
+
+    if (typeof Quagga !== 'undefined') {
+      try { Quagga.offDetected();  } catch (e) {}
+      try { Quagga.offProcessed(); } catch (e) {}
+      try { Quagga.stop();         } catch (e) {}
+    }
+
+    // Reset status for next open
+    setTimeout(() => {
+      setStatus('Starting camera…');
+      statusEl.className = 'scan-status';
+    }, 300);
   }
 
+  // ── UI event listeners ────────────────────────────
   document.getElementById('scan-close-btn').addEventListener('click', closeScanner);
+
   document.getElementById('scan-manual-btn').addEventListener('click', () => {
     closeScanner();
     setTimeout(() => {
       const inp = document.getElementById(_targetId);
       if (inp) { inp.focus(); inp.select(); }
-    }, 350);
-  });
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay || e.target === videoEl) closeScanner();
+    }, 400);
   });
 
+  // Tap outside the UI frame also closes
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) closeScanner();
+  });
+
+  // Expose globally and wire the scan button
   window.openScanner = openScanner;
 
-  // Wire the scan button
-  (function attach() {
-    const btn = document.getElementById('btn-scan-item');
-    if (btn) btn.addEventListener('click', () => openScanner('iin'));
-  })();
+  const scanBtn = document.getElementById('btn-scan-item');
+  if (scanBtn) scanBtn.addEventListener('click', () => openScanner('iin'));
 
 })();
 </script>
