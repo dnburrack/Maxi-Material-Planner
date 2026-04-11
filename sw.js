@@ -1,12 +1,13 @@
-// MaxPlan Service Worker — v1.2.2
-const CACHE = 'maxplan-v122';
+// MaxPlan Service Worker — v1.2.3
+const CACHE = 'maxplan-v123';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './icon.svg',
   './version.json',
-  'https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js'
+  // ZXing for static image decoding — cached for offline use
+  'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js'
 ];
 
 self.addEventListener('install', e => {

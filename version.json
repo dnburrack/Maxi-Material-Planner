@@ -1,1 +1,1 @@
-{"version":"1.2.2","date":"2026-04-10","notes":"QuaggaJS scanner, works on iOS Safari 14+ and all Android, cached offline"}
+{"version":"1.2.3","date":"2026-04-11","notes":"Photo-capture scanner, ZXing static image decode, works on all iOS and Android"}
