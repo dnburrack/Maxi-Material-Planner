@@ -1,21 +1,28 @@
-// MaxPlan Service Worker — v1.2.4
-const CACHE = 'maxplan-v124';
+// MaxPlan Service Worker — v1.2.5
+const CACHE = 'maxplan-v125';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './icon.svg',
-  './version.json'
+  './version.json',
+  // ZXing UMD — cached on first load for offline use
+  'https://unpkg.com/@zxing/library@0.19.3/umd/index.min.js'
 ];
-// ZBar WASM loads as ES module from jsDelivr — the SW caches
-// whatever the module fetches (JS + .wasm binary) automatically
-// via the fetch handler below.
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE)
-      .then(c => c.addAll(ASSETS))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE).then(c => {
+      const local = ASSETS.filter(u => !u.startsWith('http'));
+      const cdn   = ASSETS.filter(u =>  u.startsWith('http'));
+      return c.addAll(local).then(() =>
+        Promise.allSettled(cdn.map(u =>
+          fetch(u, {cache:'no-cache'})
+            .then(r => { if (r.ok) c.put(u, r); })
+            .catch(() => {})   // silently skip if offline on first install
+        ))
+      );
+    }).then(() => self.skipWaiting())
   );
 });
 
@@ -36,7 +43,7 @@ self.addEventListener('fetch', e => {
     );
     return;
   }
-  // Cache-first for everything — CDN assets (ZBar JS+WASM) cached on first load
+  // Cache-first — CDN assets cached automatically on first fetch
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
