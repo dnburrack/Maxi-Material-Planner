@@ -1,1 +1,1 @@
-{"version":"1.2.7","date":"2026-04-11","notes":"decodeFromImageUrl fix, 4-rotation blob decode, all formats"}
+{"version":"1.2.8","date":"2026-04-11","notes":"Dual-mode scanner: live crop loop + photo fallback, horizontal scan window for Code 128"}
