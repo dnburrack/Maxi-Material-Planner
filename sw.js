@@ -1,12 +1,11 @@
-// MaxPlan Service Worker — v1.2.5
-const CACHE = 'maxplan-v125';
+// MaxPlan Service Worker — v1.2.7
+const CACHE = 'maxplan-v127';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './icon.svg',
   './version.json',
-  // ZXing UMD — cached on first load for offline use
   'https://unpkg.com/@zxing/library@0.19.3/umd/index.min.js'
 ];
 
@@ -17,9 +16,7 @@ self.addEventListener('install', e => {
       const cdn   = ASSETS.filter(u =>  u.startsWith('http'));
       return c.addAll(local).then(() =>
         Promise.allSettled(cdn.map(u =>
-          fetch(u, {cache:'no-cache'})
-            .then(r => { if (r.ok) c.put(u, r); })
-            .catch(() => {})   // silently skip if offline on first install
+          fetch(u, {cache:'no-cache'}).then(r => { if(r.ok) c.put(u, r); }).catch(()=>{})
         ))
       );
     }).then(() => self.skipWaiting())
@@ -37,13 +34,9 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   if (e.request.url.includes('version.json')) {
-    e.respondWith(
-      fetch(e.request, {cache:'no-store'})
-        .catch(() => caches.match('./version.json'))
-    );
+    e.respondWith(fetch(e.request,{cache:'no-store'}).catch(()=>caches.match('./version.json')));
     return;
   }
-  // Cache-first — CDN assets cached automatically on first fetch
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
@@ -52,8 +45,6 @@ self.addEventListener('fetch', e => {
         caches.open(CACHE).then(c => c.put(e.request, r.clone()));
         return r;
       });
-    }).catch(() => {
-      if (e.request.mode === 'navigate') return caches.match('./index.html');
-    })
+    }).catch(() => { if (e.request.mode==='navigate') return caches.match('./index.html'); })
   );
 });

@@ -1,1 +1,1 @@
-{"version":"1.2.5","date":"2026-04-11","notes":"Fixed ZBar ES module error; ZXing UMD decodeFromCanvas, 4 rotation attempts"}
+{"version":"1.2.7","date":"2026-04-11","notes":"decodeFromImageUrl fix, 4-rotation blob decode, all formats"}
