@@ -1,26 +1,21 @@
-// MaxPlan Service Worker — v1.2.3
-const CACHE = 'maxplan-v123';
+// MaxPlan Service Worker — v1.2.4
+const CACHE = 'maxplan-v124';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './icon.svg',
-  './version.json',
-  // ZXing for static image decoding — cached for offline use
-  'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js'
+  './version.json'
 ];
+// ZBar WASM loads as ES module from jsDelivr — the SW caches
+// whatever the module fetches (JS + .wasm binary) automatically
+// via the fetch handler below.
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => {
-      const local = ASSETS.filter(u => !u.startsWith('http'));
-      const cdn   = ASSETS.filter(u =>  u.startsWith('http'));
-      return c.addAll(local).then(() =>
-        Promise.allSettled(cdn.map(u =>
-          fetch(u, {cache:'no-cache'}).then(r => { if(r.ok) c.put(u, r); }).catch(()=>{})
-        ))
-      );
-    }).then(() => self.skipWaiting())
+    caches.open(CACHE)
+      .then(c => c.addAll(ASSETS))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -35,9 +30,13 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   if (e.request.url.includes('version.json')) {
-    e.respondWith(fetch(e.request,{cache:'no-store'}).catch(()=>caches.match('./version.json')));
+    e.respondWith(
+      fetch(e.request, {cache:'no-store'})
+        .catch(() => caches.match('./version.json'))
+    );
     return;
   }
+  // Cache-first for everything — CDN assets (ZBar JS+WASM) cached on first load
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
@@ -46,6 +45,8 @@ self.addEventListener('fetch', e => {
         caches.open(CACHE).then(c => c.put(e.request, r.clone()));
         return r;
       });
-    }).catch(() => { if (e.request.mode==='navigate') return caches.match('./index.html'); })
+    }).catch(() => {
+      if (e.request.mode === 'navigate') return caches.match('./index.html');
+    })
   );
 });
