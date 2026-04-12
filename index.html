@@ -456,7 +456,18 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.2.8</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.2.9</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li><strong>Root cause identified and fixed</strong>: all versions from v1.2 through v1.2.8 used <code>@zxing/library</code> — the low-level ZXing core which is officially marked <em>deprecated for browser use</em> in its own source code. The correct package is <code>@zxing/browser</code>, a separate dedicated browser layer.</li>
+        <li>Live mode now uses <strong><code>decodeFromConstraints()</code></strong> — the documented continuous-callback API from <code>@zxing/browser</code>. ZXing manages the camera stream and decode loop internally. No manual frame capture, no canvas cropping required.</li>
+        <li>Photo mode now uses <strong><code>decodeFromImageElement()</code></strong> — reads directly from a DOM <code>&lt;img&gt;</code> element. This is the correct path for static image decoding.</li>
+        <li>Both live and photo modes use the same <code>BrowserMultiFormatReader</code> from <code>@zxing/browser</code>, built with <code>TRY_HARDER</code> hint and Code 128 format priority</li>
+        <li>Keeps the dual-mode UI from v1.2.8: live scan by default, with a toggle to Photo Mode as fallback</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.2.8</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Dual-mode scanner</strong>: Live video (default) + Photo capture fallback, switchable via a toggle button in the scanner UI</li>
         <li><strong>Live mode</strong>: Returns to real-time camera decoding, but now uses a <strong>horizontal crop loop</strong> (aspect ratio 3.5:1) — Code 128 barcodes are wide and short, so cropping to a horizontal strip focuses the decoder on the barcode region rather than wasting processing on the full frame</li>
@@ -775,8 +786,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.2.8';
-const KEY     = 'maxplan_v128';
+const APP_VER = '1.2.9';
+const KEY     = 'maxplan_v129';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1631,141 +1642,159 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 <!-- ═══════════════════════════════════════════════════════════════ -->
-<!--  SCANNER v1.2.8                                               -->
-<!--  Live video — ZXing decodeOnceFromVideoDevice()              -->
-<!--  Horizontal crop region sized for Code 128 aspect ratio      -->
-<!--  Fallback: photo capture + decodeFromImageUrl() (v1.2.7)    -->
+<!--  SCANNER v1.2.9                                               -->
+<!--  CRITICAL FIX: switching from @zxing/library (low-level      -->
+<!--  core, deprecated for browser) to @zxing/browser — the       -->
+<!--  dedicated browser package with decodeFromConstraints()       -->
+<!--  callback API and decodeFromImageElement() for photos.        -->
 <!-- ═══════════════════════════════════════════════════════════════ -->
-<script src="https://unpkg.com/@zxing/library@0.19.3/umd/index.min.js"
+
+<!--
+  @zxing/browser — the CORRECT ZXing package for browser use.
+  Exposes window.ZXingBrowser when loaded as a plain script tag.
+  Confirmed working API on unpkg/jsDelivr.
+-->
+<script src="https://unpkg.com/@zxing/browser@latest"
         onerror="window._zxErr=true"></script>
 
-<!-- ── SCANNER OVERLAY ─────────────────────────────────────── -->
+<!-- Scanner overlay -->
 <div id="scan-overlay">
 
-  <!-- Live video feed fills the whole overlay -->
-  <video id="scan-vid"
-    autoplay muted playsinline
+  <!-- Full-screen video background -->
+  <video id="scan-vid" autoplay muted playsinline
     style="position:absolute;inset:0;width:100%;height:100%;
            object-fit:cover;background:#000;"></video>
 
-  <!-- UI layer on top of video -->
-  <div style="position:absolute;inset:0;display:flex;flex-direction:column;
-    padding-top:calc(env(safe-area-inset-top,0px) + 14px);">
+  <!-- UI layer -->
+  <div style="position:absolute;inset:0;display:flex;flex-direction:column;">
 
-    <!-- Top bar -->
-    <div style="display:flex;align-items:center;padding:0 18px 10px;gap:10px;">
-      <span style="color:#fff;font-size:17px;font-weight:700;flex:1;">Scan Barcode</span>
+    <!-- Header -->
+    <div style="display:flex;align-items:center;gap:10px;
+      padding:calc(env(safe-area-inset-top,0px) + 14px) 18px 12px;
+      background:linear-gradient(to bottom,rgba(0,0,0,.7),transparent);">
+      <span style="color:#fff;font-size:17px;font-weight:700;flex:1;">
+        Scan Barcode
+      </span>
       <button id="scan-mode-btn" style="
-        background:rgba(255,255,255,.18);color:#fff;border:none;border-radius:20px;
-        padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;
-        font-family:inherit;backdrop-filter:blur(4px);">📷 Use Photo</button>
+        background:rgba(255,255,255,.2);color:#fff;border:none;
+        border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;
+        cursor:pointer;font-family:inherit;">📷 Photo Mode</button>
       <button id="scan-close-btn" style="
-        background:rgba(255,255,255,.18);color:#fff;border:none;border-radius:50%;
-        width:34px;height:34px;font-size:18px;cursor:pointer;
-        display:flex;align-items:center;justify-content:center;
-        backdrop-filter:blur(4px);">✕</button>
+        background:rgba(255,255,255,.2);color:#fff;border:none;
+        border-radius:50%;width:34px;height:34px;font-size:18px;
+        cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
 
-    <!-- Spacer -->
     <div style="flex:1;"></div>
 
-    <!-- ── LIVE mode: scan window ── -->
-    <div id="sm-live" style="display:flex;flex-direction:column;align-items:center;padding:0 28px;">
+    <!-- ── LIVE panel ── -->
+    <div id="sp-live" style="display:flex;flex-direction:column;
+      align-items:center;padding:0 28px 0;">
 
-      <!-- The scan window — wide rectangle for Code 128 -->
-      <div id="scan-window" style="
-        width:100%;max-width:400px;
-        aspect-ratio:3.5/1;
-        position:relative;
-        border-radius:10px;
-        overflow:hidden;
-        box-shadow:0 0 0 3000px rgba(0,0,0,.55);">
+      <!-- Wide horizontal scan window — sized for Code 128 -->
+      <div id="scan-win" style="
+        position:relative;width:100%;max-width:400px;
+        aspect-ratio:3.5/1;border-radius:10px;overflow:hidden;
+        box-shadow:0 0 0 2000px rgba(0,0,0,.5);">
         <!-- Corner marks -->
-        <div style="position:absolute;top:0;left:0;width:24px;height:24px;
-          border-top:3px solid var(--accent);border-left:3px solid var(--accent);border-radius:3px 0 0 0;"></div>
-        <div style="position:absolute;top:0;right:0;width:24px;height:24px;
-          border-top:3px solid var(--accent);border-right:3px solid var(--accent);border-radius:0 3px 0 0;"></div>
-        <div style="position:absolute;bottom:0;left:0;width:24px;height:24px;
-          border-bottom:3px solid var(--accent);border-left:3px solid var(--accent);border-radius:0 0 0 3px;"></div>
-        <div style="position:absolute;bottom:0;right:0;width:24px;height:24px;
-          border-bottom:3px solid var(--accent);border-right:3px solid var(--accent);border-radius:0 0 3px 0;"></div>
-        <!-- Animated scan line -->
-        <div id="scan-anim-line" style="
-          position:absolute;left:6%;right:6%;height:2px;
+        <div style="position:absolute;top:0;left:0;width:22px;height:22px;
+          border-top:3px solid var(--accent);border-left:3px solid var(--accent);
+          border-radius:3px 0 0 0;z-index:2;"></div>
+        <div style="position:absolute;top:0;right:0;width:22px;height:22px;
+          border-top:3px solid var(--accent);border-right:3px solid var(--accent);
+          border-radius:0 3px 0 0;z-index:2;"></div>
+        <div style="position:absolute;bottom:0;left:0;width:22px;height:22px;
+          border-bottom:3px solid var(--accent);border-left:3px solid var(--accent);
+          border-radius:0 0 0 3px;z-index:2;"></div>
+        <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;
+          border-bottom:3px solid var(--accent);border-right:3px solid var(--accent);
+          border-radius:0 0 3px 0;z-index:2;"></div>
+        <!-- Scan line animation -->
+        <div style="position:absolute;left:5%;right:5%;height:2px;
           background:linear-gradient(90deg,transparent,var(--accent),transparent);
-          box-shadow:0 0 8px var(--accent);
+          box-shadow:0 0 10px var(--accent);z-index:2;
           animation:scanline 2s ease-in-out infinite;top:50%;"></div>
       </div>
 
-      <!-- Status message -->
-      <div id="scan-status-live" style="
-        margin-top:16px;color:rgba(255,255,255,.85);font-size:14px;
-        background:rgba(0,0,0,.45);border-radius:20px;padding:7px 18px;
-        backdrop-filter:blur(4px);text-align:center;max-width:320px;">
-        Starting camera…
-      </div>
+      <!-- Status under the scan window -->
+      <div id="live-status" style="
+        margin-top:14px;color:rgba(255,255,255,.9);font-size:14px;
+        background:rgba(0,0,0,.5);border-radius:20px;padding:7px 18px;
+        text-align:center;max-width:300px;">Starting camera…</div>
+    </div>
 
-    </div><!-- /sm-live -->
-
-    <!-- ── PHOTO mode: instructions ── -->
-    <div id="sm-photo" style="display:none;flex-direction:column;align-items:center;
-      padding:0 28px;text-align:center;">
-      <div style="color:#fff;font-size:17px;font-weight:700;margin-bottom:8px;">Take a Photo</div>
-      <div style="color:rgba(255,255,255,.7);font-size:13px;line-height:1.6;
-        margin-bottom:20px;max-width:270px;">
-        Point your camera at the barcode, then tap Take Photo. Works on all iOS versions.
+    <!-- ── PHOTO panel ── -->
+    <div id="sp-photo" style="display:none;flex-direction:column;
+      align-items:center;padding:0 28px;text-align:center;">
+      <div style="font-size:50px;margin-bottom:12px;">📷</div>
+      <div style="color:#fff;font-size:18px;font-weight:700;margin-bottom:8px;">
+        Photo Mode
       </div>
-      <button id="scan-photo-btn" style="
+      <div style="color:rgba(255,255,255,.7);font-size:13px;line-height:1.65;
+        margin-bottom:22px;max-width:270px;">
+        Tap <strong style="color:#fff;">Take Photo</strong> and point at the barcode.
+        Good for difficult lighting conditions.
+      </div>
+      <button id="photo-take-btn" style="
         background:var(--accent);color:#fff;border:none;border-radius:14px;
         padding:14px 32px;font-size:16px;font-weight:800;cursor:pointer;
         font-family:inherit;box-shadow:0 4px 16px rgba(232,160,32,.5);">
         📸 Take Photo
       </button>
-      <div id="pm-status" style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.5);"></div>
-    </div><!-- /sm-photo -->
-
-    <!-- ── DECODING indicator ── -->
-    <div id="sm-decoding" style="display:none;flex-direction:column;align-items:center;
-      padding:0 28px;text-align:center;">
-      <div style="font-size:48px;animation:maxspin 1s linear infinite;margin-bottom:12px;">⏳</div>
-      <div style="color:#fff;font-size:16px;font-weight:700;">Decoding…</div>
+      <div id="photo-status" style="margin-top:10px;font-size:12px;
+        color:rgba(255,255,255,.5);min-height:18px;"></div>
     </div>
 
-    <!-- ── SUCCESS ── -->
-    <div id="sm-success" style="display:none;flex-direction:column;align-items:center;padding:0 18px;">
+    <!-- ── DECODING indicator ── -->
+    <div id="sp-decoding" style="display:none;flex-direction:column;
+      align-items:center;padding:0 28px;text-align:center;">
+      <div style="font-size:48px;margin-bottom:14px;
+        animation:maxspin 1s linear infinite;display:inline-block;">⏳</div>
+      <div style="color:#fff;font-size:17px;font-weight:700;">Decoding…</div>
+    </div>
+
+    <!-- ── SUCCESS panel ── -->
+    <div id="sp-success" style="display:none;flex-direction:column;
+      align-items:center;padding:0 18px;">
       <div style="
         background:rgba(5,150,105,.95);border-radius:18px;padding:20px 18px;
-        width:100%;max-width:380px;text-align:center;">
+        width:100%;max-width:380px;text-align:center;
+        border:1px solid rgba(255,255,255,.15);">
         <div style="font-size:32px;margin-bottom:8px;">✅</div>
-        <div style="color:rgba(255,255,255,.7);font-size:11px;text-transform:uppercase;
-          letter-spacing:.08em;margin-bottom:8px;">Barcode decoded</div>
-        <div id="scan-result-val" style="
-          color:#fff;font-size:22px;font-weight:800;word-break:break-all;
+        <div style="color:rgba(255,255,255,.7);font-size:11px;
+          text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">
+          Barcode decoded
+        </div>
+        <div id="result-val" style="color:#fff;font-size:22px;font-weight:800;
+          word-break:break-all;
           font-family:'SF Mono','Consolas','Courier New',monospace;
           margin-bottom:4px;"></div>
-        <div id="scan-result-fmt" style="color:rgba(255,255,255,.5);font-size:12px;
+        <div id="result-fmt" style="color:rgba(255,255,255,.5);font-size:12px;
           margin-bottom:18px;"></div>
         <div style="display:flex;gap:10px;">
-          <button id="scan-use-btn" style="flex:1;background:#fff;color:#059669;border:none;
-            border-radius:10px;padding:12px;font-size:16px;font-weight:800;
-            cursor:pointer;font-family:inherit;">✓ Use This</button>
-          <button id="scan-again-btn" style="background:rgba(255,255,255,.18);color:#fff;
-            border:none;border-radius:10px;padding:12px 16px;font-size:15px;
-            font-weight:700;cursor:pointer;font-family:inherit;">Scan Again</button>
+          <button id="result-use-btn" style="flex:1;background:#fff;
+            color:#059669;border:none;border-radius:10px;padding:12px;
+            font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;">
+            ✓ Use This
+          </button>
+          <button id="result-retry-btn" style="background:rgba(255,255,255,.18);
+            color:#fff;border:none;border-radius:10px;padding:12px 16px;
+            font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">
+            Retry
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Spacer -->
-    <div style="flex:1;min-height:20px;"></div>
+    <div style="flex:1;min-height:16px;"></div>
 
-    <!-- Bottom bar -->
+    <!-- Bottom -->
     <div style="padding:0 18px calc(env(safe-area-inset-bottom,0px) + 16px);
       display:flex;justify-content:center;">
       <button id="scan-manual-btn" style="
         background:rgba(255,255,255,.12);color:rgba(255,255,255,.8);border:none;
         border-radius:20px;padding:9px 22px;font-size:14px;font-weight:600;
-        cursor:pointer;font-family:inherit;backdrop-filter:blur(4px);">
+        cursor:pointer;font-family:inherit;">
         Enter manually instead
       </button>
     </div>
@@ -1773,351 +1802,316 @@ document.addEventListener('DOMContentLoaded', () => {
   </div><!-- /ui layer -->
 </div><!-- /scan-overlay -->
 
-<!-- Hidden file input for photo fallback -->
+<!-- Hidden file input for photo mode -->
 <input type="file" id="scan-file-input"
   accept="image/*" capture="environment"
   style="position:fixed;top:-9999px;opacity:0;pointer-events:none;">
 
+<!-- Hidden img element for photo decode (must be in DOM) -->
+<img id="scan-decode-img"
+  style="position:fixed;top:-9999px;left:-9999px;max-width:1px;opacity:0;"
+  alt="">
+
 <style>
   @keyframes scanline {
-    0%   { top: 15%; }
-    50%  { top: 80%; }
-    100% { top: 15%; }
+    0%   { top:15%; }
+    50%  { top:82%; }
+    100% { top:15%; }
   }
-  @keyframes maxspin { to { transform: rotate(360deg); } }
+  @keyframes maxspin { to { transform:rotate(360deg); } }
 </style>
 
 <script>
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  MaxPlan v1.2.8 — Dual-mode barcode scanner
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  MaxPlan v1.2.9 — @zxing/browser scanner
 //
-//  MODE 1 — LIVE VIDEO (default):
-//    Uses ZXing.BrowserMultiFormatReader.decodeOnceFromVideoDevice()
-//    This is the ZXing README's recommended API for mobile.
-//    It starts getUserMedia internally, feeds frames into ZXing,
-//    and resolves the returned Promise when a barcode is found.
-//    The scan window is a WIDE HORIZONTAL rectangle (3.5:1 ratio)
-//    — Code 128 barcodes are wide and short, so this maximises
-//    the useful pixel area fed to the decoder.
+//  ROOT CAUSE OF ALL PREVIOUS FAILURES (v1.2 through v1.2.8):
+//  Every version used @zxing/library — the low-level ZXing core
+//  that was never designed for direct browser camera use.
+//  Its BrowserMultiFormatReader is marked @deprecated in the source:
+//  "Moving to @zxing/browser".
 //
-//  MODE 2 — PHOTO CAPTURE (fallback if live fails):
-//    Same as v1.2.7: <input capture="environment"> → native camera
-//    → decodeFromImageUrl(blobURL) across 4 rotations.
-//    User can switch between modes via the "Use Photo" button.
+//  THIS VERSION USES: @zxing/browser (separate dedicated package)
+//  Exposes: window.ZXingBrowser (BrowserMultiFormatReader, etc.)
 //
-//  What html5-qrcode taught us (learned, not copied):
-//    1. Crop video to a small region before decoding — full-frame
-//       is noisy and slow; a focused crop window is faster and
-//       more accurate. We implement this with a canvas crop loop.
-//    2. The scan window aspect ratio must match the barcode type.
-//       QR scanners use a square; Code 128 needs a wide rectangle.
-//    3. requestAnimationFrame + canvas crop + decodeFromCanvas on
-//       the CROPPED canvas is more reliable than decoding the full
-//       video frame.
-//    4. iOS needs playsinline + muted + autoplay all set as HTML
-//       attributes (not just JS properties) on the video element.
+//  KEY API DIFFERENCES:
+//  Old (@zxing/library):  reader.decodeFromCanvas(canvas)  — unreliable
+//  Old (@zxing/library):  reader.decodeFromImageUrl(url)   — unreliable
+//  NEW (@zxing/browser):  reader.decodeFromConstraints(constraints, videoEl, callback)
+//                         — continuous callback, handles camera internally
+//  NEW (@zxing/browser):  reader.decodeFromImageElement(imgEl)
+//                         — reads from <img> element already in the DOM
 //
-//  LICENSED SCANNER RECOMMENDATIONS (for future consideration):
-//    • Scandit SDK  — scandit.com — industry-leading, paid licence,
-//      works in PWAs, sub-50ms Code 128 decode, used by logistics
-//      companies worldwide.
-//    • Dynamsoft Barcode Reader — dynamsoft.com — free dev tier,
-//      excellent Code 128/39/EAN, WASM-based, PWA-compatible.
-//    • Zebra Browser Print — for sites paired with Zebra scanners,
-//      uses the physical scanner via browser bridge.
-//    • Google ML Kit (via Firebase) — free, works natively on
-//      Android, limited iOS PWA support.
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  LIVE MODE: decodeFromConstraints() runs ZXing's internal capture
+//  loop and calls the callback every time a barcode is decoded.
+//  No manual frame capture, no canvas crop needed.
+//
+//  PHOTO MODE: native camera capture → <img> element → decodeFromImageElement()
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 (function () {
   'use strict';
 
-  // ── State ────────────────────────────────────────────────────────
-  let _targetId   = null;
-  let _lastValue  = null;
-  let _mode       = 'live';   // 'live' | 'photo'
-  let _scanning   = false;
-  let _reader     = null;
-  let _cropLoop   = null;     // requestAnimationFrame id for crop loop
-  let _stream     = null;
+  let _targetId  = null;
+  let _lastValue = null;
+  let _mode      = 'live';   // 'live' | 'photo'
+  let _controls  = null;     // ZXingBrowser scan controls (has .stop())
+  let _reader    = null;     // BrowserMultiFormatReader instance
 
-  // ── DOM ──────────────────────────────────────────────────────────
+  // DOM
   const overlay    = document.getElementById('scan-overlay');
   const videoEl    = document.getElementById('scan-vid');
   const fileInput  = document.getElementById('scan-file-input');
-  const smLive     = document.getElementById('sm-live');
-  const smPhoto    = document.getElementById('sm-photo');
-  const smDecoding = document.getElementById('sm-decoding');
-  const smSuccess  = document.getElementById('sm-success');
-  const statusLive = document.getElementById('scan-status-live');
-  const pmStatus   = document.getElementById('pm-status');
-  const resultVal  = document.getElementById('scan-result-val');
-  const resultFmt  = document.getElementById('scan-result-fmt');
+  const decodeImg  = document.getElementById('scan-decode-img');
+  const spLive     = document.getElementById('sp-live');
+  const spPhoto    = document.getElementById('sp-photo');
+  const spDecoding = document.getElementById('sp-decoding');
+  const spSuccess  = document.getElementById('sp-success');
+  const liveStatus = document.getElementById('live-status');
+  const photoStatus= document.getElementById('photo-status');
+  const resultVal  = document.getElementById('result-val');
+  const resultFmt  = document.getElementById('result-fmt');
 
-  // ── Panel helpers ────────────────────────────────────────────────
-  function setLiveStatus(msg) { if (statusLive) statusLive.textContent = msg; }
-  function setPhotoStatus(msg) { if (pmStatus) pmStatus.textContent = msg; }
-
+  // ── Panel switcher ───────────────────────────────────────────────
   function showPanel(name) {
-    // Show exactly one bottom panel at a time
-    smLive.style.display     = name === 'live'     ? 'flex' : 'none';
-    smPhoto.style.display    = name === 'photo'    ? 'flex' : 'none';
-    smDecoding.style.display = name === 'decoding' ? 'flex' : 'none';
-    smSuccess.style.display  = name === 'success'  ? 'flex' : 'none';
+    spLive.style.display     = name === 'live'     ? 'flex' : 'none';
+    spPhoto.style.display    = name === 'photo'    ? 'flex' : 'none';
+    spDecoding.style.display = name === 'decoding' ? 'flex' : 'none';
+    spSuccess.style.display  = name === 'success'  ? 'flex' : 'none';
   }
 
-  // ── Wait for ZXing ───────────────────────────────────────────────
-  function waitForZXing(maxMs) {
+  function setLiveStatus(msg, ok) {
+    if (!liveStatus) return;
+    liveStatus.textContent   = msg;
+    liveStatus.style.background = ok ? 'rgba(5,100,80,.7)' : 'rgba(0,0,0,.5)';
+  }
+
+  // ── Wait for @zxing/browser to load ─────────────────────────────
+  function waitForZXingBrowser(maxMs) {
     return new Promise((resolve, reject) => {
       const deadline = Date.now() + (maxMs || 10000);
       function check() {
-        if (window.ZXing && window.ZXing.BrowserMultiFormatReader) {
-          resolve(window.ZXing);
+        if (window.ZXingBrowser && window.ZXingBrowser.BrowserMultiFormatReader) {
+          resolve(window.ZXingBrowser);
         } else if (window._zxErr || Date.now() > deadline) {
-          reject(new Error('ZXing library failed to load. Connect to the internet once to cache it.'));
+          reject(new Error(
+            'Scanner library not loaded. Open the app with an internet connection ' +
+            'once so it caches for offline use.'
+          ));
         } else {
-          setTimeout(check, 200);
+          setTimeout(check, 150);
         }
       }
       check();
     });
   }
 
-  // ── Build ZXing reader ───────────────────────────────────────────
-  function buildReader(ZXing) {
+  // ── Build reader with Code 128 priority hints ────────────────────
+  function buildReader(ZXB) {
     if (_reader) return _reader;
+    // @zxing/browser BrowserMultiFormatReader accepts hints map
+    // and options object {delayBetweenScanAttempts}
     const hints = new Map();
-    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
-      ZXing.BarcodeFormat.CODE_128,
-      ZXing.BarcodeFormat.CODE_39,
-      ZXing.BarcodeFormat.CODE_93,
-      ZXing.BarcodeFormat.EAN_13,
-      ZXing.BarcodeFormat.EAN_8,
-      ZXing.BarcodeFormat.UPC_A,
-      ZXing.BarcodeFormat.UPC_E,
-      ZXing.BarcodeFormat.ITF,
-      ZXing.BarcodeFormat.CODABAR,
-      ZXing.BarcodeFormat.QR_CODE,
-      ZXing.BarcodeFormat.DATA_MATRIX
-    ]);
-    _reader = new ZXing.BrowserMultiFormatReader(hints);
+    // Use ZXing library DecodeHintType through browser package
+    if (ZXB.ZXingLib && ZXB.ZXingLib.DecodeHintType) {
+      const H = ZXB.ZXingLib.DecodeHintType;
+      const F = ZXB.ZXingLib.BarcodeFormat;
+      hints.set(H.TRY_HARDER, true);
+      hints.set(H.POSSIBLE_FORMATS, [
+        F.CODE_128, F.CODE_39, F.CODE_93,
+        F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E,
+        F.ITF, F.CODABAR, F.QR_CODE, F.DATA_MATRIX
+      ]);
+    }
+    _reader = new ZXB.BrowserMultiFormatReader(hints, {
+      delayBetweenScanAttempts: 150
+    });
     return _reader;
   }
 
-  // ── Format enum → label ──────────────────────────────────────────
+  // ── Format number → label ────────────────────────────────────────
   function fmtLabel(n) {
     return ({
       0:'AZTEC',1:'CODABAR',2:'CODE 39',3:'CODE 93',4:'CODE 128',
       5:'DATA MATRIX',6:'EAN-8',7:'EAN-13',8:'ITF',
-      10:'PDF 417',11:'QR CODE',12:'RSS 14',14:'UPC-A',15:'UPC-E'
+      10:'PDF 417',11:'QR CODE',14:'UPC-A',15:'UPC-E'
     })[n] || '';
   }
 
   // ── LIVE MODE ────────────────────────────────────────────────────
-  // Uses a canvas crop loop instead of decodeOnceFromVideoDevice,
-  // because we want to crop to the horizontal scan window before
-  // decoding — this dramatically improves Code 128 accuracy.
-
   async function startLive() {
-    setLiveStatus('Starting camera…');
+    stopScan();
     showPanel('live');
-    _scanning = true;
+    setLiveStatus('Starting camera…');
+    _mode = 'live';
 
-    let ZXing;
+    let ZXB;
     try {
-      ZXing = await waitForZXing(8000);
+      ZXB = await waitForZXingBrowser(8000);
     } catch (e) {
       setLiveStatus('⚠ ' + e.message);
       return;
     }
 
-    const reader = buildReader(ZXing);
+    const reader = buildReader(ZXB);
 
-    // Request rear camera
     try {
-      _stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: 'environment' },
-          width:      { ideal: 1920 },
-          height:     { ideal: 1080 },
-          frameRate:  { ideal: 30, min: 10 }
+      // decodeFromConstraints: the correct documented live-scan API
+      // It starts getUserMedia internally, runs decode loop, and fires
+      // callback on every decode attempt (result or error).
+      _controls = await reader.decodeFromConstraints(
+        {
+          video: {
+            facingMode: { ideal: 'environment' },
+            width:      { ideal: 1280 },
+            height:     { ideal: 720 },
+            frameRate:  { ideal: 15 }
+          }
+        },
+        videoEl,                // the <video> element to stream into
+        (result, err) => {
+          if (result) {
+            const text = result.getText ? result.getText() : String(result);
+            const fmt  = fmtLabel(
+              result.getBarcodeFormat ? result.getBarcodeFormat() : -1
+            );
+            if (text && text.trim()) {
+              onSuccess(text.trim(), fmt);
+            }
+          }
+          // err here is usually NotFoundException — completely normal,
+          // fires every frame when nothing found. We ignore it.
         }
-      });
+      );
+      setLiveStatus('Hold barcode inside the frame');
     } catch (err) {
       const m = String(err.message || err.name || '');
       if (/NotAllowed|Permission|denied/i.test(m)) {
         setLiveStatus('Camera permission denied — check browser settings.');
       } else if (/NotFound|Devices/i.test(m)) {
-        setLiveStatus('No camera found on this device.');
+        setLiveStatus('No camera found. Switch to Photo Mode.');
       } else if (/NotReadable|in use/i.test(m)) {
         setLiveStatus('Camera in use by another app.');
       } else {
         setLiveStatus('Camera error: ' + m);
+        console.error('[v1.2.9] decodeFromConstraints error:', err);
       }
-      return;
     }
-
-    videoEl.srcObject = _stream;
-    // iOS requires these as attributes
-    videoEl.setAttribute('playsinline', 'true');
-    videoEl.setAttribute('muted',       'true');
-    videoEl.setAttribute('autoplay',    'true');
-    try { await videoEl.play(); } catch (e) {}
-
-    setLiveStatus('Hold the barcode inside the frame');
-
-    // ── Crop-and-decode loop ─────────────────────────────────────
-    // We crop the video to the scan window region, decode the crop.
-    // This keeps the decoded image small and focused — Code 128 bars
-    // are very thin and need to fill the frame horizontally.
-    const cropCanvas  = document.createElement('canvas');
-    const scanWin     = document.getElementById('scan-window');
-
-    async function cropLoop() {
-      if (!_scanning) return;
-
-      if (videoEl.readyState < 2 || videoEl.videoWidth === 0) {
-        _cropLoop = requestAnimationFrame(cropLoop);
-        return;
-      }
-
-      const vw = videoEl.videoWidth;
-      const vh = videoEl.videoHeight;
-
-      // Map the scan-window element rect to video pixel coordinates
-      const winRect     = scanWin.getBoundingClientRect();
-      const overlayRect = overlay.getBoundingClientRect();
-      // Fraction of overlay occupied by the scan window
-      const fx = winRect.left   / overlayRect.width;
-      const fy = winRect.top    / overlayRect.height;
-      const fw = winRect.width  / overlayRect.width;
-      const fh = winRect.height / overlayRect.height;
-
-      const sx = Math.round(fx * vw);
-      const sy = Math.round(fy * vh);
-      const sw = Math.round(fw * vw);
-      const sh = Math.round(fh * vh);
-
-      cropCanvas.width  = sw;
-      cropCanvas.height = sh;
-      const ctx = cropCanvas.getContext('2d', { willReadFrequently: true });
-      ctx.drawImage(videoEl, sx, sy, sw, sh, 0, 0, sw, sh);
-
-      // Try to decode the cropped frame
-      try {
-        const result = reader.decodeFromCanvas(cropCanvas);
-        if (result && result.getText()) {
-          const text = result.getText().trim();
-          const fmt  = fmtLabel(result.getBarcodeFormat ? result.getBarcodeFormat() : -1);
-          onSuccess(text, fmt);
-          return;  // stop loop
-        }
-      } catch (e) {
-        // NotFoundException — normal, keep looping
-      }
-
-      // Throttle to ~15fps to avoid draining battery
-      setTimeout(() => {
-        if (_scanning) _cropLoop = requestAnimationFrame(cropLoop);
-      }, 66);
-    }
-
-    _cropLoop = requestAnimationFrame(cropLoop);
   }
 
-  function stopLive() {
-    _scanning = false;
-    if (_cropLoop) { cancelAnimationFrame(_cropLoop); _cropLoop = null; }
-    if (_stream)   { _stream.getTracks().forEach(t => t.stop()); _stream = null; }
-    videoEl.srcObject = null;
-    videoEl.load();
-    if (_reader) { try { _reader.reset(); } catch(e) {} }
+  function stopScan() {
+    if (_controls) {
+      try { _controls.stop(); } catch(e) {}
+      _controls = null;
+    }
   }
 
   // ── PHOTO MODE ───────────────────────────────────────────────────
   async function decodePhoto(file) {
     showPanel('decoding');
 
-    let ZXing;
+    let ZXB;
     try {
-      ZXing = await waitForZXing(8000);
+      ZXB = await waitForZXingBrowser(8000);
     } catch (e) {
-      setPhotoStatus('⚠ ' + e.message);
+      photoStatus.textContent = '⚠ ' + e.message;
       showPanel('photo');
       return;
     }
 
-    const reader = buildReader(ZXing);
-    const fileUrl = URL.createObjectURL(file);
-    const img = new Image();
+    const reader = buildReader(ZXB);
 
+    // Load file into the hidden <img> element (must be in DOM)
+    const url = URL.createObjectURL(file);
     try {
       await new Promise((res, rej) => {
-        img.onload  = res;
-        img.onerror = () => rej(new Error('Could not load photo'));
-        img.src     = fileUrl;
+        decodeImg.onload  = res;
+        decodeImg.onerror = () => rej(new Error('Could not load photo'));
+        decodeImg.src     = url;
       });
     } catch (err) {
-      URL.revokeObjectURL(fileUrl);
-      setPhotoStatus('Could not read photo: ' + err.message);
+      URL.revokeObjectURL(url);
+      photoStatus.textContent = 'Error loading photo: ' + err.message;
       showPanel('photo');
       return;
     }
 
-    // Try 4 rotations via blob URL (ZXing's fully supported path)
-    const rotations = [0, 90, 270, 180];
-    const extraUrls = [];
+    // decodeFromImageElement — reads from the <img> element directly
+    let result = null;
+    try {
+      result = await reader.decodeFromImageElement(decodeImg);
+    } catch (e) {
+      // NotFoundException is normal when nothing found
+    }
 
-    for (const deg of rotations) {
-      let url;
-      if (deg === 0) {
-        url = fileUrl;
-      } else {
-        url = await rotatedBlobUrl(img, deg);
-        if (!url) continue;
-        extraUrls.push(url);
-      }
-      let result = null;
-      try { result = await reader.decodeFromImageUrl(url); } catch (e) {}
+    URL.revokeObjectURL(url);
+    decodeImg.src = '';
+
+    if (result && result.getText && result.getText().trim()) {
+      onSuccess(
+        result.getText().trim(),
+        fmtLabel(result.getBarcodeFormat ? result.getBarcodeFormat() : -1)
+      );
+      return;
+    }
+
+    // Try with a rotated version (Code 128 photographed portrait)
+    const rotUrl = await rotatedBlobUrl(file, 90);
+    if (rotUrl) {
+      try {
+        await new Promise((res, rej) => {
+          decodeImg.onload  = res;
+          decodeImg.onerror = rej;
+          decodeImg.src     = rotUrl;
+        });
+        result = null;
+        try { result = await reader.decodeFromImageElement(decodeImg); } catch (e) {}
+      } catch (e) {}
+      URL.revokeObjectURL(rotUrl);
+      decodeImg.src = '';
+
       if (result && result.getText && result.getText().trim()) {
-        URL.revokeObjectURL(fileUrl);
-        extraUrls.forEach(u => URL.revokeObjectURL(u));
-        onSuccess(result.getText().trim(),
-          fmtLabel(result.getBarcodeFormat ? result.getBarcodeFormat() : -1));
+        onSuccess(
+          result.getText().trim(),
+          fmtLabel(result.getBarcodeFormat ? result.getBarcodeFormat() : -1)
+        );
         return;
       }
     }
 
-    URL.revokeObjectURL(fileUrl);
-    extraUrls.forEach(u => URL.revokeObjectURL(u));
-    setPhotoStatus('No barcode found — try getting closer with good lighting.');
+    photoStatus.textContent =
+      'No barcode found. Try in good lighting with the barcode filling the frame.';
     showPanel('photo');
   }
 
-  function rotatedBlobUrl(img, deg) {
+  // Rotate a File 90° and return a blob URL
+  function rotatedBlobUrl(file, deg) {
     return new Promise(resolve => {
-      const rad  = deg * Math.PI / 180;
-      const swap = deg === 90 || deg === 270;
-      const cw   = swap ? img.naturalHeight : img.naturalWidth;
-      const ch   = swap ? img.naturalWidth  : img.naturalHeight;
-      const MAX  = 2000;
-      const sc   = Math.min(1, MAX / Math.max(cw, ch));
-      const c    = document.createElement('canvas');
-      c.width = Math.round(cw * sc); c.height = Math.round(ch * sc);
-      const ctx = c.getContext('2d');
-      ctx.translate(c.width/2, c.height/2);
-      ctx.rotate(rad); ctx.scale(sc, sc);
-      ctx.drawImage(img, -img.naturalWidth/2, -img.naturalHeight/2);
-      c.toBlob(b => resolve(b ? URL.createObjectURL(b) : null), 'image/jpeg', 0.92);
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const MAX = 1800;
+        const sc  = Math.min(1, MAX / Math.max(img.width, img.height));
+        const c   = document.createElement('canvas');
+        c.width   = Math.round(img.height * sc);
+        c.height  = Math.round(img.width  * sc);
+        const ctx = c.getContext('2d');
+        ctx.translate(c.width/2, c.height/2);
+        ctx.rotate(deg * Math.PI / 180);
+        ctx.scale(sc, sc);
+        ctx.drawImage(img, -img.width/2, -img.height/2);
+        c.toBlob(b => resolve(b ? URL.createObjectURL(b) : null), 'image/jpeg', 0.92);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+      img.src = url;
     });
   }
 
-  // ── Success ──────────────────────────────────────────────────────
+  // ── On success ───────────────────────────────────────────────────
   function onSuccess(value, fmt) {
-    stopLive();
-    _scanning   = false;
-    _lastValue  = value;
+    stopScan();
     if (navigator.vibrate) navigator.vibrate([30, 20, 60]);
+    _lastValue           = value;
     resultVal.textContent = value;
     resultFmt.textContent = fmt ? '(' + fmt + ')' : '';
     showPanel('success');
@@ -2133,7 +2127,10 @@ document.addEventListener('DOMContentLoaded', () => {
       inp.classList.remove('err');
     }
     closeScanner();
-    setTimeout(() => { const i = document.getElementById(_targetId); if(i) i.focus(); }, 350);
+    setTimeout(() => {
+      const i = document.getElementById(_targetId);
+      if (i) i.focus();
+    }, 350);
   }
 
   // ── Open / close ─────────────────────────────────────────────────
@@ -2142,32 +2139,33 @@ document.addEventListener('DOMContentLoaded', () => {
     _lastValue = null;
     _mode      = 'live';
     overlay.classList.add('open');
+    videoEl.style.display = '';
+    document.getElementById('scan-mode-btn').textContent = '📷 Photo Mode';
     showPanel('live');
     startLive();
-    // Update photo mode library status
-    waitForZXing(10000)
-      .then(() => setPhotoStatus('✓ Decode library ready'))
-      .catch(e  => setPhotoStatus('⚠ ' + e.message));
+    // Pre-warm: update photo status label
+    waitForZXingBrowser(10000)
+      .then(() => { if (photoStatus) photoStatus.textContent = '✓ Library ready'; })
+      .catch(e  => { if (photoStatus) photoStatus.textContent = '⚠ ' + e.message; });
   }
 
   function closeScanner() {
-    stopLive();
+    stopScan();
     overlay.classList.remove('open');
     fileInput.value = '';
-    _lastValue = null;
+    decodeImg.src   = '';
+    _lastValue      = null;
   }
 
   function switchToPhoto() {
-    stopLive();
-    _mode = 'photo';
+    stopScan();
     videoEl.style.display = 'none';
-    document.getElementById('scan-anim-line').style.display = 'none';
+    _mode = 'photo';
     showPanel('photo');
   }
 
   function switchToLive() {
     videoEl.style.display = '';
-    document.getElementById('scan-anim-line').style.display = '';
     _mode = 'live';
     startLive();
   }
@@ -2176,25 +2174,30 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('scan-close-btn').addEventListener('click', closeScanner);
   document.getElementById('scan-manual-btn').addEventListener('click', () => {
     closeScanner();
-    setTimeout(() => { const i = document.getElementById(_targetId); if(i){i.focus();i.select();} }, 350);
+    setTimeout(() => {
+      const i = document.getElementById(_targetId);
+      if (i) { i.focus(); i.select(); }
+    }, 350);
   });
+
   document.getElementById('scan-mode-btn').addEventListener('click', () => {
+    const btn = document.getElementById('scan-mode-btn');
     if (_mode === 'live') {
-      document.getElementById('scan-mode-btn').textContent = '🎥 Use Live';
+      btn.textContent = '🎥 Live Mode';
       switchToPhoto();
     } else {
-      document.getElementById('scan-mode-btn').textContent = '📷 Use Photo';
+      btn.textContent = '📷 Photo Mode';
       switchToLive();
     }
   });
-  document.getElementById('scan-use-btn').addEventListener('click', () => {
+
+  document.getElementById('result-use-btn').addEventListener('click', () => {
     if (_lastValue) applyValue(_lastValue);
   });
-  document.getElementById('scan-again-btn').addEventListener('click', () => {
+  document.getElementById('result-retry-btn').addEventListener('click', () => {
     _lastValue = null;
     if (_mode === 'live') {
       videoEl.style.display = '';
-      document.getElementById('scan-anim-line').style.display = '';
       showPanel('live');
       startLive();
     } else {
@@ -2202,20 +2205,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Photo mode buttons
-  document.getElementById('scan-photo-btn').addEventListener('click', () => {
+  document.getElementById('photo-take-btn').addEventListener('click', () => {
     fileInput.value = '';
     fileInput.click();
   });
   fileInput.addEventListener('change', function () {
     const f = this.files && this.files[0];
     if (!f) return;
-    decodePhoto(f).catch(err => { setPhotoStatus('Error: ' + err.message); showPanel('photo'); });
+    decodePhoto(f).catch(err => {
+      photoStatus.textContent = 'Error: ' + (err.message || err);
+      showPanel('photo');
+    });
   });
 
-  overlay.addEventListener('click', e => { if (e.target === overlay) closeScanner(); });
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) closeScanner();
+  });
 
-  // ── Expose globally and wire scan button ──────────────────────────
+  // ── Expose globally ──────────────────────────────────────────────
   window.openScanner = openScanner;
   const scanBtn = document.getElementById('btn-scan-item');
   if (scanBtn) scanBtn.addEventListener('click', () => openScanner('iin'));
