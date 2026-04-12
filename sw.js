@@ -1,5 +1,5 @@
 // MaxPlan Service Worker — v1.2.9
-const CACHE = 'maxplan-v129';
+const CACHE = 'maxplan-v1210';
 const ASSETS = [
   './', './index.html', './manifest.json', './icon.svg', './version.json',
   // @zxing/browser — the correct dedicated browser package

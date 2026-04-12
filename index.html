@@ -456,7 +456,19 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.2.9</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.2.10</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li><strong>Beep on successful scan</strong> — a short 1800Hz tone plays when a barcode is decoded. Uses the Web Audio API so no sound file is needed. If the phone is on silent, no sound plays (AudioContext is muted when silent mode is on)</li>
+        <li><strong>Wider scan window</strong> — the targeting frame is taller (aspect ratio changed from 3.5:1 to 2.2:1), making it easier to align Code 128 barcodes</li>
+        <li><strong>Scan button added to WO Asset field</strong> — the barcode icon now appears in the Work Order creation and edit sheet next to the Asset field, so you can scan an asset tag instead of typing it</li>
+        <li><strong>Scan buttons in the Actual tab — Non-Rotating items</strong> — every issue line now has a scan button next to the Asset Number field</li>
+        <li><strong>Scan buttons in the Actual tab — Rotating items</strong> — every rotating asset slot now has scan buttons next to both the Rotating Asset Number field and the Asset Number field</li>
+        <li>All v1.2.9 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.2.9</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Root cause identified and fixed</strong>: all versions from v1.2 through v1.2.8 used <code>@zxing/library</code> — the low-level ZXing core which is officially marked <em>deprecated for browser use</em> in its own source code. The correct package is <code>@zxing/browser</code>, a separate dedicated browser layer.</li>
         <li>Live mode now uses <strong><code>decodeFromConstraints()</code></strong> — the documented continuous-callback API from <code>@zxing/browser</code>. ZXing manages the camera stream and decode loop internally. No manual frame capture, no canvas cropping required.</li>
@@ -684,8 +696,19 @@
     </div>
     <div class="field">
       <label class="fl opt">Asset</label>
-      <input class="fi mono" id="iwa" placeholder="e.g. A58817"
-        autocomplete="off" autocorrect="off" autocapitalize="characters">
+      <div class="scan-wrap">
+        <input class="fi mono" id="iwa" placeholder="e.g. A58817"
+          autocomplete="off" autocorrect="off" autocapitalize="characters">
+        <button class="scan-btn" id="btn-scan-wo-asset" title="Scan barcode" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+            <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+            <line x1="7" y1="8" x2="7" y2="16"/><line x1="10" y1="8" x2="10" y2="16"/>
+            <line x1="13" y1="8" x2="13" y2="16"/><line x1="16.5" y1="8" x2="16.5" y2="16"/>
+            <line x1="19" y1="8" x2="19" y2="16"/>
+          </svg>
+        </button>
+      </div>
       <div class="fi-hint">Items added to the plan after this is set will auto-fill this asset number in the Actual tab.</div>
     </div>
 
@@ -786,8 +809,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.2.9';
-const KEY     = 'maxplan_v129';
+const APP_VER = '1.2.10';
+const KEY     = 'maxplan_v1210';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1121,9 +1144,22 @@ function nrLineHtml(iid, line, idx, tot) {
     </div>
     <div class="sf">
       <span class="sf-l${assetInh?' inh':''}">Asset Number${assetInh?' (from WO)':''}</span>
-      <input class="sf-i${assetInh?' inh-val':''}" type="text" placeholder="e.g. A58817"
-        value="${esc(line.woAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
-        data-i="${iid}" data-l="${line.id}" data-f="woAsset" oninput="nrIn(this)">
+      <div class="scan-wrap" style="margin-top:0;">
+        <input class="sf-i${assetInh?' inh-val':''}" type="text" placeholder="e.g. A58817"
+          value="${esc(line.woAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+          data-i="${iid}" data-l="${line.id}" data-f="woAsset" oninput="nrIn(this)">
+        <button class="scan-btn" style="width:38px;height:38px;flex-shrink:0;"
+          onclick="window.openScanner&&window.openScanner('__nr_${iid}_${line.id}_woAsset')"
+          title="Scan barcode" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+            <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+            <line x1="7" y1="8" x2="7" y2="16"/><line x1="10" y1="8" x2="10" y2="16"/>
+            <line x1="13" y1="8" x2="13" y2="16"/><line x1="16.5" y1="8" x2="16.5" y2="16"/>
+            <line x1="19" y1="8" x2="19" y2="16"/>
+          </svg>
+        </button>
+      </div>
     </div>
     <div class="sf" style="margin-top:8px">
       <span class="sf-l">Actual Date</span>
@@ -1145,15 +1181,41 @@ function rotSlotHtml(item, slot, idx) {
     </div>
     <div class="sf">
       <span class="sf-l" style="color:var(--rot)">Rotating Asset Number</span>
-      <input class="sf-i ai" type="text" placeholder="e.g. EQ-00123"
-        value="${esc(slot.rotAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
-        data-i="${item.id}" data-s="${slot.id}" data-f="rotAsset" oninput="rotIn(this)">
+      <div class="scan-wrap" style="margin-top:0;">
+        <input class="sf-i ai" type="text" placeholder="e.g. EQ-00123"
+          value="${esc(slot.rotAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+          data-i="${item.id}" data-s="${slot.id}" data-f="rotAsset" oninput="rotIn(this)">
+        <button class="scan-btn" style="width:38px;height:38px;flex-shrink:0;"
+          onclick="window.openScanner&&window.openScanner('__rot_${item.id}_${slot.id}_rotAsset')"
+          title="Scan barcode" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+            <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+            <line x1="7" y1="8" x2="7" y2="16"/><line x1="10" y1="8" x2="10" y2="16"/>
+            <line x1="13" y1="8" x2="13" y2="16"/><line x1="16.5" y1="8" x2="16.5" y2="16"/>
+            <line x1="19" y1="8" x2="19" y2="16"/>
+          </svg>
+        </button>
+      </div>
     </div>
     <div class="sf" style="margin-top:8px">
       <span class="sf-l${assetInh?' inh':''}">Asset Number${assetInh?' (from WO)':''}</span>
-      <input class="sf-i${assetInh?' inh-val':''}" type="text" placeholder="e.g. A58817"
-        value="${esc(slot.woAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
-        data-i="${item.id}" data-s="${slot.id}" data-f="woAsset" oninput="rotIn(this)">
+      <div class="scan-wrap" style="margin-top:0;">
+        <input class="sf-i${assetInh?' inh-val':''}" type="text" placeholder="e.g. A58817"
+          value="${esc(slot.woAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+          data-i="${item.id}" data-s="${slot.id}" data-f="woAsset" oninput="rotIn(this)">
+        <button class="scan-btn" style="width:38px;height:38px;flex-shrink:0;"
+          onclick="window.openScanner&&window.openScanner('__rot_${item.id}_${slot.id}_woAsset')"
+          title="Scan barcode" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+            <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+            <line x1="7" y1="8" x2="7" y2="16"/><line x1="10" y1="8" x2="10" y2="16"/>
+            <line x1="13" y1="8" x2="13" y2="16"/><line x1="16.5" y1="8" x2="16.5" y2="16"/>
+            <line x1="19" y1="8" x2="19" y2="16"/>
+          </svg>
+        </button>
+      </div>
     </div>
     <div class="sf" style="margin-top:8px">
       <span class="sf-l${locInh?' inh':''}">Location of Work${locInh?' (from WO)':''}</span>
@@ -1694,7 +1756,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <!-- Wide horizontal scan window — sized for Code 128 -->
       <div id="scan-win" style="
         position:relative;width:100%;max-width:400px;
-        aspect-ratio:3.5/1;border-radius:10px;overflow:hidden;
+        aspect-ratio:2.2/1;border-radius:10px;overflow:hidden;
         box-shadow:0 0 0 2000px rgba(0,0,0,.5);">
         <!-- Corner marks -->
         <div style="position:absolute;top:0;left:0;width:22px;height:22px;
@@ -2111,24 +2173,93 @@ document.addEventListener('DOMContentLoaded', () => {
   function onSuccess(value, fmt) {
     stopScan();
     if (navigator.vibrate) navigator.vibrate([30, 20, 60]);
+    playBeep();
     _lastValue           = value;
     resultVal.textContent = value;
     resultFmt.textContent = fmt ? '(' + fmt + ')' : '';
     showPanel('success');
   }
 
-  // ── Apply to field ───────────────────────────────────────────────
+  // ── Beep on success (respects silent mode) ──────────────────────
+  function playBeep() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1800, ctx.currentTime);
+      gain.gain.setValueAtTime(0.4, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.18);
+    } catch (e) {
+      // Silently fail if AudioContext not available or phone is silent
+    }
+  }
+
+  // ── Apply scanned value to the correct field ─────────────────────
+  // Supports 3 types of target ID:
+  //   'iin'                             → item number input in Plan modal
+  //   'iwa'                             → WO asset field in WO modal
+  //   '__nr_{itemId}_{lineId}_woAsset'  → NR issue line asset field
+  //   '__rot_{itemId}_{slotId}_rotAsset'→ rotating slot rotating asset field
+  //   '__rot_{itemId}_{slotId}_woAsset' → rotating slot WO asset field
   function applyValue(value) {
-    const inp = document.getElementById(_targetId);
+    const id = _targetId;
+    const upper = (value || '').toUpperCase();
+
+    if (id && id.startsWith('__nr_')) {
+      // Virtual ID for NR issue line: __nr_{iid}_{lid}_{field}
+      const parts = id.split('_');
+      // parts: ['', '', 'nr', iid, lid, field]  (double underscore prefix)
+      const iid   = parts[3];
+      const lid   = parts[4];
+      const field = parts[5];
+      // Find the actual input by its data attributes
+      const inp = document.querySelector(
+        `input[data-i="${iid}"][data-l="${lid}"][data-f="${field}"]`
+      );
+      if (inp) {
+        inp.value = upper;
+        inp.dispatchEvent(new Event('input', { bubbles: true }));
+        inp.classList.remove('err');
+      }
+      closeScanner();
+      return;
+    }
+
+    if (id && id.startsWith('__rot_')) {
+      // Virtual ID for rotating slot: __rot_{iid}_{sid}_{field}
+      const parts = id.split('_');
+      // parts: ['', '', 'rot', iid, sid, field]
+      const iid   = parts[3];
+      const sid   = parts[4];
+      const field = parts[5];
+      const inp = document.querySelector(
+        `input[data-i="${iid}"][data-s="${sid}"][data-f="${field}"]`
+      );
+      if (inp) {
+        inp.value = upper;
+        inp.dispatchEvent(new Event('input', { bubbles: true }));
+        inp.classList.remove('err');
+      }
+      closeScanner();
+      return;
+    }
+
+    // Standard DOM field ID
+    const inp = document.getElementById(id);
     if (inp) {
-      inp.value = (value || '').toUpperCase();
+      inp.value = upper;
       inp.dispatchEvent(new Event('input',  { bubbles: true }));
       inp.dispatchEvent(new Event('change', { bubbles: true }));
       inp.classList.remove('err');
     }
     closeScanner();
     setTimeout(() => {
-      const i = document.getElementById(_targetId);
+      const i = document.getElementById(id);
       if (i) i.focus();
     }, 350);
   }
@@ -2226,6 +2357,8 @@ document.addEventListener('DOMContentLoaded', () => {
   window.openScanner = openScanner;
   const scanBtn = document.getElementById('btn-scan-item');
   if (scanBtn) scanBtn.addEventListener('click', () => openScanner('iin'));
+  const scanWoAsset = document.getElementById('btn-scan-wo-asset');
+  if (scanWoAsset) scanWoAsset.addEventListener('click', () => openScanner('iwa'));
 
 })();
 </script>
