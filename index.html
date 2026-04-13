@@ -415,6 +415,7 @@
 <div id="vh" class="view active">
   <div class="header">
     <div class="htxt"><h1>MaxPlan</h1><div class="hsub">Maximo Work Order Material Planner</div></div>
+    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:18px;">📋</button>
   </div>
   <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button onclick="location.reload(true)">Update</button></div>
   <div id="ib"><p>Install MaxPlan for offline access on your phone.</p><button id="bi">Install</button></div>
@@ -456,7 +457,19 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.2.10</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.2.11</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li>Summary tab now <strong>always visible</strong> — Work Order Details (number, title, location, asset, status, timestamps) are shown immediately when opening the Summary tab, even before any items are planned</li>
+        <li><strong>"Started" renamed to "In Progress"</strong> in the Summary tab and in the clipboard export</li>
+        <li><strong>Timestamp format changed</strong> throughout the app to <code>DD/MM/YYYY H:MM AM/PM</code> — numeric month, uppercase AM/PM, no leading zero on single-digit hours</li>
+        <li><strong>Version History button</strong> added to the top-right of the MaxPlan home screen header (📋 icon) — accessible without scrolling to the bottom</li>
+        <li><strong>Clear Completed WOs button</strong> — appears at the bottom-left of the home screen when at least one work order has COMP status. Tapping it opens a confirmation sheet before permanently deleting all completed work orders</li>
+        <li>All v1.2.10 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.2.10</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Beep on successful scan</strong> — a short 1800Hz tone plays when a barcode is decoded. Uses the Web Audio API so no sound file is needed. If the phone is on silent, no sound plays (AudioContext is muted when silent mode is on)</li>
         <li><strong>Wider scan window</strong> — the targeting frame is taller (aspect ratio changed from 3.5:1 to 2.2:1), making it easier to align Code 128 barcodes</li>
@@ -809,8 +822,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.2.10';
-const KEY     = 'maxplan_v1210';
+const APP_VER = '1.2.11';
+const KEY     = 'maxplan_v1211';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -819,10 +832,13 @@ function fdt(ts) {
   if (!ts) return '—';
   const d = new Date(ts);
   const dd  = String(d.getDate()).padStart(2,'0');
-  const mo  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
-  let h = d.getHours(), m = String(d.getMinutes()).padStart(2,'0');
-  const ap = h >= 12 ? 'pm' : 'am'; h = h % 12 || 12;
-  return `${dd}/${mo}/${d.getFullYear()} ${h}:${m}${ap}`;
+  const mm  = String(d.getMonth()+1).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  let h = d.getHours();
+  const m = String(d.getMinutes()).padStart(2,'0');
+  const ap = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;  // no leading zero on single-digit hours
+  return `${dd}/${mm}/${yyyy} ${h}:${m} ${ap}`;
 }
 const now = () => fdt(Date.now());
 
@@ -953,10 +969,24 @@ function renderHome() {
   if (!any) html = `<div class="empty"><div class="empty-icon">📋</div><h3>No Work Orders</h3>
     <p>Tap <strong>+</strong> to create your first work order.</p></div>`;
 
-  html += `<div class="ver-footer"><button class="ver-pill" id="bv2">MaxPlan v${APP_VER}</button></div>`;
+  // Bottom bar: version pill (centre) + clear completed button (left)
+  const hasComp = S.wos.some(w => (w.status||'APPR') === 'COMP');
+  html += `<div class="ver-footer" style="justify-content:space-between;align-items:center;">
+    ${hasComp
+      ? `<button id="btn-clear-comp" style="
+          background:var(--danger-bg);color:var(--danger);border:none;
+          border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;
+          cursor:pointer;font-family:inherit;">🗑 Clear Completed</button>`
+      : `<span></span>`}
+    <button class="ver-pill" id="bv2">MaxPlan v${APP_VER}</button>
+    <span style="width:${hasComp?'auto':'0'};"></span>
+  </div>`;
   el.innerHTML = html;
   el.querySelectorAll('.wo-card').forEach(c => c.addEventListener('click', () => goWO(c.dataset.id)));
   $('bv2').addEventListener('click', goVer);
+  if (hasComp) {
+    $('btn-clear-comp').addEventListener('click', () => openM('mdel-comp'));
+  }
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1334,17 +1364,16 @@ function rotIn(inp) {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderSummary() {
   const wo=CWO(); const el=$('wc'); const items=wo.planItems||[];
-  if(!items.length){
-    el.innerHTML=`<div class="empty"><div class="empty-icon">📊</div><h3>No Data</h3><p>Add planned items first.</p></div>`; return;
-  }
-  const nr=items.filter(i=>i.type==='non-rotating');
-  const rot=items.filter(i=>i.type==='rotating');
+
+  // Stats (0 if no items yet)
   const gst=item=>{
     const a=(wo.actuals||{})[item.id]; if(!a)return'pending';
     if(item.type==='non-rotating'){const n=(a.issueLines||[]).reduce((s,l)=>s+(parseInt(l.qty)||0),0);return n===0?'pending':n<item.plannedQty?'partial':'done';}
     const n=(a.slots||[]).filter(s=>s.rotAsset&&s.rotAsset.trim()).length;
     return n===0?'pending':n<item.plannedQty?'partial':'done';
   };
+  const nr=items.filter(i=>i.type==='non-rotating');
+  const rot=items.filter(i=>i.type==='rotating');
   const dn=items.filter(i=>gst(i)==='done').length;
   const pn=items.filter(i=>gst(i)==='partial').length;
   const pct=items.length?Math.round(((dn+pn*.5)/items.length)*100):0;
@@ -1352,25 +1381,32 @@ function renderSummary() {
   const wst=wo.status||'APPR';
   const sc={APPR:'var(--appr)',INPRG:'var(--inprg)',COMP:'var(--comp)'}[wst];
 
+  // Summary header card — always shown
   let html=`<div class="sum-hdr"><h3>Work Order Summary</h3>
     <div class="sum-stats">
       <div class="stat-box"><span class="sv">${items.length}</span><span class="sl3">Total Items</span></div>
       <div class="stat-box"><span class="sv">${dn}</span><span class="sl3">Completed</span></div>
       <div class="stat-box"><span class="sv">${pct}%</span><span class="sl3">Progress</span></div>
     </div></div>
-    <div style="background:var(--surface);border-radius:var(--radius);padding:13px 15px;margin-bottom:14px;border:1px solid var(--border);box-shadow:var(--shadow)">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:8px">Work Order Details</div>
-      <div class="sum-row"><span>WO Number</span><strong>${esc(wo.woNumber)}</strong></div>
-      ${wo.title?`<div class="sum-row"><span>Title</span><strong style="font-family:inherit">${esc(wo.title)}</strong></div>`:''}
-      ${wo.location?`<div class="sum-row"><span>Location</span><strong>${esc(wo.location)}</strong></div>`:''}
-      ${wo.assetNumber?`<div class="sum-row"><span>Asset Number</span><strong>${esc(wo.assetNumber)}</strong></div>`:''}
-      <div class="sum-row"><span>Status</span><strong style="color:${sc}">${wst}</strong></div>
-      ${wo.inprgDate?`<div class="sum-row"><span>Started</span><strong style="font-family:inherit;font-size:12px">${esc(wo.inprgDate)}</strong></div>`:''}
-      ${wo.compDate?`<div class="sum-row"><span>Completed</span><strong style="font-family:inherit;font-size:12px">${esc(wo.compDate)}</strong></div>`:''}
-    </div>
-    <button class="export-btn" id="exb">📋 &nbsp;Copy Summary to Clipboard</button>
-    <div class="copy-ok" id="cok">✓ Copied!</div>`;
 
+  <!-- Work Order Details — always visible -->
+  <div style="background:var(--surface);border-radius:var(--radius);padding:13px 15px;
+    margin-bottom:14px;border:1px solid var(--border);box-shadow:var(--shadow)">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;
+      letter-spacing:.07em;color:var(--text2);margin-bottom:8px">Work Order Details</div>
+    <div class="sum-row"><span>WO Number</span><strong>${esc(wo.woNumber)}</strong></div>
+    ${wo.title?`<div class="sum-row"><span>Title</span><strong style="font-family:inherit">${esc(wo.title)}</strong></div>`:''}
+    ${wo.location?`<div class="sum-row"><span>Location</span><strong>${esc(wo.location)}</strong></div>`:''}
+    ${wo.assetNumber?`<div class="sum-row"><span>Asset Number</span><strong>${esc(wo.assetNumber)}</strong></div>`:''}
+    <div class="sum-row"><span>Status</span><strong style="color:${sc}">${wst}</strong></div>
+    ${wo.inprgDate?`<div class="sum-row"><span>In Progress</span><strong style="font-family:inherit;font-size:12px">${esc(wo.inprgDate)}</strong></div>`:''}
+    ${wo.compDate?`<div class="sum-row"><span>Completed</span><strong style="font-family:inherit;font-size:12px">${esc(wo.compDate)}</strong></div>`:''}
+  </div>
+
+  <button class="export-btn" id="exb">📋 &nbsp;Copy Summary to Clipboard</button>
+  <div class="copy-ok" id="cok">✓ Copied!</div>`;
+
+  // Item sections — only shown if items exist
   if(nr.length){
     html+=`<div class="sum-sec"><div class="list-label">Non-Rotating Items</div>`;
     nr.forEach(item=>{
@@ -1428,6 +1464,12 @@ function renderSummary() {
     html+=`</div>`;
   }
 
+  if(!items.length){
+    html+=`<div style="text-align:center;padding:28px 20px;color:var(--text2);font-size:14px;line-height:1.6;">
+      No planned items yet.<br>Add items in the <strong>Plan</strong> tab to see details here.
+    </div>`;
+  }
+
   if(wo.longDescription)html+=`<div class="sum-sec"><div class="list-label">Long Description</div>
     <div class="notes-block">📝 ${esc(wo.longDescription)}</div></div>`;
   el.innerHTML=html;
@@ -1446,7 +1488,7 @@ function doExport(){
   if(wo.assetNumber) L.push(`Asset No.  : ${wo.assetNumber}`);
   if(wo.longDescription)L.push(`Description: ${wo.longDescription}`);
   L.push(`Status     : ${wo.status||'APPR'}`);
-  if(wo.inprgDate)L.push(`Started    : ${wo.inprgDate}`);
+  if(wo.inprgDate)L.push(`In Progress: ${wo.inprgDate}`);
   if(wo.compDate) L.push(`Completed  : ${wo.compDate}`);
   L.push(`Exported   : ${now()}`,'');
 
@@ -1595,6 +1637,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   $('bb').addEventListener('click', goHome);
   $('bv').addEventListener('click', goHome);
+  // Version history from home header button
+  $('btn-home-ver').addEventListener('click', goVer);
+  // Clear completed WOs modal
+  $('btn-confirm-del-comp').addEventListener('click', () => {
+    S.wos = S.wos.filter(w => (w.status||'APPR') !== 'COMP');
+    save(); closeM('mdel-comp'); renderHome();
+  });
+  $('btn-cancel-del-comp').addEventListener('click', () => closeM('mdel-comp'));
   document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{S.ctab=t.dataset.tab;renderWO();}));
 
   // Tappable WO title ▾ → edit WO
@@ -1702,9 +1752,24 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+<!-- ═══ MODAL: CONFIRM DELETE COMPLETED WOs ═══ -->
+<div class="overlay" id="mdel-comp">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <h2>Delete Completed Work Orders?</h2>
+    <p style="color:var(--text2);font-size:15px;line-height:1.65;margin-bottom:10px;">
+      This will permanently delete all work orders with status
+      <strong style="color:var(--comp)">COMP</strong>.
+    </p>
+    <p style="color:var(--text2);font-size:13px;line-height:1.65;margin-bottom:22px;">
+      Make sure you have already copied all the data you need before proceeding. This cannot be undone.
+    </p>
+    <button class="btn-d" id="btn-confirm-del-comp">Yes, Delete All Completed</button>
+    <button class="btn-m" id="btn-cancel-del-comp">Cancel</button>
+  </div>
+</div>
 
-<!-- ═══════════════════════════════════════════════════════════════ -->
-<!--  SCANNER v1.2.9                                               -->
+                                               -->
 <!--  CRITICAL FIX: switching from @zxing/library (low-level      -->
 <!--  core, deprecated for browser) to @zxing/browser — the       -->
 <!--  dedicated browser package with decodeFromConstraints()       -->
