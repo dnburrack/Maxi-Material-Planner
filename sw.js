@@ -1,8 +1,7 @@
-// MaxPlan Service Worker — v1.2.9
-const CACHE = 'maxplan-v1211';
+// MaxPlan Service Worker — v1.2.12
+const CACHE = 'maxplan-v1212';
 const ASSETS = [
   './', './index.html', './manifest.json', './icon.svg', './version.json',
-  // @zxing/browser — the correct dedicated browser package
   'https://unpkg.com/@zxing/browser@latest'
 ];
 self.addEventListener('install', e => {

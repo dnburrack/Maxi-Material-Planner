@@ -407,6 +407,28 @@
       font-size:14px;font-weight:600;padding:10px 22px;border-radius:20px;cursor:pointer;
       font-family:inherit;backdrop-filter:blur(4px)}
     .scan-manual:active{background:rgba(255,255,255,.25)}
+
+    /* ── NR RETURN LINES ── */
+    .ret-section{margin-top:14px;border-top:2px dashed rgba(220,38,38,.3);padding-top:12px}
+    .ret-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .ret-title{font-size:11px;font-weight:800;text-transform:uppercase;
+      letter-spacing:.07em;color:var(--danger)}
+    .add-ret-btn{background:var(--danger-bg);color:var(--danger);border:none;
+      border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;
+      cursor:pointer;font-family:inherit}
+    .add-ret-btn:active{opacity:.75}
+    .ret-line{border:1.5px solid var(--border);border-radius:var(--radius-sm);
+      padding:11px 12px;margin-bottom:8px;background:var(--bg);transition:border-color .2s}
+    .ret-line.has-qty{border-color:var(--danger);background:var(--danger-bg)}
+    .ret-lbl{font-size:11px;font-weight:700;text-transform:uppercase;
+      letter-spacing:.06em;color:var(--text2)}
+    .ret-lbl.filled{color:var(--danger)}
+    .net-bar{display:flex;align-items:center;justify-content:space-between;
+      font-size:12px;background:var(--bg);border-radius:8px;
+      padding:8px 12px;margin-top:8px;border:1px solid var(--border)}
+    .net-pos{color:var(--nr);font-weight:700;font-family:var(--mono)}
+    .net-zero{color:var(--rot);font-weight:700;font-family:var(--mono)}
+    .net-neg{color:var(--danger);font-weight:700;font-family:var(--mono)}
   </style>
 </head>
 <body>
@@ -457,7 +479,17 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.2.11</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.2.12</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li><strong>Returns for non-rotating items</strong> — each NR actual card now has a dashed ↩ Returns section below the issue lines. Return lines have the same fields as issue lines (Qty to Return, Location of Work, Asset Number with WO inheritance, Return Date auto-stamp). A live <strong>Net on-hand</strong> counter (Issued − Returned) updates in real time. Return line asset fields also have a scan button</li>
+        <li><strong>Torch / flash toggle</strong> — a 🔦 button now appears in the scanner header during Live Mode on devices where the camera supports torch. Tap to turn the flash on (button glows amber); tap again to turn it off. Flash automatically turns off when the scanner closes</li>
+        <li><strong>Version history button moved to header</strong> — the 📋 version button in the top-right of the home screen was already introduced in v1.2.11; the version pill has been removed from the bottom of the home screen list to reduce clutter. The version history is now always accessible from the header regardless of scroll position</li>
+        <li>All features from v1.2.11 retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.2.11</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li>Summary tab now <strong>always visible</strong> — Work Order Details (number, title, location, asset, status, timestamps) are shown immediately when opening the Summary tab, even before any items are planned</li>
         <li><strong>"Started" renamed to "In Progress"</strong> in the Summary tab and in the clipboard export</li>
@@ -822,8 +854,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.2.11';
-const KEY     = 'maxplan_v1211';
+const APP_VER = '1.2.12';
+const KEY     = 'maxplan_v1212';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -882,7 +914,28 @@ function getNRL(wo, item) {
       woAsset: item.inheritedWoAsset || '', dt: ''
     }];
   }
+  if (!a.returnLines) a.returnLines = [];
   return a.issueLines;
+}
+
+// NR: return lines {id, qty, loc, woAsset, dt}
+function getReturnLines(wo, item) {
+  if (!wo.actuals) wo.actuals = {};
+  if (!wo.actuals[item.id]) wo.actuals[item.id] = {};
+  const a = wo.actuals[item.id];
+  if (!a.returnLines) a.returnLines = [];
+  return a.returnLines;
+}
+
+function nrIssueTotal(wo, iid) {
+  const a = (wo.actuals || {})[iid];
+  if (!a || !a.issueLines) return 0;
+  return a.issueLines.reduce((s, l) => s + (parseInt(l.qty) || 0), 0);
+}
+function nrReturnTotal(wo, iid) {
+  const a = (wo.actuals || {})[iid];
+  if (!a || !a.returnLines) return 0;
+  return a.returnLines.reduce((s, l) => s + (parseInt(l.qty) || 0), 0);
 }
 
 // Rotating: fixed slots per qty {id, rotAsset, loc, woAsset, dt}
@@ -969,21 +1022,18 @@ function renderHome() {
   if (!any) html = `<div class="empty"><div class="empty-icon">📋</div><h3>No Work Orders</h3>
     <p>Tap <strong>+</strong> to create your first work order.</p></div>`;
 
-  // Bottom bar: version pill (centre) + clear completed button (left)
+  // Bottom bar: clear completed button only (version pill is now in header)
   const hasComp = S.wos.some(w => (w.status||'APPR') === 'COMP');
-  html += `<div class="ver-footer" style="justify-content:space-between;align-items:center;">
-    ${hasComp
-      ? `<button id="btn-clear-comp" style="
-          background:var(--danger-bg);color:var(--danger);border:none;
-          border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;
-          cursor:pointer;font-family:inherit;">🗑 Clear Completed</button>`
-      : `<span></span>`}
-    <button class="ver-pill" id="bv2">MaxPlan v${APP_VER}</button>
-    <span style="width:${hasComp?'auto':'0'};"></span>
-  </div>`;
+  if (hasComp) {
+    html += `<div class="ver-footer" style="justify-content:center;padding-bottom:8px;">
+      <button id="btn-clear-comp" style="
+        background:var(--danger-bg);color:var(--danger);border:none;
+        border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;
+        cursor:pointer;font-family:inherit;">🗑 Clear Completed</button>
+    </div>`;
+  }
   el.innerHTML = html;
   el.querySelectorAll('.wo-card').forEach(c => c.addEventListener('click', () => goWO(c.dataset.id)));
-  $('bv2').addEventListener('click', goVer);
   if (hasComp) {
     $('btn-clear-comp').addEventListener('click', () => openM('mdel-comp'));
   }
@@ -1079,10 +1129,15 @@ function renderActual() {
   if (nr.length) {
     html += `<div class="section-block"><div class="list-label">Non-Rotating Actuals (${nr.length})</div>`;
     nr.forEach(item => {
-      const lines = getNRL(wo, item);
-      const tot   = lines.reduce((s,l) => s+(parseInt(l.qty)||0), 0);
-      const rem   = item.plannedQty - tot;
-      const pct   = item.plannedQty > 0 ? Math.min(100, Math.round((tot/item.plannedQty)*100)) : 0;
+      const lines    = getNRL(wo, item);
+      const retLines = getReturnLines(wo, item);
+      const issTot   = nrIssueTotal(wo, item.id);
+      const retTot   = nrReturnTotal(wo, item.id);
+      const net      = issTot - retTot;
+      const netCls   = net > 0 ? 'net-pos' : (net === 0 && issTot > 0) ? 'net-zero' : net < 0 ? 'net-neg' : '';
+      const tot      = issTot;   // alias for existing progress bar code
+      const rem      = item.plannedQty - tot;
+      const pct      = item.plannedQty > 0 ? Math.min(100, Math.round((tot/item.plannedQty)*100)) : 0;
       html += `<div class="actual-card">
         <div class="ich" style="margin-bottom:9px">
           <span class="badge badge-nr">Non-Rotating</span>
@@ -1103,9 +1158,22 @@ function renderActual() {
           </div>
         </div>
         <div id="il${item.id}">${lines.map((l,i) => nrLineHtml(item.id,l,i,lines.length)).join('')}</div>
-        <div class="rem-bar${rem<=0?' done-bar':''}" id="rb${item.id}">
+        <div class="rem-bar${rem<=0?' done-bar':''}\" id=\"rb${item.id}\">
           <span>${rem<=0 ? '✓ All units accounted for' : `${rem} of ${item.plannedQty} remaining`}</span>
           ${rem>0 ? `<button class="add-line-btn" onclick="addLine('${item.id}')">+ Add Issue Line</button>` : ''}
+        </div>
+
+        <!-- ── RETURNS SECTION ── -->
+        <div class="ret-section">
+          <div class="ret-header">
+            <span class="ret-title">↩ Returns</span>
+            <button class="add-ret-btn" onclick="addRetLine('${item.id}')">+ Add Return Line</button>
+          </div>
+          <div id="rl${item.id}">${retLines.map((l,i) => nrRetLineHtml(item.id,l,i,retLines.length)).join('')}</div>
+          ${(issTot > 0 || retTot > 0) ? `<div class="net-bar">
+            <span style="color:var(--text2)">Net on hand (issued \u2212 returned)</span>
+            <span id="nb${item.id}" class="${netCls}">${net}</span>
+          </div>` : ''}
         </div>
       </div>`;
     });
@@ -1324,6 +1392,117 @@ function rmLine(btn) {
     cont.innerHTML=a.issueLines.map((l,i)=>nrLineHtml(iid,l,i,a.issueLines.length)).join('');
     refreshNR(wo, item);
   }
+}
+
+// ── NR RETURN LINE HTML ──
+function nrRetLineHtml(iid, line, idx, tot) {
+  const hq = !!(line.qty && parseInt(line.qty) > 0);
+  const item = (CWO()?.planItems||[]).find(i=>i.id===iid)||{};
+  const locInh   = !!(line.loc    && line.loc    === item.inheritedLocation);
+  const assetInh = !!(line.woAsset&& line.woAsset === item.inheritedWoAsset);
+  return `<div class="ret-line${hq?' has-qty':''}" id="rt${line.id}">
+    <div class="il-head">
+      <span class="ret-lbl${hq?' filled':''}">Return Line ${idx+1}</span>
+      ${tot>1 ? `<button class="il-rm" data-i="${iid}" data-l="${line.id}" onclick="rmRetLine(this)">✕</button>` : ''}
+    </div>
+    <div class="il-grid">
+      <div class="sf">
+        <span class="sf-l">Qty to Return</span>
+        <input class="sf-i" type="number" min="0" inputmode="numeric"
+          value="${esc(String(line.qty))}" placeholder="0"
+          data-i="${iid}" data-l="${line.id}" data-f="qty" oninput="nrRetIn(this)">
+      </div>
+      <div class="sf">
+        <span class="sf-l${locInh?' inh':''}">Location of Work${locInh?' (from WO)':''}</span>
+        <input class="sf-i${locInh?' inh-val':''}" type="text" placeholder="e.g. PUMP-ROOM-A"
+          value="${esc(line.loc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+          data-i="${iid}" data-l="${line.id}" data-f="loc" oninput="nrRetIn(this)">
+      </div>
+    </div>
+    <div class="sf">
+      <span class="sf-l${assetInh?' inh':''}">Asset Number${assetInh?' (from WO)':''}</span>
+      <div class="scan-wrap" style="margin-top:0;">
+        <input class="sf-i${assetInh?' inh-val':''}" type="text" placeholder="e.g. A58817"
+          value="${esc(line.woAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+          data-i="${iid}" data-l="${line.id}" data-f="woAsset" oninput="nrRetIn(this)">
+        <button class="scan-btn" style="width:38px;height:38px;flex-shrink:0;"
+          onclick="window.openScanner&&window.openScanner('__ret_${iid}_${line.id}_woAsset')"
+          title="Scan barcode" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+            <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+            <line x1="7" y1="8" x2="7" y2="16"/><line x1="10" y1="8" x2="10" y2="16"/>
+            <line x1="13" y1="8" x2="13" y2="16"/><line x1="16.5" y1="8" x2="16.5" y2="16"/>
+            <line x1="19" y1="8" x2="19" y2="16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="sf" style="margin-top:8px">
+      <span class="sf-l">Return Date</span>
+      <input class="sf-i di" type="text" placeholder="Auto-fills on entry — or type manually"
+        value="${esc(line.dt)}" data-i="${iid}" data-l="${line.id}" data-f="dt" oninput="nrRetIn(this)">
+    </div>
+  </div>`;
+}
+
+// ── NR RETURN INPUT HANDLER ──
+function nrRetIn(inp) {
+  const wo=CWO(); if(!wo)return;
+  const iid=inp.dataset.i, lid=inp.dataset.l, f=inp.dataset.f, v=inp.value;
+  if(!wo.actuals||!wo.actuals[iid]||!wo.actuals[iid].returnLines)return;
+  const line=wo.actuals[iid].returnLines.find(l=>l.id===lid); if(!line)return;
+  if(f==='qty'&&v&&parseInt(v)>0&&!line.dt){
+    line.dt=now();
+    const row=$(`rt${lid}`);
+    if(row){const di=row.querySelector('[data-f="dt"]');if(di&&!di.value)di.value=line.dt;}
+  }
+  line[f]=v; save();
+  const row=$(`rt${lid}`);
+  if(row){
+    const hq=!!(line.qty&&parseInt(line.qty)>0);
+    row.classList.toggle('has-qty',hq);
+    const lb=row.querySelector('.ret-lbl');if(lb)lb.classList.toggle('filled',hq);
+  }
+  const item=(wo.planItems||[]).find(i=>i.id===iid);
+  if(item)refreshNetBar(wo,item);
+}
+
+function addRetLine(iid) {
+  const wo=CWO(); if(!wo)return;
+  const item=(wo.planItems||[]).find(i=>i.id===iid); if(!item)return;
+  if(!wo.actuals[iid])wo.actuals[iid]={};
+  if(!wo.actuals[iid].returnLines)wo.actuals[iid].returnLines=[];
+  const nl={id:uid(),qty:'',loc:item.inheritedLocation||'',woAsset:item.inheritedWoAsset||'',dt:''};
+  wo.actuals[iid].returnLines.push(nl); save();
+  const cont=$(`rl${iid}`);
+  if(cont){
+    cont.innerHTML=wo.actuals[iid].returnLines.map((l,i)=>nrRetLineHtml(iid,l,i,wo.actuals[iid].returnLines.length)).join('');
+    setTimeout(()=>{const last=cont.lastElementChild;if(last)last.scrollIntoView({behavior:'smooth',block:'nearest'});},100);
+  }
+  refreshNetBar(wo,item);
+}
+
+function rmRetLine(btn) {
+  const iid=btn.dataset.i, lid=btn.dataset.l;
+  const wo=CWO(); if(!wo)return;
+  const a=wo.actuals[iid]; if(!a||!a.returnLines||a.returnLines.length<=1)return;
+  a.returnLines=a.returnLines.filter(l=>l.id!==lid); save();
+  const item=(wo.planItems||[]).find(i=>i.id===iid);
+  const cont=$(`rl${iid}`);
+  if(cont&&item){
+    cont.innerHTML=a.returnLines.map((l,i)=>nrRetLineHtml(iid,l,i,a.returnLines.length)).join('');
+    refreshNetBar(wo,item);
+  }
+}
+
+function refreshNetBar(wo,item) {
+  const issTot=nrIssueTotal(wo,item.id);
+  const retTot=nrReturnTotal(wo,item.id);
+  const net=issTot-retTot;
+  const nb=$(`nb${item.id}`); if(!nb)return;
+  nb.textContent=String(net);
+  nb.className=net>0?'net-pos':net===0&&issTot>0?'net-zero':net<0?'net-neg':'';
 }
 
 // ── ROTATING INPUT HANDLER ──
@@ -1802,6 +1981,11 @@ document.addEventListener('DOMContentLoaded', () => {
       <span style="color:#fff;font-size:17px;font-weight:700;flex:1;">
         Scan Barcode
       </span>
+      <button id="scan-torch-btn" style="
+        background:rgba(255,255,255,.2);color:#fff;border:none;
+        border-radius:50%;width:34px;height:34px;font-size:18px;
+        cursor:pointer;display:none;align-items:center;justify-content:center;
+        transition:background .15s;" title="Toggle flash">🔦</button>
       <button id="scan-mode-btn" style="
         background:rgba(255,255,255,.2);color:#fff;border:none;
         border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;
@@ -1983,6 +2167,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let _mode      = 'live';   // 'live' | 'photo'
   let _controls  = null;     // ZXingBrowser scan controls (has .stop())
   let _reader    = null;     // BrowserMultiFormatReader instance
+  let _torchOn   = false;    // current torch state
+  let _vidTrack  = null;     // MediaStreamTrack for torch control
 
   // DOM
   const overlay    = document.getElementById('scan-overlay');
@@ -2110,6 +2296,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       );
       setLiveStatus('Hold barcode inside the frame');
+
+      // Grab video track for torch control
+      _torchOn = false;
+      _vidTrack = null;
+      const torchBtn = document.getElementById('scan-torch-btn');
+      if (torchBtn) torchBtn.style.display = 'none';
+      try {
+        if (videoEl.srcObject) {
+          const tracks = videoEl.srcObject.getVideoTracks();
+          if (tracks.length) {
+            _vidTrack = tracks[0];
+            const caps = _vidTrack.getCapabilities ? _vidTrack.getCapabilities() : {};
+            if (caps.torch) {
+              torchBtn.style.display = 'flex';
+              torchBtn.style.background = 'rgba(255,255,255,.2)';
+            }
+          }
+        }
+      } catch(e) {}
+
     } catch (err) {
       const m = String(err.message || err.name || '');
       if (/NotAllowed|Permission|denied/i.test(m)) {
@@ -2129,6 +2335,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (_controls) {
       try { _controls.stop(); } catch(e) {}
       _controls = null;
+    }
+    // Turn off torch if it was on
+    if (_torchOn && _vidTrack) {
+      try { _vidTrack.applyConstraints({ advanced: [{ torch: false }] }); } catch(e) {}
+    }
+    _torchOn = false;
+    _vidTrack = null;
+    const torchBtn = document.getElementById('scan-torch-btn');
+    if (torchBtn) {
+      torchBtn.style.display = 'none';
+      torchBtn.style.background = 'rgba(255,255,255,.2)';
     }
   }
 
@@ -2278,11 +2495,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (id && id.startsWith('__nr_')) {
       // Virtual ID for NR issue line: __nr_{iid}_{lid}_{field}
       const parts = id.split('_');
-      // parts: ['', '', 'nr', iid, lid, field]  (double underscore prefix)
       const iid   = parts[3];
       const lid   = parts[4];
       const field = parts[5];
-      // Find the actual input by its data attributes
+      const inp = document.querySelector(
+        `input[data-i="${iid}"][data-l="${lid}"][data-f="${field}"]`
+      );
+      if (inp) {
+        inp.value = upper;
+        inp.dispatchEvent(new Event('input', { bubbles: true }));
+        inp.classList.remove('err');
+      }
+      closeScanner();
+      return;
+    }
+
+    if (id && id.startsWith('__ret_')) {
+      // Virtual ID for NR return line: __ret_{iid}_{lid}_{field}
+      const parts = id.split('_');
+      const iid   = parts[3];
+      const lid   = parts[4];
+      const field = parts[5];
       const inp = document.querySelector(
         `input[data-i="${iid}"][data-l="${lid}"][data-f="${field}"]`
       );
@@ -2368,6 +2601,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── UI listeners ─────────────────────────────────────────────────
   document.getElementById('scan-close-btn').addEventListener('click', closeScanner);
+
+  // Torch toggle — manually turn flash on/off during live scan
+  document.getElementById('scan-torch-btn').addEventListener('click', async () => {
+    if (!_vidTrack) return;
+    _torchOn = !_torchOn;
+    try {
+      await _vidTrack.applyConstraints({ advanced: [{ torch: _torchOn }] });
+      const btn = document.getElementById('scan-torch-btn');
+      if (btn) {
+        btn.style.background = _torchOn
+          ? 'rgba(232,160,32,.75)'   // amber glow when on
+          : 'rgba(255,255,255,.2)';
+        btn.title = _torchOn ? 'Flash ON — tap to turn off' : 'Toggle flash';
+      }
+    } catch(e) {
+      _torchOn = !_torchOn; // revert if applyConstraints fails
+    }
+  });
+
   document.getElementById('scan-manual-btn').addEventListener('click', () => {
     closeScanner();
     setTimeout(() => {
