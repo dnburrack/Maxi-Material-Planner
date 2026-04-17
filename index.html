@@ -429,6 +429,20 @@
     .net-pos{color:var(--nr);font-weight:700;font-family:var(--mono)}
     .net-zero{color:var(--rot);font-weight:700;font-family:var(--mono)}
     .net-neg{color:var(--danger);font-weight:700;font-family:var(--mono)}
+
+    /* ── STANDALONE RETURNS SECTION ── */
+    .ret-standalone-section{margin-top:24px;border-top:2px solid rgba(220,38,38,.25);padding-top:18px}
+    .ret-standalone-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .ret-standalone-title{font-size:11px;font-weight:800;text-transform:uppercase;
+      letter-spacing:.08em;color:var(--danger)}
+    .ret-standalone-sub{font-size:12px;color:var(--text2);margin-top:2px}
+    .add-ret-row-btn{background:var(--danger);color:#fff;border:none;
+      border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;
+      cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px}
+    .add-ret-row-btn:active{opacity:.8}
+    .ret-row-card{background:var(--surface);border-radius:var(--radius);
+      padding:14px 15px;margin-bottom:10px;box-shadow:var(--shadow);
+      border:1.5px solid var(--danger);}
   </style>
 </head>
 <body>
@@ -437,7 +451,7 @@
 <div id="vh" class="view active">
   <div class="header">
     <div class="htxt"><h1>MaxPlan</h1><div class="hsub">Maximo Work Order Material Planner</div></div>
-    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:18px;">📋</button>
+    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.2.13</button>
   </div>
   <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button onclick="location.reload(true)">Update</button></div>
   <div id="ib"><p>Install MaxPlan for offline access on your phone.</p><button id="bi">Install</button></div>
@@ -479,7 +493,21 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.2.12</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.2.13</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li><strong>Version history button</strong> in the home screen header now displays the current version number (<code>v1.2.13</code>) as text instead of the 📋 checklist icon</li>
+        <li><strong>Standalone Returns section</strong> — the Actual tab now has a dedicated <strong>↩ Returns to Storeroom</strong> section at the bottom, always visible regardless of what is planned. Tap <strong>+ New Return Row</strong> to record any item being returned</li>
+        <li>Each return row accepts: <strong>Item Number</strong>, <strong>Storeroom</strong>, <strong>Qty to Return</strong>, <strong>Location</strong>, <strong>Asset Number</strong> (with barcode scan button), and <strong>Return Date</strong> (auto-stamps when quantity is first entered)</li>
+        <li>Returns are independent of planned items — any item number and storeroom can be entered freely, whether or not it appears in the Plan tab</li>
+        <li>Return rows highlight in red once an item number and quantity are filled in</li>
+        <li>Returns are summarised in the <strong>Summary tab</strong> under a dedicated ↩ Returns section showing item, storeroom, qty, location, asset, and return date per row</li>
+        <li>Returns are included in the <strong>clipboard export</strong> under a RETURNS TO STOREROOM section</li>
+        <li>All v1.2.12 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.2.12</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Returns for non-rotating items</strong> — each NR actual card now has a dashed ↩ Returns section below the issue lines. Return lines have the same fields as issue lines (Qty to Return, Location of Work, Asset Number with WO inheritance, Return Date auto-stamp). A live <strong>Net on-hand</strong> counter (Issued − Returned) updates in real time. Return line asset fields also have a scan button</li>
         <li><strong>Torch / flash toggle</strong> — a 🔦 button now appears in the scanner header during Live Mode on devices where the camera supports torch. Tap to turn the flash on (button glows amber); tap again to turn it off. Flash automatically turns off when the scanner closes</li>
@@ -854,8 +882,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.2.12';
-const KEY     = 'maxplan_v1212';
+const APP_VER = '1.2.13';
+const KEY     = 'maxplan_v1213';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -958,6 +986,128 @@ function nrTotal(wo, iid) {
   const a = (wo.actuals || {})[iid];
   if (!a || !a.issueLines) return 0;
   return a.issueLines.reduce((s, l) => s + (parseInt(l.qty) || 0), 0);
+}
+
+// ── STANDALONE RETURNS (WO-level, not per-item) ──
+// Each row: {id, itemNumber, storeroom, qty, loc, woAsset, dt}
+function getStandaloneReturns(wo) {
+  if (!wo.standaloneReturns) wo.standaloneReturns = [];
+  return wo.standaloneReturns;
+}
+
+function addStandaloneReturn() {
+  const wo = CWO(); if (!wo) return;
+  if (!wo.standaloneReturns) wo.standaloneReturns = [];
+  const row = { id: uid(), itemNumber: '', storeroom: '', qty: '', loc: '', woAsset: '', dt: '' };
+  wo.standaloneReturns.push(row);
+  save();
+  reRenderRetRows(wo);
+  // Scroll to the new row
+  setTimeout(() => {
+    const cont = $('ret-rows-container');
+    if (cont) { const last = cont.lastElementChild; if(last) last.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+  }, 100);
+}
+
+function rmStandaloneReturn(rid) {
+  const wo = CWO(); if (!wo || !wo.standaloneReturns) return;
+  wo.standaloneReturns = wo.standaloneReturns.filter(r => r.id !== rid);
+  save();
+  reRenderRetRows(wo);
+}
+
+function retRowIn(inp) {
+  const wo = CWO(); if (!wo || !wo.standaloneReturns) return;
+  const rid = inp.dataset.r, f = inp.dataset.f, v = inp.value;
+  const row = wo.standaloneReturns.find(r => r.id === rid); if (!row) return;
+  // Auto-stamp return date on first qty entry
+  if (f === 'qty' && v && parseInt(v) > 0 && !row.dt) {
+    row.dt = now();
+    const el = document.querySelector(`[data-r="${rid}"][data-f="dt"]`);
+    if (el && !el.value) el.value = row.dt;
+  }
+  row[f] = v; save();
+  // Update row styling
+  const card = $(`retrow-${rid}`);
+  if (card) {
+    const filled = !!(row.itemNumber.trim() && row.qty && parseInt(row.qty) > 0);
+    const lbl = card.querySelector('.ret-lbl'); if (lbl) lbl.classList.toggle('filled', filled);
+    card.style.borderColor = filled ? 'var(--danger)' : 'var(--border)';
+    card.style.background  = filled ? 'var(--danger-bg)' : 'var(--surface)';
+  }
+}
+
+function reRenderRetRows(wo) {
+  const cont = $('ret-rows-container'); if (!cont) return;
+  const rows = wo.standaloneReturns || [];
+  if (rows.length === 0) {
+    cont.innerHTML = `<div style="font-size:13px;color:var(--text2);text-align:center;padding:18px 0;border:1.5px dashed var(--border);border-radius:var(--radius-sm);">No returns recorded yet. Tap <strong>+ New Return Row</strong> to add one.</div>`;
+  } else {
+    cont.innerHTML = rows.map((r,i) => standaloneRetRowHtml(r, i, rows.length)).join('');
+  }
+}
+
+function standaloneRetRowHtml(row, idx, tot) {
+  const filled = !!(row.itemNumber && row.itemNumber.trim() && row.qty && parseInt(row.qty) > 0);
+  return `<div class="ret-row-card" id="retrow-${row.id}"
+    style="border-color:${filled?'var(--danger)':'var(--border)'};background:${filled?'var(--danger-bg)':'var(--surface)'}">
+    <div class="il-head">
+      <span class="ret-lbl${filled?' filled':''}">↩ Return Row ${idx+1}</span>
+      <button class="il-rm" onclick="rmStandaloneReturn('${row.id}')" title="Remove">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div class="sf">
+        <span class="sf-l">Item Number *</span>
+        <input class="sf-i mono" type="text" placeholder="e.g. I27317"
+          value="${esc(row.itemNumber)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+          data-r="${row.id}" data-f="itemNumber" oninput="retRowIn(this)">
+      </div>
+      <div class="sf">
+        <span class="sf-l">Storeroom *</span>
+        <input class="sf-i mono" type="text" placeholder="e.g. ST050"
+          value="${esc(row.storeroom)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+          data-r="${row.id}" data-f="storeroom" oninput="retRowIn(this)">
+      </div>
+    </div>
+    <div class="il-grid">
+      <div class="sf">
+        <span class="sf-l">Qty to Return *</span>
+        <input class="sf-i" type="number" min="0" inputmode="numeric"
+          value="${esc(String(row.qty))}" placeholder="0"
+          data-r="${row.id}" data-f="qty" oninput="retRowIn(this)">
+      </div>
+      <div class="sf">
+        <span class="sf-l">Location</span>
+        <input class="sf-i" type="text" placeholder="Return location"
+          value="${esc(row.loc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+          data-r="${row.id}" data-f="loc" oninput="retRowIn(this)">
+      </div>
+    </div>
+    <div class="sf" style="margin-top:8px">
+      <span class="sf-l">Asset Number</span>
+      <div class="scan-wrap" style="margin-top:0;">
+        <input class="sf-i" type="text" placeholder="e.g. A58817"
+          value="${esc(row.woAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+          data-r="${row.id}" data-f="woAsset" oninput="retRowIn(this)">
+        <button class="scan-btn" style="width:38px;height:38px;flex-shrink:0;"
+          onclick="window.openScanner&&window.openScanner('__sret_${row.id}_woAsset')"
+          title="Scan barcode" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+            <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+            <line x1="7" y1="8" x2="7" y2="16"/><line x1="10" y1="8" x2="10" y2="16"/>
+            <line x1="13" y1="8" x2="13" y2="16"/><line x1="16.5" y1="8" x2="16.5" y2="16"/>
+            <line x1="19" y1="8" x2="19" y2="16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="sf" style="margin-top:8px">
+      <span class="sf-l">Return Date</span>
+      <input class="sf-i di" type="text" placeholder="Auto-fills on entry — or type manually"
+        value="${esc(row.dt)}" data-r="${row.id}" data-f="dt" oninput="retRowIn(this)">
+    </div>
+  </div>`;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1117,27 +1267,23 @@ function renderPlan() {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderActual() {
   const wo = CWO(); const el = $('wc'); const items = wo.planItems || [];
-  if (!items.length) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">✅</div>
-      <h3>No Items</h3><p>Add planned items first.</p></div>`; return;
-  }
   const nr  = items.filter(i => i.type === 'non-rotating');
   const rot = items.filter(i => i.type === 'rotating');
   let html  = '';
+
+  if (!items.length) {
+    html = `<div class="empty"><div class="empty-icon">✅</div>
+      <h3>No Planned Items</h3><p>Add planned items in the Plan tab first, or use the Returns section below to record any items returned to the storeroom.</p></div>`;
+  }
 
   // ── NON-ROTATING ──
   if (nr.length) {
     html += `<div class="section-block"><div class="list-label">Non-Rotating Actuals (${nr.length})</div>`;
     nr.forEach(item => {
-      const lines    = getNRL(wo, item);
-      const retLines = getReturnLines(wo, item);
-      const issTot   = nrIssueTotal(wo, item.id);
-      const retTot   = nrReturnTotal(wo, item.id);
-      const net      = issTot - retTot;
-      const netCls   = net > 0 ? 'net-pos' : (net === 0 && issTot > 0) ? 'net-zero' : net < 0 ? 'net-neg' : '';
-      const tot      = issTot;   // alias for existing progress bar code
-      const rem      = item.plannedQty - tot;
-      const pct      = item.plannedQty > 0 ? Math.min(100, Math.round((tot/item.plannedQty)*100)) : 0;
+      const lines = getNRL(wo, item);
+      const tot   = nrIssueTotal(wo, item.id);
+      const rem   = item.plannedQty - tot;
+      const pct   = item.plannedQty > 0 ? Math.min(100, Math.round((tot/item.plannedQty)*100)) : 0;
       html += `<div class="actual-card">
         <div class="ich" style="margin-bottom:9px">
           <span class="badge badge-nr">Non-Rotating</span>
@@ -1158,22 +1304,9 @@ function renderActual() {
           </div>
         </div>
         <div id="il${item.id}">${lines.map((l,i) => nrLineHtml(item.id,l,i,lines.length)).join('')}</div>
-        <div class="rem-bar${rem<=0?' done-bar':''}\" id=\"rb${item.id}\">
+        <div class="rem-bar${rem<=0?' done-bar':''}" id="rb${item.id}">
           <span>${rem<=0 ? '✓ All units accounted for' : `${rem} of ${item.plannedQty} remaining`}</span>
           ${rem>0 ? `<button class="add-line-btn" onclick="addLine('${item.id}')">+ Add Issue Line</button>` : ''}
-        </div>
-
-        <!-- ── RETURNS SECTION ── -->
-        <div class="ret-section">
-          <div class="ret-header">
-            <span class="ret-title">↩ Returns</span>
-            <button class="add-ret-btn" onclick="addRetLine('${item.id}')">+ Add Return Line</button>
-          </div>
-          <div id="rl${item.id}">${retLines.map((l,i) => nrRetLineHtml(item.id,l,i,retLines.length)).join('')}</div>
-          ${(issTot > 0 || retTot > 0) ? `<div class="net-bar">
-            <span style="color:var(--text2)">Net on hand (issued \u2212 returned)</span>
-            <span id="nb${item.id}" class="${netCls}">${net}</span>
-          </div>` : ''}
         </div>
       </div>`;
     });
@@ -1212,7 +1345,25 @@ function renderActual() {
     html += `</div>`;
   }
 
-  save(); // persist slot/line initialisation
+  // ── STANDALONE RETURNS SECTION ── always visible
+  const retRows = getStandaloneReturns(wo);
+  html += `<div class="ret-standalone-section">
+    <div class="ret-standalone-header">
+      <div>
+        <div class="ret-standalone-title">↩ Returns to Storeroom</div>
+        <div class="ret-standalone-sub">Record any items being returned — not linked to plan</div>
+      </div>
+      <button class="add-ret-row-btn" onclick="addStandaloneReturn()">+ New Return Row</button>
+    </div>
+    <div id="ret-rows-container">
+      ${retRows.length === 0
+        ? `<div style="font-size:13px;color:var(--text2);text-align:center;padding:18px 0;border:1.5px dashed var(--border);border-radius:var(--radius-sm);">No returns recorded yet. Tap <strong>+ New Return Row</strong> to add one.</div>`
+        : retRows.map((r,i) => standaloneRetRowHtml(r, i, retRows.length)).join('')
+      }
+    </div>
+  </div>`;
+
+  save();
   el.innerHTML = html;
 }
 
@@ -1651,6 +1802,29 @@ function renderSummary() {
 
   if(wo.longDescription)html+=`<div class="sum-sec"><div class="list-label">Long Description</div>
     <div class="notes-block">📝 ${esc(wo.longDescription)}</div></div>`;
+
+  // ── STANDALONE RETURNS SUMMARY ──
+  const retRows = (wo.standaloneReturns || []).filter(r => r.itemNumber && r.itemNumber.trim() && parseInt(r.qty) > 0);
+  if (retRows.length > 0) {
+    const retTotal = retRows.reduce((s,r) => s + (parseInt(r.qty)||0), 0);
+    html += `<div class="sum-sec"><div class="list-label">↩ Returns to Storeroom (${retRows.length} row${retRows.length!==1?'s':''} · ${retTotal} total units)</div>`;
+    retRows.forEach((r, idx) => {
+      html += `<div class="sum-item" style="border-left:3px solid var(--danger)">
+        <div class="sum-ih">
+          <span class="badge" style="background:var(--danger-bg);color:var(--danger)">Return</span>
+          <span class="sin">${esc(r.itemNumber)}</span>
+          <span class="sp" style="background:var(--danger-bg);color:var(--danger)">↩ Returned</span>
+        </div>
+        <div class="sum-row"><span>Storeroom</span><strong>${esc(r.storeroom)||'—'}</strong></div>
+        <div class="sum-row"><span>Qty Returned</span><strong>${esc(String(r.qty))}</strong></div>
+        ${r.loc    ? `<div class="sum-row"><span>Location</span><strong>${esc(r.loc)}</strong></div>` : ''}
+        ${r.woAsset? `<div class="sum-row"><span>Asset Number</span><strong>${esc(r.woAsset)}</strong></div>` : ''}
+        ${r.dt     ? `<div class="sum-row"><span>Return Date</span><strong style="font-family:inherit;font-size:12px">${esc(r.dt)}</strong></div>` : ''}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
   el.innerHTML=html;
   $('exb').addEventListener('click', doExport);
 }
@@ -1701,6 +1875,22 @@ function doExport(){
       L.push(d);
     }); L.push('');
   });
+
+  L.push('============================');
+
+  // Standalone returns
+  const retRows = (wo.standaloneReturns || []).filter(r => r.itemNumber && r.itemNumber.trim() && parseInt(r.qty) > 0);
+  if (retRows.length > 0) {
+    L.push('', '── RETURNS TO STOREROOM ──');
+    retRows.forEach((r, i) => {
+      let d = `   Return ${i+1}    : ${r.itemNumber} · Storeroom: ${r.storeroom||'—'} · Qty: ${r.qty}`;
+      if (r.loc)     d += ` · Loc: ${r.loc}`;
+      if (r.woAsset) d += ` · Asset: ${r.woAsset}`;
+      if (r.dt)      d += ` · Date: ${r.dt}`;
+      L.push(d);
+    });
+    L.push('');
+  }
 
   L.push('============================');
   const txt=L.join('\n');
@@ -2518,6 +2708,24 @@ document.addEventListener('DOMContentLoaded', () => {
       const field = parts[5];
       const inp = document.querySelector(
         `input[data-i="${iid}"][data-l="${lid}"][data-f="${field}"]`
+      );
+      if (inp) {
+        inp.value = upper;
+        inp.dispatchEvent(new Event('input', { bubbles: true }));
+        inp.classList.remove('err');
+      }
+      closeScanner();
+      return;
+    }
+
+    if (id && id.startsWith('__sret_')) {
+      // Virtual ID for standalone return row: __sret_{rid}_{field}
+      const parts = id.split('_');
+      // parts: ['', '', 'sret', rid, field]
+      const rid   = parts[3];
+      const field = parts[4];
+      const inp = document.querySelector(
+        `input[data-r="${rid}"][data-f="${field}"]`
       );
       if (inp) {
         inp.value = upper;

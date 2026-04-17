@@ -1,1 +1,5 @@
-{"version":"1.2.12","date":"2026-04-14","notes":"NR returns with net bar, scanner torch toggle, version pill removed from footer"}
+{
+  "version": "1.2.13",
+  "date": "2026-04-05",
+  "notes": "Standalone returns section, version button shows version number"
+}
