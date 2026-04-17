@@ -1,5 +1,5 @@
 {
-  "version": "1.2.13",
+  "version": "1.2.14",
   "date": "2026-04-05",
-  "notes": "Standalone returns section, version button shows version number"
+  "notes": "Return rows auto-inherit WO location and asset number"
 }

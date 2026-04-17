@@ -74,6 +74,13 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 
 ## Version History
 
+### v1.2.14 — April Week 2 2026
+- New return rows in the **↩ Returns to Storeroom** section now automatically pre-fill **Location** and **Asset Number** from the Work Order details (if set)
+- This applies whether WO-level Location and Asset were set at creation time or added later via Edit Work Order — any new return row always picks up the current WO values at the moment it is created
+- Pre-filled fields are visually marked **(from WO)** in purple, matching the inheritance styling used on issue lines throughout the app
+- Fields remain fully editable — the WO values are a starting point, not a lock
+- All v1.2.13 features retained
+
 ### v1.2.13 — April Week 2 2026
 - **Version history button** in the home screen header now shows the current version number (`v1.2.13`) as text instead of the 📋 checklist icon
 - **Standalone Returns section** — the Actual tab now has a dedicated **↩ Returns to Storeroom** section at the bottom, always visible regardless of what is planned

@@ -451,7 +451,7 @@
 <div id="vh" class="view active">
   <div class="header">
     <div class="htxt"><h1>MaxPlan</h1><div class="hsub">Maximo Work Order Material Planner</div></div>
-    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.2.13</button>
+    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.2.14</button>
   </div>
   <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button onclick="location.reload(true)">Update</button></div>
   <div id="ib"><p>Install MaxPlan for offline access on your phone.</p><button id="bi">Install</button></div>
@@ -493,7 +493,18 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.2.13</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.2.14</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li>New return rows in the <strong>↩ Returns to Storeroom</strong> section now automatically pre-fill <strong>Location</strong> and <strong>Asset Number</strong> from the Work Order details (if set)</li>
+        <li>This applies whether the WO-level Location and Asset were set at creation time or added later via Edit Work Order — any new return row will always pick up the current WO values at the moment it is created</li>
+        <li>Pre-filled fields are visually marked <strong>(from WO)</strong> in purple, matching the same inheritance styling used on issue lines throughout the app</li>
+        <li>Fields remain fully editable — the WO values are a starting point, not a lock</li>
+        <li>All v1.2.13 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.2.13</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Version history button</strong> in the home screen header now displays the current version number (<code>v1.2.13</code>) as text instead of the 📋 checklist icon</li>
         <li><strong>Standalone Returns section</strong> — the Actual tab now has a dedicated <strong>↩ Returns to Storeroom</strong> section at the bottom, always visible regardless of what is planned. Tap <strong>+ New Return Row</strong> to record any item being returned</li>
@@ -882,8 +893,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.2.13';
-const KEY     = 'maxplan_v1213';
+const APP_VER = '1.2.14';
+const KEY     = 'maxplan_v1214';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -998,7 +1009,16 @@ function getStandaloneReturns(wo) {
 function addStandaloneReturn() {
   const wo = CWO(); if (!wo) return;
   if (!wo.standaloneReturns) wo.standaloneReturns = [];
-  const row = { id: uid(), itemNumber: '', storeroom: '', qty: '', loc: '', woAsset: '', dt: '' };
+  // Pre-fill location and asset from WO-level details if set
+  const row = {
+    id: uid(),
+    itemNumber: '',
+    storeroom:  '',
+    qty:        '',
+    loc:        wo.location    || '',
+    woAsset:    wo.assetNumber || '',
+    dt:         ''
+  };
   wo.standaloneReturns.push(row);
   save();
   reRenderRetRows(wo);
@@ -1048,7 +1068,10 @@ function reRenderRetRows(wo) {
 }
 
 function standaloneRetRowHtml(row, idx, tot) {
-  const filled = !!(row.itemNumber && row.itemNumber.trim() && row.qty && parseInt(row.qty) > 0);
+  const wo = CWO();
+  const filled   = !!(row.itemNumber && row.itemNumber.trim() && row.qty && parseInt(row.qty) > 0);
+  const locInh   = !!(wo && wo.location    && row.loc     === wo.location);
+  const assetInh = !!(wo && wo.assetNumber && row.woAsset === wo.assetNumber);
   return `<div class="ret-row-card" id="retrow-${row.id}"
     style="border-color:${filled?'var(--danger)':'var(--border)'};background:${filled?'var(--danger-bg)':'var(--surface)'}">
     <div class="il-head">
@@ -1077,16 +1100,16 @@ function standaloneRetRowHtml(row, idx, tot) {
           data-r="${row.id}" data-f="qty" oninput="retRowIn(this)">
       </div>
       <div class="sf">
-        <span class="sf-l">Location</span>
-        <input class="sf-i" type="text" placeholder="Return location"
+        <span class="sf-l${locInh?' inh':''}">Location${locInh?' (from WO)':''}</span>
+        <input class="sf-i${locInh?' inh-val':''}" type="text" placeholder="Return location"
           value="${esc(row.loc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
           data-r="${row.id}" data-f="loc" oninput="retRowIn(this)">
       </div>
     </div>
     <div class="sf" style="margin-top:8px">
-      <span class="sf-l">Asset Number</span>
+      <span class="sf-l${assetInh?' inh':''}">Asset Number${assetInh?' (from WO)':''}</span>
       <div class="scan-wrap" style="margin-top:0;">
-        <input class="sf-i" type="text" placeholder="e.g. A58817"
+        <input class="sf-i${assetInh?' inh-val':''}" type="text" placeholder="e.g. A58817"
           value="${esc(row.woAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
           data-r="${row.id}" data-f="woAsset" oninput="retRowIn(this)">
         <button class="scan-btn" style="width:38px;height:38px;flex-shrink:0;"
