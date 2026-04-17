@@ -74,6 +74,13 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 
 ## Version History
 
+### v1.2.15 — April Week 2 2026
+- Barcode scan button added next to the **Item Number** field in each return row in the Actual tab — allows scanning the item number of the item being returned, consistent with the Plan tab
+- **Long Description removed** from the Summary tab — it is no longer shown there
+- **Summary tab layout clarified** — issued and returned items are now separated by clearly labelled colour-coded section dividers: a blue **⬆ Issued Items** banner and a red **↩ Returned Items** banner
+- Section sub-labels simplified: **Non-Rotating** and **Rotating** under Issued Items; return count and total units under Returned Items
+- All v1.2.14 features retained
+
 ### v1.2.14 — April Week 2 2026
 - New return rows in the **↩ Returns to Storeroom** section now automatically pre-fill **Location** and **Asset Number** from the Work Order details (if set)
 - This applies whether WO-level Location and Asset were set at creation time or added later via Edit Work Order — any new return row always picks up the current WO values at the moment it is created

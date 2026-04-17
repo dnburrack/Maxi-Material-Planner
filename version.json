@@ -1,5 +1,5 @@
 {
-  "version": "1.2.14",
+  "version": "1.2.15",
   "date": "2026-04-05",
-  "notes": "Return rows auto-inherit WO location and asset number"
+  "notes": "Scan button on return item number, summary section clarity, long description removed from summary"
 }

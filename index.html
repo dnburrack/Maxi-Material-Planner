@@ -451,7 +451,7 @@
 <div id="vh" class="view active">
   <div class="header">
     <div class="htxt"><h1>MaxPlan</h1><div class="hsub">Maximo Work Order Material Planner</div></div>
-    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.2.14</button>
+    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.2.15</button>
   </div>
   <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button onclick="location.reload(true)">Update</button></div>
   <div id="ib"><p>Install MaxPlan for offline access on your phone.</p><button id="bi">Install</button></div>
@@ -493,7 +493,18 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.2.14</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.2.15</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li>Barcode scan button added next to the <strong>Item Number</strong> field in each return row in the Actual tab — allows scanning the item number of the item being returned, consistent with the Plan tab</li>
+        <li><strong>Long Description removed</strong> from the Summary tab — it is no longer shown there</li>
+        <li><strong>Summary tab layout clarified</strong> — issued items and returned items are now separated by clearly labelled colour-coded section dividers: a blue <strong>⬆ Issued Items</strong> banner for non-rotating and rotating issue records, and a red <strong>↩ Returned Items</strong> banner for return rows</li>
+        <li>Section sub-labels simplified: <strong>Non-Rotating</strong> and <strong>Rotating</strong> under Issued Items; return count and total units under Returned Items</li>
+        <li>All v1.2.14 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.2.14</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li>New return rows in the <strong>↩ Returns to Storeroom</strong> section now automatically pre-fill <strong>Location</strong> and <strong>Asset Number</strong> from the Work Order details (if set)</li>
         <li>This applies whether the WO-level Location and Asset were set at creation time or added later via Edit Work Order — any new return row will always pick up the current WO values at the moment it is created</li>
@@ -893,8 +904,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.2.14';
-const KEY     = 'maxplan_v1214';
+const APP_VER = '1.2.15';
+const KEY     = 'maxplan_v1215';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1081,9 +1092,22 @@ function standaloneRetRowHtml(row, idx, tot) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
       <div class="sf">
         <span class="sf-l">Item Number *</span>
-        <input class="sf-i mono" type="text" placeholder="e.g. I27317"
-          value="${esc(row.itemNumber)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
-          data-r="${row.id}" data-f="itemNumber" oninput="retRowIn(this)">
+        <div class="scan-wrap" style="margin-top:0;">
+          <input class="sf-i mono" type="text" placeholder="e.g. I27317"
+            value="${esc(row.itemNumber)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+            data-r="${row.id}" data-f="itemNumber" oninput="retRowIn(this)">
+          <button class="scan-btn" style="width:38px;height:38px;flex-shrink:0;"
+            onclick="window.openScanner&&window.openScanner('__sret_${row.id}_itemNumber')"
+            title="Scan item number barcode" type="button">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+              <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+              <line x1="7" y1="8" x2="7" y2="16"/><line x1="10" y1="8" x2="10" y2="16"/>
+              <line x1="13" y1="8" x2="13" y2="16"/><line x1="16.5" y1="8" x2="16.5" y2="16"/>
+              <line x1="19" y1="8" x2="19" y2="16"/>
+            </svg>
+          </button>
+        </div>
       </div>
       <div class="sf">
         <span class="sf-l">Storeroom *</span>
@@ -1760,8 +1784,17 @@ function renderSummary() {
   <div class="copy-ok" id="cok">✓ Copied!</div>`;
 
   // Item sections — only shown if items exist
+  if (nr.length || rot.length) {
+    html += `<div style="display:flex;align-items:center;gap:10px;margin:4px 0 14px">
+      <div style="background:var(--nr-bg);border:1px solid rgba(37,99,235,.2);border-radius:20px;
+        padding:5px 14px;font-size:11px;font-weight:800;text-transform:uppercase;
+        letter-spacing:.07em;color:var(--nr);flex-shrink:0">⬆ Issued Items</div>
+      <div style="flex:1;height:2px;background:linear-gradient(to right,rgba(37,99,235,.2),transparent)"></div>
+    </div>`;
+  }
+
   if(nr.length){
-    html+=`<div class="sum-sec"><div class="list-label">Non-Rotating Items</div>`;
+    html+=`<div class="sum-sec"><div class="list-label">Non-Rotating</div>`;
     nr.forEach(item=>{
       const a=(wo.actuals||{})[item.id]||{};
       const ils=(a.issueLines||[]).filter(l=>parseInt(l.qty)>0);
@@ -1788,7 +1821,7 @@ function renderSummary() {
   }
 
   if(rot.length){
-    html+=`<div class="sum-sec"><div class="list-label">Rotating Items</div>`;
+    html+=`<div class="sum-sec"><div class="list-label">Rotating</div>`;
     rot.forEach(item=>{
       const a=(wo.actuals||{})[item.id]||{};
       const slots=a.slots||[];
@@ -1823,14 +1856,17 @@ function renderSummary() {
     </div>`;
   }
 
-  if(wo.longDescription)html+=`<div class="sum-sec"><div class="list-label">Long Description</div>
-    <div class="notes-block">📝 ${esc(wo.longDescription)}</div></div>`;
-
-  // ── STANDALONE RETURNS SUMMARY ──
+  // ── RETURNED ITEMS SECTION ──
   const retRows = (wo.standaloneReturns || []).filter(r => r.itemNumber && r.itemNumber.trim() && parseInt(r.qty) > 0);
   if (retRows.length > 0) {
     const retTotal = retRows.reduce((s,r) => s + (parseInt(r.qty)||0), 0);
-    html += `<div class="sum-sec"><div class="list-label">↩ Returns to Storeroom (${retRows.length} row${retRows.length!==1?'s':''} · ${retTotal} total units)</div>`;
+    html += `<div style="display:flex;align-items:center;gap:10px;margin:22px 0 14px">
+      <div style="background:var(--danger-bg);border:1px solid rgba(220,38,38,.2);border-radius:20px;
+        padding:5px 14px;font-size:11px;font-weight:800;text-transform:uppercase;
+        letter-spacing:.07em;color:var(--danger);flex-shrink:0">↩ Returned Items</div>
+      <div style="flex:1;height:2px;background:linear-gradient(to right,rgba(220,38,38,.2),transparent)"></div>
+    </div>
+    <div class="sum-sec"><div class="list-label">${retRows.length} return row${retRows.length!==1?'s':''} · ${retTotal} total unit${retTotal!==1?'s':''} returned</div>`;
     retRows.forEach((r, idx) => {
       html += `<div class="sum-item" style="border-left:3px solid var(--danger)">
         <div class="sum-ih">
