@@ -443,6 +443,41 @@
     .ret-row-card{background:var(--surface);border-radius:var(--radius);
       padding:14px 15px;margin-bottom:10px;box-shadow:var(--shadow);
       border:1.5px solid var(--danger);}
+
+    /* ── MOVE / SWAP TAB ── */
+    --move:#7C3AED; --move-bg:#F5F3FF;
+    .move-add-btn{background:var(--wo);color:#fff;border:none;border-radius:8px;
+      padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;
+      font-family:inherit;display:flex;align-items:center;gap:6px}
+    .move-add-btn:active{opacity:.8}
+    .move-card{background:var(--surface);border-radius:var(--radius);
+      padding:14px 15px;margin-bottom:12px;box-shadow:var(--shadow);
+      border:1.5px solid var(--border);transition:border-color .2s}
+    .move-card.executed{border-color:var(--wo);background:var(--wo-bg)}
+    .move-card.planned{border-color:var(--accent);background:#FFFDF5}
+    .move-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .move-row-lbl{font-size:11px;font-weight:800;text-transform:uppercase;
+      letter-spacing:.07em;color:var(--text2)}
+    .move-row-lbl.executed{color:var(--wo)}
+    .move-row-lbl.planned{color:var(--accent)}
+    .move-fields{display:flex;flex-direction:column;gap:8px}
+    .move-loc-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .exec-stamp{font-size:11px;color:var(--wo);font-weight:600;
+      margin-top:8px;padding:6px 10px;background:var(--wo-bg);
+      border-radius:8px;border:1px solid rgba(124,58,237,.2);
+      display:flex;align-items:center;gap:6px}
+    .exec-btn{background:var(--wo);color:#fff;border:none;border-radius:8px;
+      padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;
+      font-family:inherit;margin-top:10px;width:100%;
+      display:flex;align-items:center;justify-content:center;gap:6px;
+      transition:opacity .15s}
+    .exec-btn:active{opacity:.8}
+    .exec-btn:disabled{opacity:.4;cursor:not-allowed}
+    .move-arrow{display:flex;align-items:center;justify-content:center;
+      color:var(--text2);font-size:18px;padding:4px 0;opacity:.5}
+    .move-section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .move-section-title{font-size:11px;font-weight:800;text-transform:uppercase;
+      letter-spacing:.08em;color:var(--wo)}
   </style>
 </head>
 <body>
@@ -451,7 +486,7 @@
 <div id="vh" class="view active">
   <div class="header">
     <div class="htxt"><h1>MaxPlan</h1><div class="hsub">Maximo Work Order Material Planner</div></div>
-    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.2.15</button>
+    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.3</button>
   </div>
   <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button onclick="location.reload(true)">Update</button></div>
   <div id="ib"><p>Install MaxPlan for offline access on your phone.</p><button id="bi">Install</button></div>
@@ -476,6 +511,7 @@
     </div>
   </div>
   <div class="tabs">
+    <button class="tab" data-tab="move">🔀 Move</button>
     <button class="tab active" data-tab="plan">📋 Plan</button>
     <button class="tab" data-tab="actual">✅ Actual</button>
     <button class="tab" data-tab="summary">📊 Summary</button>
@@ -493,7 +529,21 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.2.15</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.3</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li>New <strong>🔀 Move tab</strong> added as the first tab in every work order — before Plan, Actual, and Summary</li>
+        <li>Each move row has: <strong>Rotating Asset Number</strong> (with barcode scan button), <strong>Current Location</strong>, and <strong>New Location</strong> — shown side by side for quick comparison</li>
+        <li>Rows can be <strong>planned</strong> (all fields filled, no timestamp) or <strong>executed</strong> — tapping <strong>⚡ Execute Now</strong> stamps the exact date and time the move took place</li>
+        <li>Executed rows lock the timestamp and display it permanently; the Execute button is replaced by a green confirmation stamp</li>
+        <li>Adding a new row never affects the timestamps of existing rows — each row's execution time is independent</li>
+        <li>Asset movements appear in the <strong>Summary tab</strong> in a dedicated 🔀 Asset Movements section, positioned after Work Order Details and before Issued Items — showing asset number, from/to locations, and execution timestamp (or "Planned" if not yet executed)</li>
+        <li>Asset movements are included in the <strong>clipboard export</strong> under an ASSET MOVEMENTS section</li>
+        <li>All v1.2.15 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.2.15</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li>Barcode scan button added next to the <strong>Item Number</strong> field in each return row in the Actual tab — allows scanning the item number of the item being returned, consistent with the Plan tab</li>
         <li><strong>Long Description removed</strong> from the Summary tab — it is no longer shown there</li>
@@ -904,8 +954,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.2.15';
-const KEY     = 'maxplan_v1215';
+const APP_VER = '1.3';
+const KEY     = 'maxplan_v130';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1249,9 +1299,188 @@ function renderWO() {
   pill.className = 'sph ' + {APPR:'sph-appr', INPRG:'sph-inprg', COMP:'sph-comp'}[st];
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === S.ctab));
   $('fa').style.display = S.ctab === 'plan' ? 'flex' : 'none';
-  if      (S.ctab === 'plan')   renderPlan();
-  else if (S.ctab === 'actual') renderActual();
-  else                          renderSummary();
+  if      (S.ctab === 'move')    renderMove();
+  else if (S.ctab === 'plan')    renderPlan();
+  else if (S.ctab === 'actual')  renderActual();
+  else                           renderSummary();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// MOVE TAB — DATA HELPERS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Each move row: { id, assetNumber, fromLoc, toLoc, executedAt }
+// executedAt is null/'' until user hits "Execute Now"
+
+function getMoveRows(wo) {
+  if (!wo.assetMoves) wo.assetMoves = [];
+  return wo.assetMoves;
+}
+
+function addMoveRow() {
+  const wo = CWO(); if (!wo) return;
+  if (!wo.assetMoves) wo.assetMoves = [];
+  wo.assetMoves.push({ id: uid(), assetNumber: '', fromLoc: '', toLoc: '', executedAt: '' });
+  save();
+  reRenderMoveRows(wo);
+  setTimeout(() => {
+    const cont = $('move-rows-cont');
+    if (cont) { const last = cont.lastElementChild; if(last) last.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+  }, 100);
+}
+
+function rmMoveRow(rid) {
+  const wo = CWO(); if (!wo || !wo.assetMoves) return;
+  wo.assetMoves = wo.assetMoves.filter(r => r.id !== rid);
+  save();
+  reRenderMoveRows(wo);
+}
+
+function moveRowIn(inp) {
+  const wo = CWO(); if (!wo || !wo.assetMoves) return;
+  const rid = inp.dataset.r, f = inp.dataset.f, v = inp.value;
+  const row = wo.assetMoves.find(r => r.id === rid); if (!row) return;
+  row[f] = v; save();
+  // Update card visual state
+  refreshMoveCard(wo, row);
+}
+
+function executeMove(rid) {
+  const wo = CWO(); if (!wo || !wo.assetMoves) return;
+  const row = wo.assetMoves.find(r => r.id === rid); if (!row) return;
+  // Only stamp if not already executed
+  if (!row.executedAt) row.executedAt = now();
+  save();
+  // Re-render just this card
+  const card = $(`movecard-${rid}`);
+  if (card) {
+    const rows = wo.assetMoves;
+    const idx  = rows.findIndex(r => r.id === rid);
+    card.outerHTML = moveCardHtml(row, idx, rows.length);
+  }
+}
+
+function refreshMoveCard(wo, row) {
+  const card = $(`movecard-${row.id}`); if (!card) return;
+  const filled = !!(row.assetNumber.trim() && row.fromLoc.trim() && row.toLoc.trim());
+  const executed = !!row.executedAt;
+  card.className = `move-card ${executed ? 'executed' : (filled ? 'planned' : '')}`;
+  const lbl = card.querySelector('.move-row-lbl');
+  if (lbl) lbl.className = `move-row-lbl ${executed ? 'executed' : (filled ? 'planned' : '')}`;
+}
+
+function reRenderMoveRows(wo) {
+  const cont = $('move-rows-cont'); if (!cont) return;
+  const rows = wo.assetMoves || [];
+  if (!rows.length) {
+    cont.innerHTML = `<div style="font-size:13px;color:var(--text2);text-align:center;
+      padding:24px 0;border:1.5px dashed var(--border);border-radius:var(--radius-sm);">
+      No asset movements yet.<br>Tap <strong>+ Add Row</strong> to plan or execute a move.
+    </div>`;
+  } else {
+    cont.innerHTML = rows.map((r,i) => moveCardHtml(r, i, rows.length)).join('');
+  }
+}
+
+function moveCardHtml(row, idx, tot) {
+  const filled   = !!(row.assetNumber.trim() && row.fromLoc.trim() && row.toLoc.trim());
+  const executed = !!row.executedAt;
+  const stateClass = executed ? 'executed' : (filled ? 'planned' : '');
+  const lblClass   = executed ? 'executed' : (filled ? 'planned' : '');
+  const stateText  = executed ? '✓ Executed' : (filled ? '⏳ Planned' : 'Incomplete');
+  const scanBarBtn = (virtualId, title) => `
+    <button class="scan-btn" style="width:38px;height:38px;flex-shrink:0;"
+      onclick="window.openScanner&&window.openScanner('__mov_${row.id}_${virtualId}')"
+      title="${title}" type="button">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+        <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+        <line x1="7" y1="8" x2="7" y2="16"/><line x1="10" y1="8" x2="10" y2="16"/>
+        <line x1="13" y1="8" x2="13" y2="16"/><line x1="16.5" y1="8" x2="16.5" y2="16"/>
+        <line x1="19" y1="8" x2="19" y2="16"/>
+      </svg>
+    </button>`;
+  return `<div class="move-card ${stateClass}" id="movecard-${row.id}">
+    <div class="move-card-head">
+      <span class="move-row-lbl ${lblClass}">Asset Move ${idx+1} &nbsp;·&nbsp; ${stateText}</span>
+      <button class="il-rm" onclick="rmMoveRow('${row.id}')" title="Remove row">✕</button>
+    </div>
+    <div class="move-fields">
+      <div class="sf">
+        <span class="sf-l" style="color:var(--wo)">Rotating Asset Number</span>
+        <div class="scan-wrap" style="margin-top:0;">
+          <input class="sf-i mono" type="text" placeholder="e.g. EQ-00123"
+            value="${esc(row.assetNumber)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+            data-r="${row.id}" data-f="assetNumber" oninput="moveRowIn(this)">
+          ${scanBarBtn('assetNumber','Scan asset barcode')}
+        </div>
+      </div>
+      <div class="move-loc-row">
+        <div class="sf">
+          <span class="sf-l">Current Location</span>
+          <input class="sf-i" type="text" placeholder="From…"
+            value="${esc(row.fromLoc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+            data-r="${row.id}" data-f="fromLoc" oninput="moveRowIn(this)">
+        </div>
+        <div class="sf">
+          <span class="sf-l">New Location</span>
+          <input class="sf-i" type="text" placeholder="To…"
+            value="${esc(row.toLoc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+            data-r="${row.id}" data-f="toLoc" oninput="moveRowIn(this)">
+        </div>
+      </div>
+      <div class="move-arrow">↓</div>
+      ${executed
+        ? `<div class="exec-stamp">✓ &nbsp;Executed: ${esc(row.executedAt)}</div>`
+        : `<button class="exec-btn" onclick="executeMove('${row.id}')"
+            ${!filled ? 'disabled title="Fill in asset number, current and new location first"' : ''}>
+            ⚡ Execute Now — stamp time of move
+          </button>`
+      }
+    </div>
+  </div>`;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDER MOVE TAB
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderMove() {
+  const wo  = CWO();
+  const el  = $('wc');
+  const rows = getMoveRows(wo);
+
+  const execCount    = rows.filter(r => r.executedAt).length;
+  const plannedCount = rows.filter(r => !r.executedAt && r.assetNumber.trim()).length;
+
+  let html = `
+    <div style="background:var(--wo-bg);border:1px solid rgba(124,58,237,.2);
+      border-radius:var(--radius);padding:13px 15px;margin-bottom:18px">
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;
+        letter-spacing:.07em;color:var(--wo);margin-bottom:6px">🔀 Asset Move / Swap</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.6">
+        Plan or execute location changes for rotating assets.
+        Fill in the asset number and locations, then tap
+        <strong style="color:var(--wo)">⚡ Execute Now</strong> to record the exact time the move happened.
+        ${rows.length ? `<br><span style="color:var(--wo);font-weight:600">${execCount} executed · ${plannedCount} planned</span>` : ''}
+      </div>
+    </div>
+    <div class="move-section-hdr">
+      <span class="move-section-title">Asset Movements (${rows.length})</span>
+      <button class="move-add-btn" onclick="addMoveRow()">+ Add Row</button>
+    </div>
+    <div id="move-rows-cont">`;
+
+  if (!rows.length) {
+    html += `<div style="font-size:13px;color:var(--text2);text-align:center;
+      padding:24px 0;border:1.5px dashed var(--border);border-radius:var(--radius-sm);">
+      No asset movements yet.<br>Tap <strong>+ Add Row</strong> to plan or execute a move.
+    </div>`;
+  } else {
+    html += rows.map((r,i) => moveCardHtml(r, i, rows.length)).join('');
+  }
+
+  html += `</div>`;
+  save();
+  el.innerHTML = html;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1783,6 +2012,38 @@ function renderSummary() {
   <button class="export-btn" id="exb">📋 &nbsp;Copy Summary to Clipboard</button>
   <div class="copy-ok" id="cok">✓ Copied!</div>`;
 
+  // ── ASSET MOVEMENTS SUMMARY (after WO details, before issued items) ──
+  const moveRows = (wo.assetMoves || []).filter(r => r.assetNumber && r.assetNumber.trim());
+  if (moveRows.length > 0) {
+    const execMoves    = moveRows.filter(r => r.executedAt);
+    const plannedMoves = moveRows.filter(r => !r.executedAt);
+    html += `<div style="display:flex;align-items:center;gap:10px;margin:4px 0 14px">
+      <div style="background:var(--wo-bg);border:1px solid rgba(124,58,237,.2);border-radius:20px;
+        padding:5px 14px;font-size:11px;font-weight:800;text-transform:uppercase;
+        letter-spacing:.07em;color:var(--wo);flex-shrink:0">🔀 Asset Movements</div>
+      <div style="flex:1;height:2px;background:linear-gradient(to right,rgba(124,58,237,.2),transparent)"></div>
+    </div>
+    <div class="sum-sec">
+      <div class="list-label">${moveRows.length} row${moveRows.length!==1?'s':''} · ${execMoves.length} executed · ${plannedMoves.length} planned</div>`;
+    moveRows.forEach((r, idx) => {
+      const done = !!r.executedAt;
+      const filled = !!(r.assetNumber.trim() && r.fromLoc.trim() && r.toLoc.trim());
+      html += `<div class="sum-item" style="border-left:3px solid ${done?'var(--wo)':'var(--accent)'}">
+        <div class="sum-ih">
+          <span class="badge" style="background:var(--wo-bg);color:var(--wo)">🔀 Move</span>
+          <span class="sin">${esc(r.assetNumber)||'—'}</span>
+          <span class="sp" style="background:${done?'var(--wo-bg)':'var(--accent-lt)'};color:${done?'var(--wo)':'#92400E'}">
+            ${done ? '✓ Executed' : '⏳ Planned'}
+          </span>
+        </div>
+        ${r.fromLoc ? `<div class="sum-row"><span>From Location</span><strong>${esc(r.fromLoc)}</strong></div>` : ''}
+        ${r.toLoc   ? `<div class="sum-row"><span>To Location</span><strong>${esc(r.toLoc)}</strong></div>` : ''}
+        ${done      ? `<div class="sum-row"><span>Executed At</span><strong style="font-family:inherit;font-size:12px">${esc(r.executedAt)}</strong></div>` : ''}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
   // Item sections — only shown if items exist
   if (nr.length || rot.length) {
     html += `<div style="display:flex;align-items:center;gap:10px;margin:4px 0 14px">
@@ -1903,6 +2164,17 @@ function doExport(){
   if(wo.inprgDate)L.push(`In Progress: ${wo.inprgDate}`);
   if(wo.compDate) L.push(`Completed  : ${wo.compDate}`);
   L.push(`Exported   : ${now()}`,'');
+
+  // Asset movements
+  const expMoves = (wo.assetMoves || []).filter(r => r.assetNumber && r.assetNumber.trim());
+  if (expMoves.length > 0) {
+    L.push('── ASSET MOVEMENTS ──');
+    expMoves.forEach((r, i) => {
+      const status = r.executedAt ? `Executed: ${r.executedAt}` : 'Planned';
+      L.push(`   Move ${i+1}      : ${r.assetNumber} · From: ${r.fromLoc||'—'} → To: ${r.toLoc||'—'} · ${status}`);
+    });
+    L.push('');
+  }
 
   (wo.planItems||[]).filter(i=>i.type==='non-rotating').forEach(item=>{
     const a=(wo.actuals||{})[item.id]||{};
@@ -2781,6 +3053,24 @@ document.addEventListener('DOMContentLoaded', () => {
       // Virtual ID for standalone return row: __sret_{rid}_{field}
       const parts = id.split('_');
       // parts: ['', '', 'sret', rid, field]
+      const rid   = parts[3];
+      const field = parts[4];
+      const inp = document.querySelector(
+        `input[data-r="${rid}"][data-f="${field}"]`
+      );
+      if (inp) {
+        inp.value = upper;
+        inp.dispatchEvent(new Event('input', { bubbles: true }));
+        inp.classList.remove('err');
+      }
+      closeScanner();
+      return;
+    }
+
+    if (id && id.startsWith('__mov_')) {
+      // Virtual ID for asset move row: __mov_{rid}_{field}
+      const parts = id.split('_');
+      // parts: ['', '', 'mov', rid, field]
       const rid   = parts[3];
       const field = parts[4];
       const inp = document.querySelector(

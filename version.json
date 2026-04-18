@@ -1,5 +1,5 @@
 {
-  "version": "1.2.15",
+  "version": "1.3",
   "date": "2026-04-05",
-  "notes": "Scan button on return item number, summary section clarity, long description removed from summary"
+  "notes": "Asset Move/Swap tab with execute timestamp and summary integration"
 }

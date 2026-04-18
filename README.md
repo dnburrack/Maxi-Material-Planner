@@ -74,6 +74,16 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 
 ## Version History
 
+### v1.3 — April Week 2 2026
+- New **🔀 Move tab** added as the first tab in every work order — before Plan, Actual, and Summary
+- Each move row has: **Rotating Asset Number** (with barcode scan button), **Current Location**, and **New Location** shown side by side
+- Rows can be **planned** (fields filled, no timestamp) or **executed** — tapping **⚡ Execute Now** stamps the exact date and time the move took place
+- Executed rows lock permanently; the Execute button is replaced by a green confirmation stamp showing the exact time
+- Adding a new row never affects existing rows' timestamps — each is independent
+- Asset movements appear in the **Summary tab** in a 🔀 Asset Movements section, positioned after Work Order Details and before Issued Items
+- Asset movements included in the **clipboard export** under an ASSET MOVEMENTS section
+- All v1.2.15 features retained
+
 ### v1.2.15 — April Week 2 2026
 - Barcode scan button added next to the **Item Number** field in each return row in the Actual tab — allows scanning the item number of the item being returned, consistent with the Plan tab
 - **Long Description removed** from the Summary tab — it is no longer shown there
