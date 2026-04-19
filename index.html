@@ -461,7 +461,7 @@
     .move-row-lbl.executed{color:var(--wo)}
     .move-row-lbl.planned{color:var(--accent)}
     .move-fields{display:flex;flex-direction:column;gap:8px}
-    .move-loc-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .move-loc-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start}
     .exec-stamp{font-size:11px;color:var(--wo);font-weight:600;
       margin-top:8px;padding:6px 10px;background:var(--wo-bg);
       border-radius:8px;border:1px solid rgba(124,58,237,.2);
@@ -486,7 +486,7 @@
 <div id="vh" class="view active">
   <div class="header">
     <div class="htxt"><h1>MaxPlan</h1><div class="hsub">Maximo Work Order Material Planner</div></div>
-    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.3</button>
+    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.3.1</button>
   </div>
   <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button onclick="location.reload(true)">Update</button></div>
   <div id="ib"><p>Install MaxPlan for offline access on your phone.</p><button id="bi">Install</button></div>
@@ -529,7 +529,16 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.3</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.3.1</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li>Move tab: <strong>Current Location</strong> and <strong>New Location</strong> fields are now properly aligned on the same horizontal line — both labels and inputs sit flush at the same height</li>
+        <li>Clipboard export: asset movement rows are now separated by a blank line between each entry, making the exported text much easier to read at a glance</li>
+        <li>All v1.3 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.3</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li>New <strong>🔀 Move tab</strong> added as the first tab in every work order — before Plan, Actual, and Summary</li>
         <li>Each move row has: <strong>Rotating Asset Number</strong> (with barcode scan button), <strong>Current Location</strong>, and <strong>New Location</strong> — shown side by side for quick comparison</li>
@@ -954,8 +963,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.3';
-const KEY     = 'maxplan_v130';
+const APP_VER = '1.3.1';
+const KEY     = 'maxplan_v131';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1414,16 +1423,18 @@ function moveCardHtml(row, idx, tot) {
           ${scanBarBtn('assetNumber','Scan asset barcode')}
         </div>
       </div>
-      <div class="move-loc-row">
-        <div class="sf">
+      <div style="display:flex;flex-direction:row;gap:8px;align-items:flex-start;width:100%">
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;">
           <span class="sf-l">Current Location</span>
           <input class="sf-i" type="text" placeholder="From…"
+            style="width:100%;height:40px;box-sizing:border-box;"
             value="${esc(row.fromLoc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
             data-r="${row.id}" data-f="fromLoc" oninput="moveRowIn(this)">
         </div>
-        <div class="sf">
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;">
           <span class="sf-l">New Location</span>
           <input class="sf-i" type="text" placeholder="To…"
+            style="width:100%;height:40px;box-sizing:border-box;"
             value="${esc(row.toLoc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
             data-r="${row.id}" data-f="toLoc" oninput="moveRowIn(this)">
         </div>
@@ -2171,9 +2182,13 @@ function doExport(){
     L.push('── ASSET MOVEMENTS ──');
     expMoves.forEach((r, i) => {
       const status = r.executedAt ? `Executed: ${r.executedAt}` : 'Planned';
-      L.push(`   Move ${i+1}      : ${r.assetNumber} · From: ${r.fromLoc||'—'} → To: ${r.toLoc||'—'} · ${status}`);
+      L.push(`   Move ${i+1}`);
+      L.push(`   Asset    : ${r.assetNumber}`);
+      L.push(`   From     : ${r.fromLoc || '—'}`);
+      L.push(`   To       : ${r.toLoc   || '—'}`);
+      L.push(`   Status   : ${status}`);
+      L.push(''); // blank line between moves
     });
-    L.push('');
   }
 
   (wo.planItems||[]).filter(i=>i.type==='non-rotating').forEach(item=>{

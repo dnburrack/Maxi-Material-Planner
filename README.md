@@ -74,6 +74,11 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 
 ## Version History
 
+### v1.3.1 — April Week 2 2026
+- Move tab: **Current Location** and **New Location** fields are now properly aligned on the same horizontal line — both labels and inputs sit flush at the same height
+- Clipboard export: asset movement rows are now separated by a blank line between each entry, making the exported text much easier to read at a glance
+- All v1.3 features retained
+
 ### v1.3 — April Week 2 2026
 - New **🔀 Move tab** added as the first tab in every work order — before Plan, Actual, and Summary
 - Each move row has: **Rotating Asset Number** (with barcode scan button), **Current Location**, and **New Location** shown side by side

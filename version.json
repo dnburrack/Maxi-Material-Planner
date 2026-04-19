@@ -1,5 +1,5 @@
 {
-  "version": "1.3",
+  "version": "1.3.1",
   "date": "2026-04-05",
-  "notes": "Asset Move/Swap tab with execute timestamp and summary integration"
+  "notes": "Move tab location fields alignment fix; blank lines between asset moves in export"
 }
