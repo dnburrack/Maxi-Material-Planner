@@ -120,6 +120,26 @@
       letter-spacing:.04em;cursor:pointer;font-family:inherit;transition:opacity .15s}
     .ver-pill:active{opacity:.7}
 
+    /* Install guide */
+    .install-btn{background:none;border:1.5px solid var(--border);border-radius:20px;
+      padding:7px 16px;font-size:12px;font-weight:700;color:var(--text2);
+      cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;
+      transition:all .15s}
+    .install-btn:active{background:var(--border)}
+    .install-step{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
+    .install-step-num{width:24px;height:24px;border-radius:50%;background:var(--primary);
+      color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;
+      justify-content:center;flex-shrink:0;margin-top:1px}
+    .install-step-text{font-size:14px;color:var(--text);line-height:1.55;flex:1}
+    .install-step-text strong{color:var(--primary)}
+    .install-platform{background:var(--bg);border-radius:var(--radius-sm);
+      padding:12px 14px;margin-bottom:14px;border:1px solid var(--border)}
+    .install-platform-title{font-size:11px;font-weight:800;text-transform:uppercase;
+      letter-spacing:.07em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+    .install-tip{background:var(--accent-lt);border-radius:var(--radius-sm);
+      padding:10px 13px;font-size:13px;color:#78350F;line-height:1.55;
+      border-left:3px solid var(--accent);margin-top:4px}
+
     /* ── EMPTY ── */
     .empty{text-align:center;padding:52px 20px;color:var(--text2)}
     .empty-icon{font-size:44px;opacity:.3;margin-bottom:14px}
@@ -486,12 +506,73 @@
 <div id="vh" class="view active">
   <div class="header">
     <div class="htxt"><h1>MaxPlan</h1><div class="hsub">Maximo Work Order Material Planner</div></div>
-    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.3.1</button>
+    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.3.2</button>
   </div>
   <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button onclick="location.reload(true)">Update</button></div>
   <div id="ib"><p>Install MaxPlan for offline access on your phone.</p><button id="bi">Install</button></div>
   <div class="scroll-content" id="hl"></div>
   <button class="fab" id="fn">+</button>
+</div>
+
+<!-- ═══ MODAL: INSTALL GUIDE ═══ -->
+<div class="overlay" id="m-install">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <h2>📲 Install on Your Phone</h2>
+    <p style="font-size:14px;color:var(--text2);margin-bottom:18px;line-height:1.6">
+      MaxPlan works fully offline once installed. Add it to your home screen to open it like a native app — no browser chrome, no internet needed.
+    </p>
+
+    <!-- iPhone / iPad -->
+    <div class="install-platform">
+      <div class="install-platform-title" style="color:#1D4ED8">
+        <span style="font-size:18px">🍎</span> iPhone &amp; iPad
+        <span style="font-size:10px;font-weight:600;color:var(--text2);text-transform:none;letter-spacing:0;">(Safari only)</span>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">1</div>
+        <div class="install-step-text">Open the app URL in <strong>Safari</strong> — not Chrome or Firefox</div>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">2</div>
+        <div class="install-step-text">Tap the <strong>Share button</strong> — the box with an arrow pointing up, at the bottom of the screen</div>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">3</div>
+        <div class="install-step-text">Scroll down and tap <strong>"Add to Home Screen"</strong></div>
+      </div>
+      <div class="install-step" style="margin-bottom:0">
+        <div class="install-step-num">4</div>
+        <div class="install-step-text">Tap <strong>"Add"</strong> in the top right corner</div>
+      </div>
+    </div>
+
+    <!-- Android -->
+    <div class="install-platform">
+      <div class="install-platform-title" style="color:#16A34A">
+        <span style="font-size:18px">🤖</span> Android
+        <span style="font-size:10px;font-weight:600;color:var(--text2);text-transform:none;letter-spacing:0;">(Chrome)</span>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">1</div>
+        <div class="install-step-text">Open the app URL in <strong>Chrome</strong></div>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">2</div>
+        <div class="install-step-text">Tap the <strong>three-dot menu</strong> (top right) and select <strong>"Install App"</strong> or <strong>"Add to Home Screen"</strong></div>
+      </div>
+      <div class="install-step" style="margin-bottom:0">
+        <div class="install-step-num">3</div>
+        <div class="install-step-text">Tap <strong>"Install"</strong> to confirm</div>
+      </div>
+    </div>
+
+    <div class="install-tip">
+      ✓ Once installed, MaxPlan opens full-screen with no browser bar and works completely offline — even with no signal.
+    </div>
+
+    <button class="btn-m" id="close-install" style="margin-top:16px">Close</button>
+  </div>
 </div>
 
 <!-- ═══ WORK ORDER ═══ -->
@@ -529,10 +610,21 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.3.1</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.3.2</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
       <div class="vb"><ul>
-        <li>Move tab: <strong>Current Location</strong> and <strong>New Location</strong> fields are now properly aligned on the same horizontal line — both labels and inputs sit flush at the same height</li>
-        <li>Clipboard export: asset movement rows are now separated by a blank line between each entry, making the exported text much easier to read at a glance</li>
+        <li><strong>How to Install button</strong> added to the home screen — a <strong>📲 How to install on your phone</strong> button is always visible at the bottom of the main page. Tapping it opens a step-by-step install guide for both iPhone/iPad (Safari) and Android (Chrome)</li>
+        <li>Install guide includes numbered steps, platform icons, a Safari-only note for iOS users, and a tip confirming the app works fully offline once installed</li>
+        <li><strong>Move tab alignment fix</strong> — Current Location and New Location fields are now reliably aligned on the same horizontal line on all devices, including iOS Safari. Switched from CSS grid to flexbox with explicit identical input heights to ensure consistent cross-platform rendering</li>
+        <li>Clipboard export: asset movement rows are separated by a blank line between each entry for easier reading</li>
+        <li>All v1.3 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.3.1</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vb"><ul>
+        <li>Move tab: Current Location and New Location fields aligned on the same horizontal line</li>
+        <li>Clipboard export: blank line between each asset movement entry</li>
         <li>All v1.3 features retained</li>
       </ul></div>
     </div>
@@ -963,8 +1055,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.3.1';
-const KEY     = 'maxplan_v131';
+const APP_VER = '1.3.2';
+const KEY     = 'maxplan_v132';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1278,18 +1370,19 @@ function renderHome() {
   if (!any) html = `<div class="empty"><div class="empty-icon">📋</div><h3>No Work Orders</h3>
     <p>Tap <strong>+</strong> to create your first work order.</p></div>`;
 
-  // Bottom bar: clear completed button only (version pill is now in header)
+  // Bottom bar: install button always shown; clear completed shown when relevant
   const hasComp = S.wos.some(w => (w.status||'APPR') === 'COMP');
-  if (hasComp) {
-    html += `<div class="ver-footer" style="justify-content:center;padding-bottom:8px;">
-      <button id="btn-clear-comp" style="
-        background:var(--danger-bg);color:var(--danger);border:none;
-        border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;
-        cursor:pointer;font-family:inherit;">🗑 Clear Completed</button>
-    </div>`;
-  }
+  html += `<div class="ver-footer" style="justify-content:center;gap:10px;flex-wrap:wrap;padding-bottom:${hasComp?'4px':''}">
+    <button class="install-btn" id="btn-how-install">📲 How to install on your phone</button>
+    ${hasComp ? `<button id="btn-clear-comp" style="
+      background:var(--danger-bg);color:var(--danger);border:none;
+      border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;
+      cursor:pointer;font-family:inherit;">🗑 Clear Completed</button>` : ''}
+  </div>`;
+
   el.innerHTML = html;
   el.querySelectorAll('.wo-card').forEach(c => c.addEventListener('click', () => goWO(c.dataset.id)));
+  $('btn-how-install').addEventListener('click', () => openM('m-install'));
   if (hasComp) {
     $('btn-clear-comp').addEventListener('click', () => openM('mdel-comp'));
   }
@@ -2399,6 +2492,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('dw').addEventListener('click', () => openM('mdw'));
   $('cdw').addEventListener('click', () => {S.wos=S.wos.filter(w=>w.id!==S.cid);save();closeM('mdw');goHome();});
   $('ndw').addEventListener('click', () => closeM('mdw'));
+  $('close-install').addEventListener('click', () => closeM('m-install'));
 
   // Add Item FAB
   $('fa').addEventListener('click', () => {

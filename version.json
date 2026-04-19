@@ -1,5 +1,5 @@
 {
-  "version": "1.3.1",
+  "version": "1.3.2",
   "date": "2026-04-05",
-  "notes": "Move tab location fields alignment fix; blank lines between asset moves in export"
+  "notes": "How to install guide on home screen; Move tab location field alignment fix"
 }

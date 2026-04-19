@@ -74,6 +74,13 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 
 ## Version History
 
+### v1.3.2 — April Week 2 2026
+- **📲 How to Install button** added to the home screen — always visible at the bottom of the main page. Tapping it opens a step-by-step install guide with numbered steps and platform icons for both iPhone/iPad (Safari) and Android (Chrome)
+- Install guide includes a Safari-only note for iOS users and a tip confirming the app works fully offline once installed
+- **Move tab alignment fix** — Current Location and New Location fields are now reliably aligned on the same horizontal line on all devices including iOS Safari. Switched from CSS grid to flexbox with explicit identical input heights for consistent cross-platform rendering
+- Clipboard export: asset movement rows separated by a blank line between entries for easier reading
+- All v1.3 features retained
+
 ### v1.3.1 — April Week 2 2026
 - Move tab: **Current Location** and **New Location** fields are now properly aligned on the same horizontal line — both labels and inputs sit flush at the same height
 - Clipboard export: asset movement rows are now separated by a blank line between each entry, making the exported text much easier to read at a glance
