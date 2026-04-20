@@ -1,5 +1,5 @@
 {
-  "version": "1.3.2",
+  "version": "1.3.3",
   "date": "2026-04-05",
-  "notes": "How to install guide on home screen; Move tab location field alignment fix"
+  "notes": "PWA update fix; multi-asset scan session in Move tab"
 }

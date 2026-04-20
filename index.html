@@ -506,9 +506,9 @@
 <div id="vh" class="view active">
   <div class="header">
     <div class="htxt"><h1>MaxPlan</h1><div class="hsub">Maximo Work Order Material Planner</div></div>
-    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.3.2</button>
+    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.3.3</button>
   </div>
-  <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button onclick="location.reload(true)">Update</button></div>
+  <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button id="btn-do-update">Update</button></div>
   <div id="ib"><p>Install MaxPlan for offline access on your phone.</p><button id="bi">Install</button></div>
   <div class="scroll-content" id="hl"></div>
   <button class="fab" id="fn">+</button>
@@ -610,7 +610,17 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.3.2</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.3.3</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li><strong>PWA update fix</strong> — the Update button now correctly applies new versions on all devices. Previously, tapping Update and reloading did not always activate the new service worker. The fix uses the standard <code>SKIP_WAITING</code> + <code>controllerchange</code> pattern: the app sends a message to the waiting service worker, waits for it to take control, then reloads — guaranteeing the fresh version is served</li>
+        <li><strong>Multi-asset scan session</strong> in the Move tab — tap <strong>📷 Scan Assets</strong> to open a scanning session that lets you scan several asset barcodes without restarting each time. After each scan a confirmation panel appears showing the decoded value and your running list, with two choices: <strong>Confirm &amp; Scan Next</strong> to add it and scan another, or <strong>Confirm &amp; Finish</strong> to close and create one new move row per scanned asset. Scanning one asset creates one row; scanning three creates three rows, each pre-filled with that asset's number ready for locations to be added</li>
+        <li><strong>+ Add Row</strong> button retained alongside the new Scan Assets button for manual entry</li>
+        <li>All v1.3.2 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.3.2</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>How to Install button</strong> added to the home screen — a <strong>📲 How to install on your phone</strong> button is always visible at the bottom of the main page. Tapping it opens a step-by-step install guide for both iPhone/iPad (Safari) and Android (Chrome)</li>
         <li>Install guide includes numbered steps, platform icons, a Safari-only note for iOS users, and a tip confirming the app works fully offline once installed</li>
@@ -1055,8 +1065,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.3.2';
-const KEY     = 'maxplan_v132';
+const APP_VER = '1.3.3';
+const KEY     = 'maxplan_v133';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1569,7 +1579,13 @@ function renderMove() {
     </div>
     <div class="move-section-hdr">
       <span class="move-section-title">Asset Movements (${rows.length})</span>
-      <button class="move-add-btn" onclick="addMoveRow()">+ Add Row</button>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button class="move-add-btn" style="background:var(--rot);"
+          onclick="window.openMultiScanner&&window.openMultiScanner()">
+          📷 Scan Assets
+        </button>
+        <button class="move-add-btn" onclick="addMoveRow()">+ Add Row</button>
+      </div>
     </div>
     <div id="move-rows-cont">`;
 
@@ -2425,23 +2441,73 @@ function openEditItem(iid){
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// VERSION CHECK
+// VERSION CHECK + SW UPDATE
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function chkVer(){
-  if(sessionStorage.getItem('vchk'))return;
-  sessionStorage.setItem('vchk','1');
-  try{
-    const r=await fetch('./version.json?_='+Date.now(),{cache:'no-store'});
-    const d=await r.json();
-    if(d.version&&d.version!==APP_VER){$('um').textContent=`MaxPlan v${d.version} is available — tap to update.`;$('ub').classList.add('show');}
-  }catch(e){}
+// Strategy:
+//  1. Register SW and keep a reference to the registration.
+//  2. If SW finds an update (waiting worker), store it.
+//  3. chkVer fetches version.json once per session; if newer, show banner.
+//  4. Tapping Update sends SKIP_WAITING to the waiting SW, then reloads
+//     once controllerchange fires — guaranteeing the new SW is in control
+//     before the page reloads.
+
+let _swReg = null;
+let _swWaiting = null;
+
+function initSW() {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    _swReg = reg;
+    // A new SW is already waiting (update arrived before this page load)
+    if (reg.waiting) _swWaiting = reg.waiting;
+    // New SW just installed and is waiting
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      if (!newWorker) return;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          _swWaiting = newWorker;
+        }
+      });
+    });
+  }).catch(e => console.warn('SW:', e));
+
+  // When the controller changes (new SW took over), reload to get new assets
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+}
+
+async function chkVer() {
+  if (sessionStorage.getItem('vchk')) return;
+  sessionStorage.setItem('vchk', '1');
+  try {
+    const r = await fetch('./version.json?_=' + Date.now(), { cache: 'no-store' });
+    const d = await r.json();
+    if (d.version && d.version !== APP_VER) {
+      $('um').textContent = `MaxPlan v${d.version} is available — tap to update.`;
+      $('ub').classList.add('show');
+    }
+  } catch(e) {}
+}
+
+function doUpdate() {
+  if (_swWaiting) {
+    // Tell the waiting SW to skip waiting and become active
+    _swWaiting.postMessage({ type: 'SKIP_WAITING' });
+    // controllerchange listener above will reload once it takes over
+  } else {
+    // Fallback: no waiting SW found, just force-reload bypassing cache
+    window.location.reload();
+  }
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // INIT
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 document.addEventListener('DOMContentLoaded', () => {
-  load(); renderHome(); chkVer();
+  load(); renderHome(); initSW(); chkVer();
+  $('btn-do-update').addEventListener('click', doUpdate);
 
   $('bb').addEventListener('click', goHome);
   $('bv').addEventListener('click', goHome);
@@ -2557,7 +2623,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('appinstalled',()=>$('ib').classList.remove('show'));
 
   // Service Worker
-  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW:',e));
+  // SW registered via initSW() above
 });
 </script>
 
@@ -2740,6 +2806,47 @@ document.addEventListener('DOMContentLoaded', () => {
       </button>
     </div>
 
+    <!-- ── Multi-scan result panel ── -->
+    <div id="multi-scan-panel" style="display:none;position:absolute;inset:0;
+      background:rgba(0,0,0,.85);z-index:20;
+      display:none;flex-direction:column;align-items:center;justify-content:center;
+      padding:24px 20px calc(env(safe-area-inset-bottom,0px)+24px);">
+      <div style="background:#1C2B4A;border-radius:18px;padding:20px 18px;
+        width:100%;max-width:380px;border:1px solid rgba(255,255,255,.15);">
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;
+          letter-spacing:.08em;color:rgba(255,255,255,.5);margin-bottom:6px;">
+          Scanned Asset
+        </div>
+        <div id="ms-val" style="color:#fff;font-size:22px;font-weight:800;
+          font-family:'SF Mono','Consolas','Courier New',monospace;
+          word-break:break-all;margin-bottom:14px;"></div>
+        <div style="background:rgba(255,255,255,.07);border-radius:10px;
+          padding:10px 12px;margin-bottom:16px;max-height:140px;overflow-y:auto;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;
+            letter-spacing:.07em;color:rgba(255,255,255,.4);margin-bottom:6px;"
+            id="ms-list-lbl">List so far (0)</div>
+          <div id="ms-list" style="display:flex;flex-direction:column;gap:4px;"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button id="ms-continue-btn" style="background:#E8A020;color:#fff;border:none;
+            border-radius:10px;padding:13px;font-size:15px;font-weight:800;
+            cursor:pointer;font-family:inherit;">
+            ✓ Confirm &amp; Scan Next
+          </button>
+          <button id="ms-finish-btn" style="background:#059669;color:#fff;border:none;
+            border-radius:10px;padding:13px;font-size:15px;font-weight:800;
+            cursor:pointer;font-family:inherit;">
+            ✓ Confirm &amp; Finish
+          </button>
+          <button id="ms-retry-btn" style="background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);
+            border:none;border-radius:10px;padding:10px;font-size:14px;font-weight:600;
+            cursor:pointer;font-family:inherit;">
+            Retry this scan
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /ui layer -->
 </div><!-- /scan-overlay -->
 
@@ -2794,6 +2901,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let _targetId  = null;
   let _lastValue = null;
+  // ── Multi-asset scan session state ──
+  let _multiMode   = false;   // true when scanning multiple assets for Move tab
+  let _multiList   = [];      // accumulated asset numbers in this session
   let _mode      = 'live';   // 'live' | 'photo'
   let _controls  = null;     // ZXingBrowser scan controls (has .stop())
   let _reader    = null;     // BrowserMultiFormatReader instance
@@ -3086,10 +3196,16 @@ document.addEventListener('DOMContentLoaded', () => {
     stopScan();
     if (navigator.vibrate) navigator.vibrate([30, 20, 60]);
     playBeep();
-    _lastValue           = value;
-    resultVal.textContent = value;
-    resultFmt.textContent = fmt ? '(' + fmt + ')' : '';
-    showPanel('success');
+    _lastValue            = value;
+    resultVal.textContent  = value;
+    resultFmt.textContent  = fmt ? '(' + fmt + ')' : '';
+
+    if (_multiMode) {
+      // Show multi-scan panel instead of normal result panel
+      showMultiPanel(value);
+    } else {
+      showPanel('success');
+    }
   }
 
   // ── Beep on success (respects silent mode) ──────────────────────
@@ -3250,6 +3366,91 @@ document.addEventListener('DOMContentLoaded', () => {
     fileInput.value = '';
     decodeImg.src   = '';
     _lastValue      = null;
+    // Reset multi-scan state
+    _multiMode = false;
+    _multiList = [];
+    const mp = document.getElementById('multi-scan-panel');
+    if (mp) mp.style.display = 'none';
+  }
+
+  // ── Multi-scan helpers ───────────────────────────────────────────
+  function openMultiScanner() {
+    _multiMode  = true;
+    _multiList  = [];
+    _lastValue  = null;
+    _mode       = 'live';
+    overlay.classList.add('open');
+    videoEl.style.display = '';
+    document.getElementById('scan-mode-btn').textContent = '📷 Photo Mode';
+    const mp = document.getElementById('multi-scan-panel');
+    if (mp) mp.style.display = 'none';
+    showPanel('live');
+    startLive();
+    waitForZXingBrowser(10000)
+      .then(() => { if (photoStatus) photoStatus.textContent = '✓ Library ready'; })
+      .catch(e  => { if (photoStatus) photoStatus.textContent = '⚠ ' + e.message; });
+  }
+
+  function showMultiPanel(value) {
+    const mp  = document.getElementById('multi-scan-panel');
+    const val = document.getElementById('ms-val');
+    const lst = document.getElementById('ms-list');
+    const lbl = document.getElementById('ms-list-lbl');
+    if (!mp || !val || !lst) return;
+    val.textContent = value.toUpperCase();
+    // Show accumulated list (excluding current scan)
+    if (_multiList.length === 0) {
+      lst.innerHTML = '<span style="color:rgba(255,255,255,.3);font-size:12px">None yet</span>';
+    } else {
+      lst.innerHTML = _multiList.map((a,i) =>
+        `<div style="font-family:var(--mono);font-size:13px;color:#6EE7B7;padding:2px 0">
+          ${i+1}. ${a}
+        </div>`).join('');
+    }
+    lbl.textContent = `List so far (${_multiList.length})`;
+    // Hide all other panels, show multi panel
+    showPanel('live'); // reset to live panel (hidden behind)
+    document.querySelectorAll('.scan-ui > div[id]').forEach(d => {
+      if (d.id !== 'multi-scan-panel') d.style.display = 'none';
+    });
+    mp.style.display = 'flex';
+  }
+
+  function multiContinue() {
+    // Add current scan to list, restart scanning
+    if (_lastValue) _multiList.push(_lastValue.toUpperCase());
+    _lastValue = null;
+    const mp = document.getElementById('multi-scan-panel');
+    if (mp) mp.style.display = 'none';
+    showPanel('live');
+    startLive();
+  }
+
+  function multiFinish() {
+    // Add current scan and close
+    if (_lastValue) _multiList.push(_lastValue.toUpperCase());
+    const assets = [..._multiList];
+    _multiList = [];
+    closeScanner();
+    // Create move rows for each scanned asset
+    if (assets.length > 0) {
+      const wo = CWO(); if (!wo) return;
+      if (!wo.assetMoves) wo.assetMoves = [];
+      assets.forEach(a => {
+        wo.assetMoves.push({ id: uid(), assetNumber: a, fromLoc: '', toLoc: '', executedAt: '' });
+      });
+      save();
+      reRenderMoveRows(wo);
+    }
+  }
+
+  function multiRetry() {
+    // Discard current scan, go back to scanning
+    _lastValue = null;
+    const mp = document.getElementById('multi-scan-panel');
+    if (mp) mp.style.display = 'none';
+    showPanel('live');
+    startLive();
   }
 
   function switchToPhoto() {
@@ -3319,6 +3520,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Multi-scan buttons
+  document.getElementById('ms-continue-btn').addEventListener('click', multiContinue);
+  document.getElementById('ms-finish-btn').addEventListener('click', multiFinish);
+  document.getElementById('ms-retry-btn').addEventListener('click', multiRetry);
+
   document.getElementById('photo-take-btn').addEventListener('click', () => {
     fileInput.value = '';
     fileInput.click();
@@ -3337,7 +3543,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ── Expose globally ──────────────────────────────────────────────
-  window.openScanner = openScanner;
+  window.openScanner      = openScanner;
+  window.openMultiScanner = openMultiScanner;
   const scanBtn = document.getElementById('btn-scan-item');
   if (scanBtn) scanBtn.addEventListener('click', () => openScanner('iin'));
   const scanWoAsset = document.getElementById('btn-scan-wo-asset');

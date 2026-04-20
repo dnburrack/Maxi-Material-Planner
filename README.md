@@ -74,6 +74,12 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 
 ## Version History
 
+### v1.3.3 — April Week 2 2026
+- **PWA update fix** — the Update button now correctly applies new versions on all devices. Uses the `SKIP_WAITING` + `controllerchange` pattern: sends a message to the waiting service worker, waits for it to take control, then reloads — guaranteeing the new version is served
+- **Multi-asset scan session** in the Move tab — tap **📷 Scan Assets** to scan several asset barcodes in one session. After each decode a confirmation panel shows the value and your running list with two options: **Confirm & Scan Next** or **Confirm & Finish**. Finishing creates one new move row per scanned asset, each pre-filled with the asset number
+- **+ Add Row** button retained for manual entry alongside the scan button
+- All v1.3.2 features retained
+
 ### v1.3.2 — April Week 2 2026
 - **📲 How to Install button** added to the home screen — always visible at the bottom of the main page. Tapping it opens a step-by-step install guide with numbered steps and platform icons for both iPhone/iPad (Safari) and Android (Chrome)
 - Install guide includes a Safari-only note for iOS users and a tip confirming the app works fully offline once installed

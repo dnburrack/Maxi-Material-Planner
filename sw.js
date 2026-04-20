@@ -1,5 +1,5 @@
-// MaxPlan Service Worker — v1.3.2
-const CACHE = 'maxplan-v132';
+// MaxPlan Service Worker — v1.3.3
+const CACHE = 'maxplan-v133';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.svg', './version.json'];
 
 self.addEventListener('install', event => {
@@ -14,6 +14,13 @@ self.addEventListener('activate', event => {
       .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
+});
+
+// Listen for SKIP_WAITING message from the page's update button
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', event => {
