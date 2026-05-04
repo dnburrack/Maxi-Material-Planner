@@ -74,6 +74,16 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 
 ## Version History
 
+### v1.3.4 — April Week 2 2026
+- **Execute Now button** is now dynamically enabled as you type — it activates the moment all three fields (Asset Number, Current Location, New Location) are filled. Card state updates in real time: Incomplete → ⏳ Planned → ✓ Executed
+- **Asset Mass Move section** added at the bottom of the Move tab with two independent fields:
+  - **📍 Set Current Location for all** — type a location and tap Apply to fill the Current Location on every non-executed row
+  - **🏁 Set New Location for all** — type a location and tap Apply to fill the New Location on every non-executed row
+- Each Apply button works independently — mass-set one field without touching the other
+- Executed rows are never affected by mass apply — their data is locked at execution time
+- A confirmation message shows how many rows were updated after each Apply
+- All v1.3.3 features retained
+
 ### v1.3.3 — April Week 2 2026
 - **PWA update fix** — the Update button now correctly applies new versions on all devices. Uses the `SKIP_WAITING` + `controllerchange` pattern: sends a message to the waiting service worker, waits for it to take control, then reloads — guaranteeing the new version is served
 - **Multi-asset scan session** in the Move tab — tap **📷 Scan Assets** to scan several asset barcodes in one session. After each decode a confirmation panel shows the value and your running list with two options: **Confirm & Scan Next** or **Confirm & Finish**. Finishing creates one new move row per scanned asset, each pre-filled with the asset number

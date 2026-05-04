@@ -1,5 +1,5 @@
 {
-  "version": "1.3.3",
+  "version": "1.3.4",
   "date": "2026-04-05",
-  "notes": "PWA update fix; multi-asset scan session in Move tab"
+  "notes": "Execute button dynamically enabled; Asset Mass Move section in Move tab"
 }
