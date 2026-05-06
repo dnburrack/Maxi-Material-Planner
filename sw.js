@@ -1,5 +1,5 @@
-// MaxPlan Service Worker — v1.3.4
-const CACHE = 'maxplan-v134';
+// MaxPlan Service Worker — v1.3.5
+const CACHE = 'maxplan-v135';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.svg', './version.json'];
 
 self.addEventListener('install', event => {

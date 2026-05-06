@@ -74,6 +74,12 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 
 ## Version History
 
+### v1.3.5 — April Week 2 2026
+- **Optional Bin field** added to three workflows — issuing non-rotating items, issuing rotating items, and returning non-rotating items. Optional (no validation), appears after Asset Number / Return Date, included in Summary and clipboard export when filled
+- **Move Tab – Quick Execute** — a new ⚡ Quick Execute panel at the top of the Move tab. Enter asset number (with scan), current location, and new location, then tap 💾 Save as Plan or ⚡ Execute Now. Buttons enable the moment both location fields are filled. No need to first click Add Row
+- **Multi-scan X button fix** — pressing ✕ during a multi-asset scanning session no longer cancels the session and loses scanned assets. It returns to the confirmation panel instead. Assets are only committed or discarded when the user explicitly taps Confirm & Finish or Cancel. The Finish button shows how many rows will be created
+- All v1.3.4 features retained
+
 ### v1.3.4 — April Week 2 2026
 - **Execute Now button** is now dynamically enabled as you type — it activates the moment all three fields (Asset Number, Current Location, New Location) are filled. Card state updates in real time: Incomplete → ⏳ Planned → ✓ Executed
 - **Asset Mass Move section** added at the bottom of the Move tab with two independent fields:

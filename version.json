@@ -1,5 +1,5 @@
 {
-  "version": "1.3.4",
+  "version": "1.3.5",
   "date": "2026-04-05",
-  "notes": "Execute button dynamically enabled; Asset Mass Move section in Move tab"
+  "notes": "Optional Bin field; Quick Execute in Move tab; multi-scan X button fix"
 }
