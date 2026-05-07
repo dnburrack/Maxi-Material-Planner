@@ -466,7 +466,7 @@
 
     /* ── MOVE / SWAP TAB ── */
     --move:#7C3AED; --move-bg:#F5F3FF;
-    .move-add-btn{background:var(--wo);color:#fff;border:none;border-radius:8px;
+    .move-add-btn{background:var(--wo);color:#fff;border:none;border-radius:20px;
       padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;
       font-family:inherit;display:flex;align-items:center;gap:6px}
     .move-add-btn:active{opacity:.8}
@@ -525,7 +525,7 @@
 <div id="vh" class="view active">
   <div class="header">
     <div class="htxt"><h1>MaxPlan</h1><div class="hsub">Maximo Work Order Material Planner</div></div>
-    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.3.5</button>
+    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.3.6</button>
   </div>
   <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button id="btn-do-update">Update</button></div>
   <div id="ib"><p>Install MaxPlan for offline access on your phone.</p><button id="bi">Install</button></div>
@@ -629,7 +629,18 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.3.5</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.3.6</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li><strong>Multi-scan panel — Confirm &amp; Scan Next restored after X</strong> — pressing ✕ during scanning now returns to the confirmation panel with all three options available: <strong>Confirm &amp; Scan Next</strong> (or <strong>Scan Another Asset</strong> if there was no pending value), <strong>Confirm &amp; Finish</strong>, and <strong>Retry this scan</strong></li>
+        <li><strong>Placeholder text updated</strong> — Location fields now show <code>e.g. HFA.ARC.ITC.1.114</code>, Bin fields show <code>e.g. C-02-05</code>, and Rotating Asset fields show <code>e.g. A6001</code> across the entire app</li>
+        <li><strong>Scan Assets button</strong> is now a pill-shaped round button (matching + Add Row) with white text on green background</li>
+        <li><strong>Optional Bin field added to Plan tab</strong> — both non-rotating and rotating plan items now have an optional Bin field in their Add / Edit form. The planned bin is shown on the item card in the Plan tab, in the Summary tab, and in the clipboard export</li>
+        <li>All v1.3.5 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.3.5</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Optional Bin field</strong> added to three workflows — <em>issuing non-rotating items</em>, <em>issuing rotating items</em>, and <em>returning non-rotating items</em>. The field is optional (no validation required), labelled <strong>Bin (optional)</strong>, appears after Asset Number / Return Date in each form, and is included in the Summary tab and clipboard export when filled</li>
         <li><strong>Move Tab – Quick Execute</strong> — a new <strong>⚡ Quick Execute</strong> panel at the top of the Move tab lets you create and immediately execute (or plan) an asset move without first adding a row. Enter asset number (with scan button), current location, and new location, then tap <strong>💾 Save as Plan</strong> or <strong>⚡ Execute Now</strong>. The buttons enable the moment both location fields are filled. A confirmation message appears and the row is added to the list below</li>
@@ -1072,6 +1083,11 @@
       <label class="fl" id="ql">Planned Quantity *</label>
       <input class="fi mono" id="iq" type="number" min="1" placeholder="1" inputmode="numeric">
     </div>
+    <div class="field">
+      <label class="fl">Bin <span style="font-weight:400;opacity:.6">(optional)</span></label>
+      <input class="fi mono" id="ibin" placeholder="e.g. C-02-05"
+        autocomplete="off" autocorrect="off" autocapitalize="characters">
+    </div>
     <div id="inh-preview" style="display:none;margin-bottom:16px">
       <div class="fi-hint" style="color:var(--wo);font-weight:600">✦ This item will inherit from the work order:</div>
       <div id="inh-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"></div>
@@ -1111,8 +1127,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.3.5';
-const KEY     = 'maxplan_v135';
+const APP_VER = '1.3.6';
+const KEY     = 'maxplan_v136';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1363,7 +1379,7 @@ function standaloneRetRowHtml(row, idx, tot) {
     </div>
     <div class="sf" style="margin-top:8px">
       <span class="sf-l">Bin <span style="font-weight:400;opacity:.6">(optional)</span></span>
-      <input class="sf-i mono" type="text" placeholder="e.g. BIN-04A"
+      <input class="sf-i mono" type="text" placeholder="e.g. C-02-05"
         value="${esc(row.bin||'')}" autocomplete="off" autocorrect="off" autocapitalize="characters"
         data-r="${row.id}" data-f="bin" oninput="retRowIn(this)">
     </div>
@@ -1644,7 +1660,7 @@ function moveCardHtml(row, idx, tot) {
       <div class="sf">
         <span class="sf-l" style="color:var(--wo)">Rotating Asset Number</span>
         <div class="scan-wrap" style="margin-top:0;">
-          <input class="sf-i mono" type="text" placeholder="e.g. EQ-00123"
+          <input class="sf-i mono" type="text" placeholder="e.g. A6001"
             value="${esc(row.assetNumber)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
             data-r="${row.id}" data-f="assetNumber" oninput="moveRowIn(this)">
           ${scanBarBtn('assetNumber','Scan asset barcode')}
@@ -1711,7 +1727,7 @@ function renderMove() {
       <div class="sf" style="margin-bottom:8px">
         <span class="sf-l" style="color:var(--wo)">Rotating Asset Number</span>
         <div class="scan-wrap" style="margin-top:0;">
-          <input class="sf-i mono" id="qe-asset" type="text" placeholder="e.g. EQ-00123"
+          <input class="sf-i mono" id="qe-asset" type="text" placeholder="e.g. A6001"
             autocomplete="off" autocorrect="off" autocapitalize="characters"
             oninput="qeCheck()">
           <button class="scan-btn" style="width:38px;height:38px;flex-shrink:0;"
@@ -1758,11 +1774,11 @@ function renderMove() {
     <div class="move-section-hdr">
       <span class="move-section-title">Asset Movements (${rows.length})</span>
       <div style="display:flex;gap:8px;flex-shrink:0">
-        <button class="move-add-btn" style="background:var(--rot);"
+        <button class="move-add-btn" style="background:var(--rot);color:#fff;border-radius:20px;"
           onclick="window.openMultiScanner&&window.openMultiScanner()">
           📷 Scan Assets
         </button>
-        <button class="move-add-btn" onclick="addMoveRow()">+ Add Row</button>
+        <button class="move-add-btn" style="border-radius:20px;" onclick="addMoveRow()">+ Add Row</button>
       </div>
     </div>
     <div id="move-rows-cont">`;
@@ -1860,6 +1876,7 @@ function renderPlan() {
       <div class="imeta">
         <div class="mc"><span class="ml">Storeroom</span><span class="mv">${esc(item.storeroom)}</span></div>
         <div class="mc"><span class="ml">Planned Qty</span><span class="mv">${item.plannedQty}</span></div>
+        ${item.bin?`<div class="mc"><span class="ml">Bin</span><span class="mv">${esc(item.bin)}</span></div>`:''}
         <div class="mc"><span class="ml">Reserved</span><span class="mv ds">${fdt(item.createdAt)}</span></div>
       </div>
       ${chips.length ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">
@@ -1999,7 +2016,7 @@ function nrLineHtml(iid, line, idx, tot) {
       </div>
       <div class="sf">
         <span class="sf-l${locInh?' inh':''}">Location of Work${locInh?' (from WO)':''}</span>
-        <input class="sf-i${locInh?' inh-val':''}" type="text" placeholder="e.g. PUMP-ROOM-A"
+        <input class="sf-i${locInh?' inh-val':''}" type="text" placeholder="e.g. HFA.ARC.ITC.1.114"
           value="${esc(line.loc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
           data-i="${iid}" data-l="${line.id}" data-f="loc" oninput="nrIn(this)">
       </div>
@@ -2025,7 +2042,7 @@ function nrLineHtml(iid, line, idx, tot) {
     </div>
     <div class="sf" style="margin-top:8px">
       <span class="sf-l">Bin <span style="font-weight:400;opacity:.6">(optional)</span></span>
-      <input class="sf-i mono" type="text" placeholder="e.g. BIN-04A"
+      <input class="sf-i mono" type="text" placeholder="e.g. C-02-05"
         value="${esc(line.bin||'')}" autocomplete="off" autocorrect="off" autocapitalize="characters"
         data-i="${iid}" data-l="${line.id}" data-f="bin" oninput="nrIn(this)">
     </div>
@@ -2050,7 +2067,7 @@ function rotSlotHtml(item, slot, idx) {
     <div class="sf">
       <span class="sf-l" style="color:var(--rot)">Rotating Asset Number</span>
       <div class="scan-wrap" style="margin-top:0;">
-        <input class="sf-i ai" type="text" placeholder="e.g. EQ-00123"
+        <input class="sf-i ai" type="text" placeholder="e.g. A6001"
           value="${esc(slot.rotAsset)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
           data-i="${item.id}" data-s="${slot.id}" data-f="rotAsset" oninput="rotIn(this)">
         <button class="scan-btn" style="width:38px;height:38px;flex-shrink:0;"
@@ -2087,7 +2104,7 @@ function rotSlotHtml(item, slot, idx) {
     </div>
     <div class="sf" style="margin-top:8px">
       <span class="sf-l${locInh?' inh':''}">Location of Work${locInh?' (from WO)':''}</span>
-      <input class="sf-i${locInh?' inh-val':''}" type="text" placeholder="e.g. PUMP-ROOM-A"
+      <input class="sf-i${locInh?' inh-val':''}" type="text" placeholder="e.g. HFA.ARC.ITC.1.114"
         value="${esc(slot.loc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
         data-i="${item.id}" data-s="${slot.id}" data-f="loc" oninput="rotIn(this)">
     </div>
@@ -2098,7 +2115,7 @@ function rotSlotHtml(item, slot, idx) {
     </div>
     <div class="sf" style="margin-top:8px">
       <span class="sf-l">Bin <span style="font-weight:400;opacity:.6">(optional)</span></span>
-      <input class="sf-i mono" type="text" placeholder="e.g. BIN-04A"
+      <input class="sf-i mono" type="text" placeholder="e.g. C-02-05"
         value="${esc(slot.bin||'')}" autocomplete="off" autocorrect="off" autocapitalize="characters"
         data-i="${item.id}" data-s="${slot.id}" data-f="bin" oninput="rotIn(this)">
     </div>
@@ -2190,7 +2207,7 @@ function nrRetLineHtml(iid, line, idx, tot) {
       </div>
       <div class="sf">
         <span class="sf-l${locInh?' inh':''}">Location of Work${locInh?' (from WO)':''}</span>
-        <input class="sf-i${locInh?' inh-val':''}" type="text" placeholder="e.g. PUMP-ROOM-A"
+        <input class="sf-i${locInh?' inh-val':''}" type="text" placeholder="e.g. HFA.ARC.ITC.1.114"
           value="${esc(line.loc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
           data-i="${iid}" data-l="${line.id}" data-f="loc" oninput="nrRetIn(this)">
       </div>
@@ -2413,8 +2430,8 @@ function renderSummary() {
       html+=`<div class="sum-item">
         <div class="sum-ih"><span class="badge badge-nr">Non-Rot</span><span class="sin">${esc(item.itemNumber)}</span>${pill(st)}</div>
         <div class="sum-row"><span>Storeroom</span><strong>${esc(item.storeroom)}</strong></div>
-        <div class="sum-row"><span>Planned</span><strong>${item.plannedQty}</strong></div>
-        <div class="sum-row"><span>Total Issued</span><strong>${tot}</strong></div>
+        ${item.bin?`<div class="sum-row"><span>Planned Bin</span><strong>${esc(item.bin)}</strong></div>`:''}
+        <div class="sum-row"><span>Planned</span><strong>${item.plannedQty}</strong></div><strong>${tot}</strong></div>
         <div class="sum-row"><span>Reserved</span><strong style="font-family:inherit;font-size:12px">${fdt(item.createdAt)}</strong></div>
         ${ils.map((l,i)=>`<div class="ss2 done-nr">
           <div class="ss2-h">
@@ -2441,8 +2458,8 @@ function renderSummary() {
       html+=`<div class="sum-item">
         <div class="sum-ih"><span class="badge badge-rot">Rotating</span><span class="sin">${esc(item.itemNumber)}</span>${pill(st)}</div>
         <div class="sum-row"><span>Storeroom</span><strong>${esc(item.storeroom)}</strong></div>
-        <div class="sum-row"><span>Planned</span><strong>${item.plannedQty}</strong></div>
-        <div class="sum-row"><span>Assets Recorded</span><strong>${dn2} of ${item.plannedQty}</strong></div>
+        ${item.bin?`<div class="sum-row"><span>Planned Bin</span><strong>${esc(item.bin)}</strong></div>`:''}
+        <div class="sum-row"><span>Planned</span><strong>${item.plannedQty}</strong></div><strong>${dn2} of ${item.plannedQty}</strong></div>
         <div class="sum-row"><span>Reserved</span><strong style="font-family:inherit;font-size:12px">${fdt(item.createdAt)}</strong></div>
         ${slots.map((s,i)=>{
           const d=!!(s.rotAsset&&s.rotAsset.trim());
@@ -2538,6 +2555,7 @@ function doExport(){
     const tot=ils.reduce((s,l)=>s+(parseInt(l.qty)||0),0);
     L.push(`── NON-ROTATING: ${item.itemNumber}`,`   Storeroom   : ${item.storeroom}`,
       `   Planned Qty : ${item.plannedQty}`,`   Total Issued: ${tot}`,
+      ...(item.bin?[`   Planned Bin : ${item.bin}`]:[]),
       `   Reserved    : ${fdt(item.createdAt)}`);
     ils.forEach((l,i)=>{
       let d=`   Issue ${i+1}     : ${l.qty} unit${parseInt(l.qty)!==1?'s':''}`;
@@ -2553,7 +2571,9 @@ function doExport(){
     const a=(wo.actuals||{})[item.id]||{};
     const slots=a.slots||[];
     L.push(`── ROTATING: ${item.itemNumber}`,`   Storeroom   : ${item.storeroom}`,
-      `   Planned Qty : ${item.plannedQty}`,`   Reserved    : ${fdt(item.createdAt)}`);
+      `   Planned Qty : ${item.plannedQty}`,
+      ...(item.bin?[`   Planned Bin : ${item.bin}`]:[]),
+      `   Reserved    : ${fdt(item.createdAt)}`);
     slots.forEach((s,i)=>{
       const d2=!!(s.rotAsset&&s.rotAsset.trim());
       let d=`   Asset ${i+1}     : ${d2?s.rotAsset:'Pending'}`;
@@ -2669,6 +2689,7 @@ function openEditItem(iid){
   $('mit').textContent='Edit Planned Item';$('si2').textContent='Save Changes';
   $('tr').style.display='none'; S.atype=item.type;
   $('iin').value=item.itemNumber;$('isr').value=item.storeroom;$('iq').value=item.plannedQty;
+  if($('ibin'))$('ibin').value=item.bin||'';
   $('ql').textContent=item.type==='rotating'?'Planned Quantity (no. of assets) *':'Planned Quantity *';
   $('inh-preview').style.display='none';
   ['iin','isr','iq'].forEach(id=>$(id).classList.remove('err'));
@@ -2800,6 +2821,7 @@ document.addEventListener('DOMContentLoaded', () => {
     S.eid=null;
     $('mit').textContent='Add Planned Item';$('si2').textContent='Add to Plan';
     $('tr').style.display='';$('iin').value='';$('isr').value='';$('iq').value='';
+    if($('ibin'))$('ibin').value='';
     ['iin','isr','iq'].forEach(id=>$(id).classList.remove('err'));
     setType('non-rotating'); updateInhPreview();
     openM('mi'); setTimeout(()=>$('iin').focus(),300);
@@ -2816,10 +2838,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if(qty<1){$('iq').classList.add('err');ok=false;}else $('iq').classList.remove('err');
     if(!ok)return;
     const wo=CWO(); if(!wo)return;
+    const bin=$('ibin')?$('ibin').value.trim().toUpperCase():'';
     if(S.eid){
       const item=(wo.planItems||[]).find(i=>i.id===S.eid);
       if(item){
-        item.itemNumber=itemNum;item.storeroom=sr;item.plannedQty=qty;
+        item.itemNumber=itemNum;item.storeroom=sr;item.plannedQty=qty;item.bin=bin;
         if(item.type==='rotating'&&wo.actuals&&wo.actuals[item.id]?.slots){
           const slots=wo.actuals[item.id].slots;
           while(slots.length<qty)slots.push({id:uid(),rotAsset:'',loc:item.inheritedLocation||'',woAsset:item.inheritedWoAsset||'',dt:''});
@@ -2828,7 +2851,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } else {
       wo.planItems.push({
-        id:uid(),type:S.atype,itemNumber:itemNum,storeroom:sr,plannedQty:qty,
+        id:uid(),type:S.atype,itemNumber:itemNum,storeroom:sr,plannedQty:qty,bin,
         createdAt:Date.now(),
         inheritedLocation: wo.location||'',
         inheritedWoAsset:  wo.assetNumber||''
@@ -3640,9 +3663,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const lbl = document.getElementById('ms-list-lbl');
     if (!mp || !val || !lst) return;
     const hasCurrentScan = !!(value && value.trim());
-    val.textContent  = hasCurrentScan ? value.toUpperCase() : '—';
+    val.textContent   = hasCurrentScan ? value.toUpperCase() : '—';
     val.style.opacity = hasCurrentScan ? '1' : '0.35';
-    // Show accumulated list (excluding current scan)
+    // Show accumulated list
     if (_multiList.length === 0) {
       lst.innerHTML = '<span style="color:rgba(255,255,255,.3);font-size:12px">None yet</span>';
     } else {
@@ -3652,16 +3675,24 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>`).join('');
     }
     lbl.textContent = `List so far (${_multiList.length})`;
-    // Update button states based on whether there's a pending value
-    const contBtn   = document.getElementById('ms-continue-btn');
-    const finBtn    = document.getElementById('ms-finish-btn');
-    const retryBtn  = document.getElementById('ms-retry-btn');
-    if (contBtn)  contBtn.style.display  = hasCurrentScan ? '' : 'none';
+    // Button labels adapt to context
+    const contBtn  = document.getElementById('ms-continue-btn');
+    const finBtn   = document.getElementById('ms-finish-btn');
+    const retryBtn = document.getElementById('ms-retry-btn');
+    // "Confirm & Scan Next" always visible — text changes based on whether there's a pending scan
+    if (contBtn) {
+      contBtn.style.display = '';
+      contBtn.textContent = hasCurrentScan ? '✓ Confirm & Scan Next' : '📷 Scan Another Asset';
+    }
+    // Retry only relevant when there's a current scan to retry
     if (retryBtn) retryBtn.style.display = hasCurrentScan ? '' : 'none';
-    // Finish is always shown; update its text
-    if (finBtn) finBtn.textContent = _multiList.length > 0
-      ? `✓ Finish — Create ${_multiList.length} Row${_multiList.length!==1?'s':''}`
-      : hasCurrentScan ? '✓ Confirm & Finish' : 'Cancel';
+    // Finish button: show count and always visible
+    if (finBtn) {
+      const totalOnFinish = _multiList.length + (hasCurrentScan ? 1 : 0);
+      finBtn.textContent = totalOnFinish > 0
+        ? `✓ Finish — Create ${totalOnFinish} Row${totalOnFinish !== 1 ? 's' : ''}`
+        : 'Cancel';
+    }
     // Show multi panel, hide everything else
     document.querySelectorAll('.scan-ui > div').forEach(d => {
       if (d !== mp) d.style.display = 'none';
@@ -3670,8 +3701,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function multiContinue() {
-    // Add current scan to list, restart scanning
-    if (_lastValue) _multiList.push(_lastValue.toUpperCase());
+    // If there's a pending value, confirm it and restart scanning
+    if (_lastValue && _lastValue.trim()) _multiList.push(_lastValue.toUpperCase());
     _lastValue = null;
     const mp = document.getElementById('multi-scan-panel');
     if (mp) mp.style.display = 'none';

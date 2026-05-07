@@ -74,6 +74,13 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 
 ## Version History
 
+### v1.3.6 — April Week 2 2026
+- **Multi-scan panel — Confirm & Scan Next restored after X** — pressing ✕ during scanning returns to the confirmation panel with all three options: **Confirm & Scan Next** (or "Scan Another Asset" if no pending value), **Confirm & Finish**, and **Retry this scan**
+- **Placeholder text updated** globally — Location fields: `e.g. HFA.ARC.ITC.1.114`, Bin fields: `e.g. C-02-05`, Rotating Asset fields: `e.g. A6001`
+- **Scan Assets button** is now pill-shaped (matching + Add Row) with white text on green background
+- **Optional Bin field in Plan tab** — both non-rotating and rotating plan items have a Bin field in Add / Edit form. Shown on the plan card, in the Summary tab, and in clipboard export as "Planned Bin"
+- All v1.3.5 features retained
+
 ### v1.3.5 — April Week 2 2026
 - **Optional Bin field** added to three workflows — issuing non-rotating items, issuing rotating items, and returning non-rotating items. Optional (no validation), appears after Asset Number / Return Date, included in Summary and clipboard export when filled
 - **Move Tab – Quick Execute** — a new ⚡ Quick Execute panel at the top of the Move tab. Enter asset number (with scan), current location, and new location, then tap 💾 Save as Plan or ⚡ Execute Now. Buttons enable the moment both location fields are filled. No need to first click Add Row
