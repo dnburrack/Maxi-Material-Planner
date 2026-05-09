@@ -1,5 +1,5 @@
 {
-  "version": "1.3.6",
+  "version": "1.3.7",
   "date": "2026-04-05",
-  "notes": "Multi-scan X fix; placeholder updates; pill buttons; Bin field in Plan tab"
+  "notes": "A60001 placeholder; plan field reorder; bin removed from Actual tab"
 }

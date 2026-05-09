@@ -74,6 +74,13 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 
 ## Version History
 
+### v1.3.7 — April Week 2 2026
+- **Rotating asset placeholder updated** — all rotating asset number fields now show `e.g. A60001` (was A6001)
+- **Plan tab field order redesigned** — the Add / Edit Planned Item form now follows the workflow order: **Storeroom** (mandatory) → **Bin** (optional) → **Item Number** + scanner (mandatory) → **Planned Quantity** (mandatory). Applies to both non-rotating and rotating items
+- **Bin field removed from Actual tab** — the optional Bin field has been removed from non-rotating issue lines and rotating asset slots. Bin is now a Plan-only field recorded at planning time alongside the storeroom
+- Bin continues to appear on plan item cards, in the Summary tab (as "Planned Bin"), and in the clipboard export
+- All v1.3.6 features retained
+
 ### v1.3.6 — April Week 2 2026
 - **Multi-scan panel — Confirm & Scan Next restored after X** — pressing ✕ during scanning returns to the confirmation panel with all three options: **Confirm & Scan Next** (or "Scan Another Asset" if no pending value), **Confirm & Finish**, and **Retry this scan**
 - **Placeholder text updated** globally — Location fields: `e.g. HFA.ARC.ITC.1.114`, Bin fields: `e.g. C-02-05`, Rotating Asset fields: `e.g. A6001`
