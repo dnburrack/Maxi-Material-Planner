@@ -519,19 +519,35 @@
       opacity:0;transition:opacity .3s;margin-top:5px;height:16px}
 
     /* ── WORK LOG ── */
-    --log-update:#2563EB; --log-update-bg:#EFF6FF;
-    --log-work:#059669;   --log-work-bg:#ECFDF5;
     .log-card{background:var(--surface);border-radius:var(--radius);
-      padding:14px 15px;margin-bottom:12px;box-shadow:var(--shadow);
-      border:1px solid var(--border)}
-    .log-card-head{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+      margin-bottom:10px;box-shadow:var(--shadow);border:1px solid var(--border);
+      overflow:hidden;transition:border-color .2s}
+    .log-card.expanded{border-color:var(--accent)}
+    .log-card-collapsed{padding:12px 14px;cursor:pointer;display:flex;
+      align-items:center;gap:10px;-webkit-user-select:none;user-select:none}
+    .log-card-collapsed:active{background:var(--bg)}
     .log-type-sel{border:none;border-radius:20px;padding:4px 12px;
       font-size:11px;font-weight:800;text-transform:uppercase;
       letter-spacing:.05em;cursor:pointer;font-family:inherit;flex-shrink:0;
       -webkit-appearance:none;appearance:none;outline:none}
     .log-type-Update{background:#EFF6FF;color:#2563EB}
     .log-type-Work{background:#ECFDF5;color:#059669}
-    .log-ts{font-size:11px;color:var(--text2);font-weight:500;
+    .log-collapsed-title{flex:1;font-size:14px;font-weight:600;
+      color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      min-width:0}
+    .log-collapsed-title.empty{color:var(--text2);font-weight:400;font-style:italic}
+    .log-collapsed-ts{font-size:11px;color:var(--text2);flex-shrink:0}
+    .log-collapsed-icons{display:flex;align-items:center;gap:4px;flex-shrink:0}
+    .log-viewable-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .log-viewable-dot.yes{background:#059669}
+    .log-viewable-dot.no{background:#CBD5E1}
+    .log-expand-arrow{color:#CBD5E1;font-size:12px;flex-shrink:0;transition:transform .2s}
+    .log-card.expanded .log-expand-arrow{transform:rotate(180deg)}
+    .log-body-wrap{display:none;padding:0 14px 14px}
+    .log-card.expanded .log-body-wrap{display:block}
+    .log-card-head{display:flex;align-items:flex-start;gap:8px;
+      margin-bottom:10px;flex-wrap:wrap;padding-top:4px}
+    .log-ts-fixed{font-size:11px;color:var(--text2);font-weight:500;
       white-space:nowrap;flex-shrink:0;padding-top:3px}
     .log-rm{background:none;border:none;color:#CBD5E1;font-size:15px;
       cursor:pointer;padding:4px;line-height:1;flex-shrink:0;
@@ -540,15 +556,42 @@
     .log-subject{width:100%;border:1.5px solid var(--border);
       border-radius:var(--radius-sm);padding:9px 12px;font-size:15px;
       font-weight:700;font-family:inherit;color:var(--text);background:var(--bg);
-      outline:none;transition:border-color .2s;margin-bottom:8px;
-      box-sizing:border-box}
+      outline:none;transition:border-color .2s;margin-bottom:8px;box-sizing:border-box}
     .log-subject:focus{border-color:var(--accent)}
-    .log-body{width:100%;border:1.5px solid var(--border);
+    .log-body-text{width:100%;border:1.5px solid var(--border);
       border-radius:var(--radius-sm);padding:9px 12px;font-size:14px;
       font-family:inherit;color:var(--text);background:var(--bg);
       outline:none;resize:none;min-height:80px;line-height:1.55;
       transition:border-color .2s;box-sizing:border-box}
-    .log-body:focus{border-color:var(--accent)}
+    .log-body-text:focus{border-color:var(--accent)}
+    /* Images */
+    .log-img-row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 8px}
+    .log-img-thumb{position:relative;width:80px;height:80px;border-radius:8px;
+      overflow:hidden;flex-shrink:0;background:var(--border)}
+    .log-img-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .log-img-rm{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);
+      color:#fff;border:none;border-radius:50%;width:20px;height:20px;
+      font-size:11px;cursor:pointer;line-height:1;display:flex;
+      align-items:center;justify-content:center;padding:0}
+    .log-img-add{width:80px;height:80px;border-radius:8px;border:2px dashed var(--border);
+      background:var(--bg);display:flex;flex-direction:column;align-items:center;
+      justify-content:center;cursor:pointer;color:var(--text2);font-size:11px;
+      font-weight:700;gap:4px;flex-shrink:0;transition:border-color .2s}
+    .log-img-add:active{border-color:var(--accent)}
+    /* Viewable */
+    .log-viewable-row{display:flex;align-items:center;gap:8px;margin:10px 0 8px;
+      font-size:13px;color:var(--text2)}
+    .log-viewable-row input[type=checkbox]{width:16px;height:16px;
+      accent-color:var(--rot);cursor:pointer;flex-shrink:0}
+    .log-viewable-row label{cursor:pointer;font-weight:600;
+      user-select:none;-webkit-user-select:none}
+    /* Save btn */
+    .log-save-btn{background:var(--primary);color:#fff;border:none;
+      border-radius:var(--radius-sm);padding:9px 20px;font-size:14px;
+      font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .15s}
+    .log-save-btn:active{opacity:.8}
+    .log-save-ok{font-size:12px;color:var(--rot);font-weight:600;
+      opacity:0;transition:opacity .3s;margin-left:10px}
     .log-header-row{display:flex;align-items:center;
       justify-content:space-between;margin-bottom:16px}
     .log-add-btn{background:var(--primary);color:#fff;border:none;
@@ -565,7 +608,7 @@
 <div id="vh" class="view active">
   <div class="header">
     <div class="htxt"><h1>MaxPlan</h1><div class="hsub">Maximo Work Order Material Planner</div></div>
-    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.4</button>
+    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.4.1</button>
   </div>
   <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button id="btn-do-update">Update</button></div>
   <div id="ib"><p>Install MaxPlan for offline access on your phone.</p><button id="bi">Install</button></div>
@@ -670,7 +713,20 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.4</div><div class="vd">May Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.4.1</div><div class="vd">May Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li><strong>Auto-update root cause fixed</strong> — the real bug was <code>self.skipWaiting()</code> being called automatically in the service worker's install event, forcing the new SW to take over immediately on every update regardless of user action. Fixed by removing <code>skipWaiting()</code> from the install handler — it is now only called when the user explicitly taps <strong>Update</strong></li>
+        <li><strong>Log entries are now collapsible</strong> — each log entry shows a compact summary row (type badge, subject, timestamp, viewable indicator, expand arrow). Tapping the row toggles the full entry open or closed. Entries start expanded when first created</li>
+        <li><strong>Auto-collapse on new entry</strong> — tapping <strong>+ New Log Entry</strong> automatically collapses all existing entries before opening the new one, keeping the list tidy</li>
+        <li><strong>💾 Save and — Minimise buttons</strong> added to each expanded log entry. Save shows a brief "✓ Saved" confirmation (data is always auto-saved on every keystroke). Minimise collapses the entry</li>
+        <li><strong>📷 Photos in log entries</strong> — each log entry has a photo strip with an Add Photo button. Images are resized to ≤800px before storage. Thumbnails are shown in the log card and are tappable for fullscreen view. Photos appear in the Summary tab and the count is noted in the clipboard export</li>
+        <li><strong>Viewable checkbox</strong> — each log entry has a <em>Viewable to service requester</em> checkbox, pre-ticked by default. A colour-coded dot (green = viewable, grey = internal) is shown in the collapsed row. The Summary tab and export both state the visibility status clearly</li>
+        <li>All v1.4 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.4</div><div class="vd">May Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Auto-update bug fixed</strong> — the app no longer automatically reloads when a new version is available. Previously, the <code>controllerchange</code> event would force-reload the app as soon as a new service worker installed, even without user action. Now the reload only happens when the user explicitly taps <strong>Update</strong> in the update banner — all other background SW activity is silent</li>
         <li><strong>📝 Log tab</strong> added to every work order — positioned between the Actual tab and the Summary tab. The Log tab is a chronological work journal for the work order</li>
@@ -1192,8 +1248,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.4';
-const KEY     = 'maxplan_v140';
+const APP_VER = '1.4.1';
+const KEY     = 'maxplan_v141';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -2390,10 +2446,13 @@ function rotIn(inp) {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // WORK LOG
-// Each entry: { id, type, subject, body, createdAt }
-// createdAt is stamped when the user taps "+ New Log Entry" — immutable.
-// subject and body are always editable.
+// Entry: { id, type, subject, body, images[], viewable, createdAt }
+// createdAt stamped on addLogEntry() — immutable.
+// images[]: array of base64 data URLs (resized to ≤800px on upload).
+// expanded state is tracked in _logExpanded (in-memory only, not persisted).
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const _logExpanded = new Set(); // set of entry IDs currently expanded
+
 function getLogs(wo) {
   if (!wo.workLog) wo.workLog = [];
   return wo.workLog;
@@ -2401,18 +2460,22 @@ function getLogs(wo) {
 
 function addLogEntry() {
   const wo = CWO(); if (!wo) return;
+  // Auto-collapse all currently expanded entries (auto-saves via DOM input handlers already ran)
+  _logExpanded.clear();
   if (!wo.workLog) wo.workLog = [];
   const entry = {
     id: uid(),
     type: 'Update',
     subject: '',
     body: '',
-    createdAt: now()   // stamped the moment + New Log Entry is tapped
+    images: [],
+    viewable: true,
+    createdAt: now()
   };
-  wo.workLog.unshift(entry); // newest first
+  wo.workLog.unshift(entry);
+  _logExpanded.add(entry.id); // new entry starts expanded
   save();
   renderLog();
-  // Focus the subject of the new (first) entry
   setTimeout(() => {
     const el = document.getElementById(`ls-${entry.id}`);
     if (el) { el.focus(); el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
@@ -2422,47 +2485,197 @@ function addLogEntry() {
 function delLogEntry(eid) {
   const wo = CWO(); if (!wo || !wo.workLog) return;
   wo.workLog = wo.workLog.filter(e => e.id !== eid);
+  _logExpanded.delete(eid);
   save();
   renderLog();
 }
 
+function toggleLog(eid) {
+  if (_logExpanded.has(eid)) _logExpanded.delete(eid);
+  else _logExpanded.add(eid);
+  // Update DOM without full re-render for snappiness
+  const card = document.getElementById(`lc-${eid}`);
+  if (!card) return;
+  const expanded = _logExpanded.has(eid);
+  card.classList.toggle('expanded', expanded);
+  const bw = card.querySelector('.log-body-wrap');
+  if (bw) bw.style.display = expanded ? 'block' : 'none';
+  const arrow = card.querySelector('.log-expand-arrow');
+  if (arrow) arrow.style.transform = expanded ? 'rotate(180deg)' : '';
+}
+
 function logIn(inp) {
   const wo = CWO(); if (!wo || !wo.workLog) return;
-  const eid = inp.dataset.e, f = inp.dataset.f, v = inp.value;
+  const eid = inp.dataset.e, f = inp.dataset.f;
+  const v = inp.type === 'checkbox' ? inp.checked : inp.value;
   const entry = wo.workLog.find(e => e.id === eid); if (!entry) return;
-  entry[f] = v;
-  save();
-  // Refresh type badge colour when type changes
+  entry[f] = v; save();
   if (f === 'type') {
     const badge = document.getElementById(`lt-${eid}`);
     if (badge) badge.className = `log-type-sel log-type-${v}`;
   }
+  if (f === 'viewable') {
+    const dot = document.getElementById(`vdot-${eid}`);
+    if (dot) dot.className = `log-viewable-dot ${v ? 'yes' : 'no'}`;
+  }
+  if (f === 'subject') {
+    // Update collapsed preview title
+    const t = document.getElementById(`lct-${eid}`);
+    if (t) {
+      t.textContent = v || 'Untitled entry';
+      t.className = `log-collapsed-title${v ? '' : ' empty'}`;
+    }
+  }
+}
+
+function saveLog(eid) {
+  // Data is already auto-saved on every input. This just shows feedback.
+  const ok = document.getElementById(`lsok-${eid}`);
+  if (!ok) return;
+  ok.textContent = '✓ Saved';
+  ok.style.opacity = '1';
+  setTimeout(() => { ok.style.opacity = '0'; }, 2000);
+}
+
+// Image handling
+function addLogImage(eid) {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true;
+  inp.onchange = async () => {
+    const wo = CWO(); if (!wo) return;
+    const entry = (wo.workLog || []).find(e => e.id === eid); if (!entry) return;
+    if (!entry.images) entry.images = [];
+    for (const file of inp.files) {
+      try {
+        const b64 = await resizeImage(file, 800);
+        entry.images.push(b64);
+      } catch(e) { console.warn('Image error', e); }
+    }
+    save();
+    refreshLogImages(eid, entry.images);
+  };
+  inp.click();
+}
+
+function resizeImage(file, maxPx) {
+  return new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        const ratio = Math.min(1, maxPx / Math.max(img.width, img.height));
+        const w = Math.round(img.width * ratio), h = Math.round(img.height * ratio);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        res(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.onerror = rej;
+      img.src = ev.target.result;
+    };
+    reader.onerror = rej;
+    reader.readAsDataURL(file);
+  });
+}
+
+function rmLogImage(eid, idx) {
+  const wo = CWO(); if (!wo || !wo.workLog) return;
+  const entry = wo.workLog.find(e => e.id === eid); if (!entry || !entry.images) return;
+  entry.images.splice(idx, 1);
+  save();
+  refreshLogImages(eid, entry.images);
+}
+
+function refreshLogImages(eid, images) {
+  const cont = document.getElementById(`limgs-${eid}`); if (!cont) return;
+  cont.innerHTML = logImagesHtml(eid, images);
+}
+
+function logImagesHtml(eid, images) {
+  const thumbs = (images || []).map((src, i) => `
+    <div class="log-img-thumb">
+      <img src="${src}" alt="Log image ${i+1}" onclick="viewLogImg('${eid}',${i})">
+      <button class="log-img-rm" onclick="rmLogImage('${eid}',${i})" title="Remove image">✕</button>
+    </div>`).join('');
+  return thumbs + `
+    <div class="log-img-add" onclick="addLogImage('${eid}')" title="Add image">
+      <span style="font-size:22px">📷</span>
+      <span>Add photo</span>
+    </div>`;
+}
+
+function viewLogImg(eid, idx) {
+  const wo = CWO(); if (!wo || !wo.workLog) return;
+  const entry = wo.workLog.find(e => e.id === eid); if (!entry || !entry.images) return;
+  const src = entry.images[idx]; if (!src) return;
+  // Simple fullscreen overlay
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  ov.innerHTML = `<img src="${src}" style="max-width:95vw;max-height:90vh;border-radius:8px;object-fit:contain;">
+    <button onclick="this.parentNode.remove()" style="position:absolute;top:18px;right:18px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:22px;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>`;
+  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+  document.body.appendChild(ov);
 }
 
 function logCardHtml(entry) {
-  return `<div class="log-card" id="lc-${entry.id}">
-    <div class="log-card-head">
+  const expanded = _logExpanded.has(entry.id);
+  const hasSubject = !!(entry.subject && entry.subject.trim());
+  return `<div class="log-card${expanded?' expanded':''}" id="lc-${entry.id}">
+    <!-- Collapsed row (always visible, clickable to toggle) -->
+    <div class="log-card-collapsed" onclick="toggleLog('${entry.id}')">
       <select class="log-type-sel log-type-${esc(entry.type)}"
         id="lt-${entry.id}"
         data-e="${entry.id}" data-f="type"
-        onchange="logIn(this)">
+        onchange="logIn(this)" onclick="event.stopPropagation()">
         <option value="Update" ${entry.type==='Update'?'selected':''}>Update</option>
         <option value="Work"   ${entry.type==='Work'  ?'selected':''}>Work</option>
       </select>
-      <span class="log-ts">${esc(entry.createdAt)}</span>
-      <button class="log-rm" onclick="delLogEntry('${entry.id}')" title="Delete log entry">✕</button>
+      <span class="log-collapsed-title${hasSubject?'':' empty'}" id="lct-${entry.id}">
+        ${esc(hasSubject ? entry.subject : 'Untitled entry')}
+      </span>
+      <span class="log-collapsed-ts">${esc(entry.createdAt)}</span>
+      <div class="log-collapsed-icons">
+        <span class="log-viewable-dot ${entry.viewable!==false?'yes':'no'}" id="vdot-${entry.id}" title="${entry.viewable!==false?'Viewable':'Not viewable'}"></span>
+        <span class="log-expand-arrow" style="transform:${expanded?'rotate(180deg)':''}">▼</span>
+      </div>
     </div>
-    <input class="log-subject" type="text"
-      id="ls-${entry.id}"
-      placeholder="Subject / title…"
-      value="${esc(entry.subject)}"
-      data-e="${entry.id}" data-f="subject"
-      oninput="logIn(this)"
-      autocomplete="off">
-    <textarea class="log-body"
-      placeholder="Write the log entry here…"
-      data-e="${entry.id}" data-f="body"
-      oninput="logIn(this)">${esc(entry.body)}</textarea>
+    <!-- Expanded body -->
+    <div class="log-body-wrap" style="display:${expanded?'block':'none'}">
+      <div class="log-card-head">
+        <span class="log-ts-fixed">📅 Created: ${esc(entry.createdAt)}</span>
+        <button class="log-rm" onclick="event.stopPropagation();delLogEntry('${entry.id}')" title="Delete entry">🗑</button>
+      </div>
+      <input class="log-subject" type="text"
+        id="ls-${entry.id}"
+        placeholder="Subject / title…"
+        value="${esc(entry.subject)}"
+        data-e="${entry.id}" data-f="subject"
+        oninput="logIn(this)"
+        autocomplete="off">
+      <textarea class="log-body-text"
+        placeholder="Write the log entry here…"
+        data-e="${entry.id}" data-f="body"
+        oninput="logIn(this)">${esc(entry.body)}</textarea>
+      <!-- Images -->
+      <div class="log-img-row" id="limgs-${entry.id}">
+        ${logImagesHtml(entry.id, entry.images||[])}
+      </div>
+      <!-- Viewable checkbox -->
+      <div class="log-viewable-row">
+        <input type="checkbox" id="lv-${entry.id}"
+          data-e="${entry.id}" data-f="viewable"
+          onchange="logIn(this)"
+          ${entry.viewable!==false?'checked':''}>
+        <label for="lv-${entry.id}">Viewable to service requester</label>
+      </div>
+      <!-- Save / minimize row -->
+      <div style="display:flex;align-items:center;margin-top:12px;gap:10px;flex-wrap:wrap">
+        <button class="log-save-btn" onclick="saveLog('${entry.id}')">💾 Save</button>
+        <button class="log-save-btn" style="background:var(--border);color:var(--text2);"
+          onclick="toggleLog('${entry.id}')">— Minimise</button>
+        <span class="log-save-ok" id="lsok-${entry.id}"></span>
+      </div>
+    </div>
   </div>`;
 }
 
@@ -2667,7 +2880,7 @@ function renderSummary() {
   }
 
   // ── WORK LOG SUMMARY ──
-  const logEntries = (wo.workLog || []).filter(e => e.subject || e.body);
+  const logEntries = (wo.workLog || []).filter(e => e.subject || e.body || (e.images && e.images.length));
   if (logEntries.length > 0) {
     html += `<div style="display:flex;align-items:center;gap:10px;margin:22px 0 14px">
       <div style="background:#EFF6FF;border:1px solid rgba(37,99,235,.2);border-radius:20px;
@@ -2677,13 +2890,25 @@ function renderSummary() {
     </div>
     <div class="sum-sec"><div class="list-label">${logEntries.length} entr${logEntries.length!==1?'ies':'y'}</div>`;
     logEntries.forEach(e => {
+      const viewable = e.viewable !== false;
       html += `<div class="sum-item" style="border-left:3px solid #2563EB">
         <div class="sum-ih">
           <span class="badge" style="background:#EFF6FF;color:#2563EB;text-transform:uppercase">${esc(e.type)}</span>
           <span class="sin" style="font-family:inherit">${esc(e.subject)||'<em style="opacity:.4">No subject</em>'}</span>
+          <span class="sp" style="background:${viewable?'#ECFDF5':'#F3F4F6'};color:${viewable?'#059669':'#6B7280'}">
+            ${viewable ? '👁 Viewable' : '🔒 Internal'}
+          </span>
         </div>
         <div class="sum-row"><span>Date</span><strong style="font-family:inherit;font-size:12px">${esc(e.createdAt)}</strong></div>
+        <div class="sum-row"><span>Visibility</span><strong>${viewable ? 'Viewable to service requester' : 'Internal — not shared with requester'}</strong></div>
         ${e.body ? `<div style="font-size:13px;color:var(--text2);line-height:1.55;margin-top:6px;white-space:pre-wrap;word-break:break-word">${esc(e.body)}</div>` : ''}
+        ${(e.images && e.images.length) ? `
+          <div style="margin-top:10px">
+            <div class="meta-lbl" style="margin-bottom:6px">Photos (${e.images.length})</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              ${e.images.map((src,i) => `<img src="${src}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;cursor:pointer;" onclick="viewLogImg('${e.id}',${i})" alt="Log photo ${i+1}">`).join('')}
+            </div>
+          </div>` : ''}
       </div>`;
     });
     html += `</div>`;
@@ -2785,7 +3010,9 @@ function doExport(){
       L.push('');
       L.push(`   Entry ${i+1}    : [${e.type}] ${e.subject || '(no subject)'}`);
       L.push(`   Date      : ${e.createdAt}`);
+      L.push(`   Visibility: ${e.viewable!==false ? 'Viewable to service requester' : 'Internal — not shared with requester'}`);
       if (e.body) L.push(`   Note      : ${e.body.replace(/\n/g, '\n              ')}`);
+      if (e.images && e.images.length) L.push(`   Photos    : ${e.images.length} image${e.images.length!==1?'s':''} attached`);
     });
     L.push('');
   }

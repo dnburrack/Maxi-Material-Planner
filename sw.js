@@ -1,10 +1,15 @@
-// MaxPlan Service Worker — v1.4
-const CACHE = 'maxplan-v140';
+// MaxPlan Service Worker — v1.4.1
+// KEY FIX: self.skipWaiting() is NOT called on install.
+// It is ONLY called when the app sends a SKIP_WAITING message
+// (i.e. when the user explicitly taps the Update button).
+
+const CACHE = 'maxplan-v141';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.svg', './version.json'];
 
 self.addEventListener('install', event => {
+  // Cache assets but do NOT skipWaiting — wait for user to trigger update
   event.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE).then(c => c.addAll(ASSETS))
   );
 });
 
@@ -16,7 +21,7 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Listen for SKIP_WAITING message from the page's update button
+// Only skipWaiting when user explicitly taps Update
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
@@ -25,7 +30,6 @@ self.addEventListener('message', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-  // version.json always fetched from network so update checks work
   if (event.request.url.includes('version.json')) {
     event.respondWith(
       fetch(event.request, { cache: 'no-store' })

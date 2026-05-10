@@ -74,6 +74,14 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 
 ## Version History
 
+### v1.4.1 — May Week 2 2026
+- **Auto-update root cause fixed** — `self.skipWaiting()` was being called automatically in the SW install event, forcing the new SW active immediately. Now removed from install — `skipWaiting()` is only called when the user explicitly taps **Update**. The app now stays on the current version until the user chooses to update
+- **Log entries collapsible** — each entry shows a compact row (type, subject, timestamp, viewable dot, arrow). Tap to expand/collapse. New entries start expanded; tapping + New Log Entry auto-collapses all others
+- **💾 Save and Minimise buttons** — Save shows a "✓ Saved" confirmation. Minimise collapses the entry. Data is always auto-saved on every keystroke regardless
+- **📷 Photos in log entries** — Add photos to any log entry. Images are resized to ≤800px, shown as thumbnails, tappable for fullscreen. Photos appear in Summary tab
+- **Viewable checkbox** — pre-ticked by default. Green/grey dot shown in collapsed row. Summary and export both state visibility clearly ("Viewable to service requester" / "Internal")
+- All v1.4 features retained
+
 ### v1.4 — May Week 2 2026
 - **Auto-update bug fixed** — the app no longer reloads automatically when a new version is detected. The `controllerchange` event now only triggers a reload when the user explicitly taps **Update** in the banner (`_updatePending` flag). Background SW installs are silent
 - **📝 Log tab** added to every work order (between Actual and Summary). Tap **+ New Log Entry** to create an entry — the timestamp is captured immediately and is immutable

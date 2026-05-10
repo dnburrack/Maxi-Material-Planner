@@ -1,5 +1,5 @@
 {
-  "version": "1.4",
+  "version": "1.4.1",
   "date": "2026-05-09",
-  "notes": "Auto-update bug fix; Work Log tab per work order"
+  "notes": "Auto-update root cause fixed; log collapse/expand; photos; viewable checkbox; save button"
 }
