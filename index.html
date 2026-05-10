@@ -517,6 +517,46 @@
     .mass-apply-btn:active{opacity:.75}
     .mass-apply-ok{font-size:12px;color:var(--rot);font-weight:600;
       opacity:0;transition:opacity .3s;margin-top:5px;height:16px}
+
+    /* ── WORK LOG ── */
+    --log-update:#2563EB; --log-update-bg:#EFF6FF;
+    --log-work:#059669;   --log-work-bg:#ECFDF5;
+    .log-card{background:var(--surface);border-radius:var(--radius);
+      padding:14px 15px;margin-bottom:12px;box-shadow:var(--shadow);
+      border:1px solid var(--border)}
+    .log-card-head{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+    .log-type-sel{border:none;border-radius:20px;padding:4px 12px;
+      font-size:11px;font-weight:800;text-transform:uppercase;
+      letter-spacing:.05em;cursor:pointer;font-family:inherit;flex-shrink:0;
+      -webkit-appearance:none;appearance:none;outline:none}
+    .log-type-Update{background:#EFF6FF;color:#2563EB}
+    .log-type-Work{background:#ECFDF5;color:#059669}
+    .log-ts{font-size:11px;color:var(--text2);font-weight:500;
+      white-space:nowrap;flex-shrink:0;padding-top:3px}
+    .log-rm{background:none;border:none;color:#CBD5E1;font-size:15px;
+      cursor:pointer;padding:4px;line-height:1;flex-shrink:0;
+      transition:color .15s;margin-left:auto}
+    .log-rm:active{color:var(--danger)}
+    .log-subject{width:100%;border:1.5px solid var(--border);
+      border-radius:var(--radius-sm);padding:9px 12px;font-size:15px;
+      font-weight:700;font-family:inherit;color:var(--text);background:var(--bg);
+      outline:none;transition:border-color .2s;margin-bottom:8px;
+      box-sizing:border-box}
+    .log-subject:focus{border-color:var(--accent)}
+    .log-body{width:100%;border:1.5px solid var(--border);
+      border-radius:var(--radius-sm);padding:9px 12px;font-size:14px;
+      font-family:inherit;color:var(--text);background:var(--bg);
+      outline:none;resize:none;min-height:80px;line-height:1.55;
+      transition:border-color .2s;box-sizing:border-box}
+    .log-body:focus{border-color:var(--accent)}
+    .log-header-row{display:flex;align-items:center;
+      justify-content:space-between;margin-bottom:16px}
+    .log-add-btn{background:var(--primary);color:#fff;border:none;
+      border-radius:20px;padding:8px 18px;font-size:13px;font-weight:700;
+      cursor:pointer;font-family:inherit;transition:opacity .15s}
+    .log-add-btn:active{opacity:.8}
+    .log-count{font-size:11px;font-weight:700;text-transform:uppercase;
+      letter-spacing:.07em;color:var(--text2)}
   </style>
 </head>
 <body>
@@ -525,7 +565,7 @@
 <div id="vh" class="view active">
   <div class="header">
     <div class="htxt"><h1>MaxPlan</h1><div class="hsub">Maximo Work Order Material Planner</div></div>
-    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.3.7</button>
+    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.4</button>
   </div>
   <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button id="btn-do-update">Update</button></div>
   <div id="ib"><p>Install MaxPlan for offline access on your phone.</p><button id="bi">Install</button></div>
@@ -614,6 +654,7 @@
     <button class="tab" data-tab="move">🔀 Move</button>
     <button class="tab active" data-tab="plan">📋 Plan</button>
     <button class="tab" data-tab="actual">✅ Actual</button>
+    <button class="tab" data-tab="log">📝 Log</button>
     <button class="tab" data-tab="summary">📊 Summary</button>
   </div>
   <div class="scroll-content" id="wc"></div>
@@ -629,7 +670,20 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.3.7</div><div class="vd">April Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.4</div><div class="vd">May Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li><strong>Auto-update bug fixed</strong> — the app no longer automatically reloads when a new version is available. Previously, the <code>controllerchange</code> event would force-reload the app as soon as a new service worker installed, even without user action. Now the reload only happens when the user explicitly taps <strong>Update</strong> in the update banner — all other background SW activity is silent</li>
+        <li><strong>📝 Log tab</strong> added to every work order — positioned between the Actual tab and the Summary tab. The Log tab is a chronological work journal for the work order</li>
+        <li>Tap <strong>+ New Log Entry</strong> to create a log entry. The timestamp is captured the moment the button is tapped and <strong>cannot be changed</strong></li>
+        <li>Each log entry has: a <strong>Type selector</strong> (Update / Work, defaulting to Update, colour-coded blue/green), a <strong>Subject</strong> field, and a free-text <strong>body</strong> — both editable at any time</li>
+        <li>Log entries are listed newest-first and can be <strong>deleted</strong> individually with the ✕ button</li>
+        <li>Log entries with a subject or body appear in the <strong>Summary tab</strong> in a 📝 Work Log section, and are included in the <strong>clipboard export</strong> under a WORK LOG section</li>
+        <li>All v1.3.7 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.3.7</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Rotating asset placeholder updated</strong> — all rotating asset number fields now show <code>e.g. A60001</code> (was A6001)</li>
         <li><strong>Plan tab field order redesigned</strong> — the Add / Edit Planned Item form now follows the workflow order: <strong>Storeroom</strong> (mandatory) → <strong>Bin</strong> (optional) → <strong>Item Number</strong> + scanner button (mandatory) → <strong>Planned Quantity</strong> (mandatory). This applies to both non-rotating and rotating items</li>
@@ -1138,8 +1192,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.3.7';
-const KEY     = 'maxplan_v137';
+const APP_VER = '1.4';
+const KEY     = 'maxplan_v140';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1493,6 +1547,7 @@ function renderWO() {
   if      (S.ctab === 'move')    renderMove();
   else if (S.ctab === 'plan')    renderPlan();
   else if (S.ctab === 'actual')  renderActual();
+  else if (S.ctab === 'log')     renderLog();
   else                           renderSummary();
 }
 
@@ -2333,6 +2388,106 @@ function rotIn(inp) {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // RENDER SUMMARY TAB
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// WORK LOG
+// Each entry: { id, type, subject, body, createdAt }
+// createdAt is stamped when the user taps "+ New Log Entry" — immutable.
+// subject and body are always editable.
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function getLogs(wo) {
+  if (!wo.workLog) wo.workLog = [];
+  return wo.workLog;
+}
+
+function addLogEntry() {
+  const wo = CWO(); if (!wo) return;
+  if (!wo.workLog) wo.workLog = [];
+  const entry = {
+    id: uid(),
+    type: 'Update',
+    subject: '',
+    body: '',
+    createdAt: now()   // stamped the moment + New Log Entry is tapped
+  };
+  wo.workLog.unshift(entry); // newest first
+  save();
+  renderLog();
+  // Focus the subject of the new (first) entry
+  setTimeout(() => {
+    const el = document.getElementById(`ls-${entry.id}`);
+    if (el) { el.focus(); el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+  }, 80);
+}
+
+function delLogEntry(eid) {
+  const wo = CWO(); if (!wo || !wo.workLog) return;
+  wo.workLog = wo.workLog.filter(e => e.id !== eid);
+  save();
+  renderLog();
+}
+
+function logIn(inp) {
+  const wo = CWO(); if (!wo || !wo.workLog) return;
+  const eid = inp.dataset.e, f = inp.dataset.f, v = inp.value;
+  const entry = wo.workLog.find(e => e.id === eid); if (!entry) return;
+  entry[f] = v;
+  save();
+  // Refresh type badge colour when type changes
+  if (f === 'type') {
+    const badge = document.getElementById(`lt-${eid}`);
+    if (badge) badge.className = `log-type-sel log-type-${v}`;
+  }
+}
+
+function logCardHtml(entry) {
+  return `<div class="log-card" id="lc-${entry.id}">
+    <div class="log-card-head">
+      <select class="log-type-sel log-type-${esc(entry.type)}"
+        id="lt-${entry.id}"
+        data-e="${entry.id}" data-f="type"
+        onchange="logIn(this)">
+        <option value="Update" ${entry.type==='Update'?'selected':''}>Update</option>
+        <option value="Work"   ${entry.type==='Work'  ?'selected':''}>Work</option>
+      </select>
+      <span class="log-ts">${esc(entry.createdAt)}</span>
+      <button class="log-rm" onclick="delLogEntry('${entry.id}')" title="Delete log entry">✕</button>
+    </div>
+    <input class="log-subject" type="text"
+      id="ls-${entry.id}"
+      placeholder="Subject / title…"
+      value="${esc(entry.subject)}"
+      data-e="${entry.id}" data-f="subject"
+      oninput="logIn(this)"
+      autocomplete="off">
+    <textarea class="log-body"
+      placeholder="Write the log entry here…"
+      data-e="${entry.id}" data-f="body"
+      oninput="logIn(this)">${esc(entry.body)}</textarea>
+  </div>`;
+}
+
+function renderLog() {
+  const wo  = CWO(); if (!wo) return goHome();
+  const el  = $('wc');
+  const logs = getLogs(wo);
+  let html  = `<div class="log-header-row">
+    <span class="log-count">${logs.length} log entr${logs.length !== 1 ? 'ies' : 'y'}</span>
+    <button class="log-add-btn" onclick="addLogEntry()">+ New Log Entry</button>
+  </div>`;
+  if (!logs.length) {
+    html += `<div style="text-align:center;padding:44px 20px;color:var(--text2)">
+      <div style="font-size:40px;opacity:.3;margin-bottom:12px">📝</div>
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px">No log entries yet</div>
+      <div style="font-size:14px;line-height:1.6;max-width:260px;margin:0 auto">
+        Tap <strong>+ New Log Entry</strong> to record an update or work note for this work order.
+      </div>
+    </div>`;
+  } else {
+    html += logs.map(logCardHtml).join('');
+  }
+  el.innerHTML = html;
+}
+
 function renderSummary() {
   const wo=CWO(); const el=$('wc'); const items=wo.planItems||[];
 
@@ -2511,6 +2666,29 @@ function renderSummary() {
     html += `</div>`;
   }
 
+  // ── WORK LOG SUMMARY ──
+  const logEntries = (wo.workLog || []).filter(e => e.subject || e.body);
+  if (logEntries.length > 0) {
+    html += `<div style="display:flex;align-items:center;gap:10px;margin:22px 0 14px">
+      <div style="background:#EFF6FF;border:1px solid rgba(37,99,235,.2);border-radius:20px;
+        padding:5px 14px;font-size:11px;font-weight:800;text-transform:uppercase;
+        letter-spacing:.07em;color:#2563EB;flex-shrink:0">📝 Work Log</div>
+      <div style="flex:1;height:2px;background:linear-gradient(to right,rgba(37,99,235,.15),transparent)"></div>
+    </div>
+    <div class="sum-sec"><div class="list-label">${logEntries.length} entr${logEntries.length!==1?'ies':'y'}</div>`;
+    logEntries.forEach(e => {
+      html += `<div class="sum-item" style="border-left:3px solid #2563EB">
+        <div class="sum-ih">
+          <span class="badge" style="background:#EFF6FF;color:#2563EB;text-transform:uppercase">${esc(e.type)}</span>
+          <span class="sin" style="font-family:inherit">${esc(e.subject)||'<em style="opacity:.4">No subject</em>'}</span>
+        </div>
+        <div class="sum-row"><span>Date</span><strong style="font-family:inherit;font-size:12px">${esc(e.createdAt)}</strong></div>
+        ${e.body ? `<div style="font-size:13px;color:var(--text2);line-height:1.55;margin-top:6px;white-space:pre-wrap;word-break:break-word">${esc(e.body)}</div>` : ''}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
   el.innerHTML=html;
   $('exb').addEventListener('click', doExport);
 }
@@ -2593,6 +2771,21 @@ function doExport(){
       if (r.bin)     d += ` · Bin: ${r.bin}`;
       if (r.dt)      d += ` · Date: ${r.dt}`;
       L.push(d);
+    });
+    L.push('');
+  }
+
+  L.push('============================');
+
+  // Work log
+  const expLog = (wo.workLog || []).filter(e => e.subject || e.body);
+  if (expLog.length > 0) {
+    L.push('', '── WORK LOG ──');
+    expLog.forEach((e, i) => {
+      L.push('');
+      L.push(`   Entry ${i+1}    : [${e.type}] ${e.subject || '(no subject)'}`);
+      L.push(`   Date      : ${e.createdAt}`);
+      if (e.body) L.push(`   Note      : ${e.body.replace(/\n/g, '\n              ')}`);
     });
     L.push('');
   }
@@ -2701,17 +2894,17 @@ function openEditItem(iid){
 //  4. Tapping Update sends SKIP_WAITING to the waiting SW, then reloads
 //     once controllerchange fires — guaranteeing the new SW is in control
 //     before the page reloads.
+//  NOTE: controllerchange no longer auto-reloads — the user must tap Update.
 
 let _swReg = null;
 let _swWaiting = null;
+let _updatePending = false; // true once user tapped Update and SW is taking over
 
 function initSW() {
   if (!('serviceWorker' in navigator)) return;
   navigator.serviceWorker.register('sw.js').then(reg => {
     _swReg = reg;
-    // A new SW is already waiting (update arrived before this page load)
     if (reg.waiting) _swWaiting = reg.waiting;
-    // New SW just installed and is waiting
     reg.addEventListener('updatefound', () => {
       const newWorker = reg.installing;
       if (!newWorker) return;
@@ -2723,9 +2916,9 @@ function initSW() {
     });
   }).catch(e => console.warn('SW:', e));
 
-  // When the controller changes (new SW took over), reload to get new assets
+  // Only reload when the controller changes AND the user explicitly triggered it
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    window.location.reload();
+    if (_updatePending) window.location.reload();
   });
 }
 
@@ -2743,12 +2936,11 @@ async function chkVer() {
 }
 
 function doUpdate() {
+  _updatePending = true; // mark as user-initiated
   if (_swWaiting) {
-    // Tell the waiting SW to skip waiting and become active
     _swWaiting.postMessage({ type: 'SKIP_WAITING' });
-    // controllerchange listener above will reload once it takes over
+    // controllerchange will fire and reload because _updatePending is true
   } else {
-    // Fallback: no waiting SW found, just force-reload bypassing cache
     window.location.reload();
   }
 }

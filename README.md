@@ -74,6 +74,14 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 
 ## Version History
 
+### v1.4 — May Week 2 2026
+- **Auto-update bug fixed** — the app no longer reloads automatically when a new version is detected. The `controllerchange` event now only triggers a reload when the user explicitly taps **Update** in the banner (`_updatePending` flag). Background SW installs are silent
+- **📝 Log tab** added to every work order (between Actual and Summary). Tap **+ New Log Entry** to create an entry — the timestamp is captured immediately and is immutable
+- Each log entry has a **Type** (Update / Work, colour-coded, defaulting to Update), a **Subject**, and a free-text **body** — both editable at any time after creation
+- Log entries are listed newest-first and can be deleted individually
+- Log entries appear in the Summary tab (📝 Work Log section) and in the clipboard export (WORK LOG section)
+- All v1.3.7 features retained
+
 ### v1.3.7 — April Week 2 2026
 - **Rotating asset placeholder updated** — all rotating asset number fields now show `e.g. A60001` (was A6001)
 - **Plan tab field order redesigned** — the Add / Edit Planned Item form now follows the workflow order: **Storeroom** (mandatory) → **Bin** (optional) → **Item Number** + scanner (mandatory) → **Planned Quantity** (mandatory). Applies to both non-rotating and rotating items
