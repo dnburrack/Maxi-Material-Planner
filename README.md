@@ -74,6 +74,16 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 
 ## Version History
 
+### v1.4.3 — May Week 2 2026
+- **Log image clipboard fix** — images now copy correctly. The previous `ClipboardItem` HTML blob approach failed because paste targets strip `<img src="data:...">` base64 tags. The fix renders a styled off-screen DOM element with real `<img>` elements, selects and copies it via `execCommand('copy')` — the browser copies the rendered bitmaps. Pasting into email, Word, Outlook, or Notion now includes the photos. Falls back to plain text if DOM-selection copy fails
+- All v1.4.2 features retained
+
+### v1.4.2 — May Week 2 2026
+- **Barcode scan button on all location fields** — every location input now has a scan button: NR issue lines, rotating slots, NR return lines, standalone return rows, Move tab rows (Current & New Location), Quick Execute (Current & New Location), and both Mass Move fields
+- **Quick Execute — locations stacked vertically** — Current Location and New Location are now one above the other (full width each) instead of side by side
+- **Log images embedded in clipboard export** — uses `ClipboardItem` with `text/html` + `text/plain` when log entries have photos. Rich pasting into email/Word/Notion shows images inline at up to 200×200px. Plain-text fallback shows image count
+- All v1.4.1 features retained
+
 ### v1.4.1 — May Week 2 2026
 - **Auto-update root cause fixed** — `self.skipWaiting()` was being called automatically in the SW install event, forcing the new SW active immediately. Now removed from install — `skipWaiting()` is only called when the user explicitly taps **Update**. The app now stays on the current version until the user chooses to update
 - **Log entries collapsible** — each entry shows a compact row (type, subject, timestamp, viewable dot, arrow). Tap to expand/collapse. New entries start expanded; tapping + New Log Entry auto-collapses all others

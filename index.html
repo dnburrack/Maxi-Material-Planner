@@ -608,7 +608,7 @@
 <div id="vh" class="view active">
   <div class="header">
     <div class="htxt"><h1>MaxPlan</h1><div class="hsub">Maximo Work Order Material Planner</div></div>
-    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.4.1</button>
+    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.4.3</button>
   </div>
   <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button id="btn-do-update">Update</button></div>
   <div id="ib"><p>Install MaxPlan for offline access on your phone.</p><button id="bi">Install</button></div>
@@ -713,7 +713,27 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.4.1</div><div class="vd">May Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.4.3</div><div class="vd">May Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li><strong>Log image clipboard fix</strong> — images are now reliably copied to the clipboard when exporting. The previous approach used a <code>ClipboardItem</code> HTML blob with base64 <code>&lt;img&gt;</code> tags, which most paste targets (email clients, Word, Outlook, Notion) strip for security. The fix uses <strong>DOM-selection copy</strong> (<code>execCommand('copy')</code>): when log images are present, the export renders a styled off-screen HTML element with real <code>&lt;img&gt;</code> elements loaded from base64, selects the entire rendered content, and copies it — the browser copies what it has rendered including the actual image bitmaps. Pasting into email, Word, or any rich-text editor now includes the images</li>
+        <li>Plain-text export (no images) is unchanged</li>
+        <li>If DOM-selection copy fails (rare), falls back to plain text automatically</li>
+        <li>All v1.4.2 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.4.2</div><div class="vd">May Week 2 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vb"><ul>
+        <li><strong>Barcode scan button on all location fields</strong> — every location input throughout the app now has a scan button to its right: NR issue lines (Location of Work), rotating asset slots (Location of Work), NR return lines (Location of Work), standalone return rows (Location), Move tab row fields (Current Location, New Location), Quick Execute fields (Current Location, New Location), and both Mass Move fields</li>
+        <li><strong>Quick Execute — location fields stacked vertically</strong> — Current Location and New Location are now stacked one above the other in the Quick Execute panel rather than side by side, giving each field the full width for easier entry</li>
+        <li><strong>Log images embedded in clipboard export</strong> — when a work log entry contains photos, the clipboard export uses the HTML clipboard format (<code>ClipboardItem</code> with <code>text/html</code> + <code>text/plain</code> types). When pasted into apps that support rich pasting (email clients, Word, Notion, etc.) the images appear inline at up to 200×200px. Plain-text pasting still works as a fallback and shows the image count</li>
+        <li>All v1.4.1 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.4.1</div><div class="vd">May Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Auto-update root cause fixed</strong> — the real bug was <code>self.skipWaiting()</code> being called automatically in the service worker's install event, forcing the new SW to take over immediately on every update regardless of user action. Fixed by removing <code>skipWaiting()</code> from the install handler — it is now only called when the user explicitly taps <strong>Update</strong></li>
         <li><strong>Log entries are now collapsible</strong> — each log entry shows a compact summary row (type badge, subject, timestamp, viewable indicator, expand arrow). Tapping the row toggles the full entry open or closed. Entries start expanded when first created</li>
@@ -1248,8 +1268,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.4.1';
-const KEY     = 'maxplan_v141';
+const APP_VER = '1.4.3';
+const KEY     = 'maxplan_v143';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1267,6 +1287,21 @@ function fdt(ts) {
   return `${dd}/${mm}/${yyyy} ${h}:${m} ${ap}`;
 }
 const now = () => fdt(Date.now());
+
+// Reusable barcode scan button HTML — used by all location + asset fields
+function scanBtnHtml(virtualId, title='Scan barcode') {
+  return `<button class="scan-btn" style="width:38px;height:38px;flex-shrink:0;"
+    onclick="window.openScanner&&window.openScanner('${virtualId}')"
+    title="${title}" type="button">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+      <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+      <line x1="7" y1="8" x2="7" y2="16"/><line x1="10" y1="8" x2="10" y2="16"/>
+      <line x1="13" y1="8" x2="13" y2="16"/><line x1="16.5" y1="8" x2="16.5" y2="16"/>
+      <line x1="19" y1="8" x2="19" y2="16"/>
+    </svg>
+  </button>`;
+}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // STATE
@@ -1469,9 +1504,12 @@ function standaloneRetRowHtml(row, idx, tot) {
       </div>
       <div class="sf">
         <span class="sf-l${locInh?' inh':''}">Location${locInh?' (from WO)':''}</span>
-        <input class="sf-i${locInh?' inh-val':''}" type="text" placeholder="Return location"
-          value="${esc(row.loc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
-          data-r="${row.id}" data-f="loc" oninput="retRowIn(this)">
+        <div class="scan-wrap" style="margin-top:0">
+          <input class="sf-i${locInh?' inh-val':''}" type="text" placeholder="Return location"
+            value="${esc(row.loc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+            data-r="${row.id}" data-f="loc" oninput="retRowIn(this)">
+          ${scanBtnHtml(`__sret_${row.id}_loc`,'Scan location')}
+        </div>
       </div>
     </div>
     <div class="sf" style="margin-top:8px">
@@ -1791,17 +1829,23 @@ function moveCardHtml(row, idx, tot) {
       <div style="display:flex;flex-direction:row;gap:8px;align-items:flex-start;width:100%">
         <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;">
           <span class="sf-l">Current Location</span>
-          <input class="sf-i" type="text" placeholder="From…"
-            style="width:100%;height:40px;box-sizing:border-box;"
-            value="${esc(row.fromLoc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
-            data-r="${row.id}" data-f="fromLoc" oninput="moveRowIn(this)">
+          <div class="scan-wrap" style="margin-top:0">
+            <input class="sf-i" type="text" placeholder="From…"
+              style="height:40px;box-sizing:border-box;"
+              value="${esc(row.fromLoc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+              data-r="${row.id}" data-f="fromLoc" oninput="moveRowIn(this)">
+            ${scanBtnHtml(`__mov_${row.id}_fromLoc`,'Scan current location')}
+          </div>
         </div>
         <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;">
           <span class="sf-l">New Location</span>
-          <input class="sf-i" type="text" placeholder="To…"
-            style="width:100%;height:40px;box-sizing:border-box;"
-            value="${esc(row.toLoc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
-            data-r="${row.id}" data-f="toLoc" oninput="moveRowIn(this)">
+          <div class="scan-wrap" style="margin-top:0">
+            <input class="sf-i" type="text" placeholder="To…"
+              style="height:40px;box-sizing:border-box;"
+              value="${esc(row.toLoc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+              data-r="${row.id}" data-f="toLoc" oninput="moveRowIn(this)">
+            ${scanBtnHtml(`__mov_${row.id}_toLoc`,'Scan new location')}
+          </div>
         </div>
       </div>
       <div class="move-arrow">↓</div>
@@ -1865,20 +1909,26 @@ function renderMove() {
           </button>
         </div>
       </div>
-      <div style="display:flex;flex-direction:row;gap:8px;align-items:flex-start;width:100%;margin-bottom:10px">
-        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;">
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
+        <div class="sf">
           <span class="sf-l">Current Location *</span>
-          <input class="sf-i" id="qe-from" type="text" placeholder="From…"
-            style="width:100%;height:40px;box-sizing:border-box;"
-            autocomplete="off" autocorrect="off" autocapitalize="characters"
-            oninput="qeCheck()">
+          <div class="scan-wrap" style="margin-top:0">
+            <input class="sf-i" id="qe-from" type="text" placeholder="From…"
+              style="height:40px;box-sizing:border-box;"
+              autocomplete="off" autocorrect="off" autocapitalize="characters"
+              oninput="qeCheck()">
+            ${scanBtnHtml('__qe_from','Scan current location')}
+          </div>
         </div>
-        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;">
+        <div class="sf">
           <span class="sf-l">New Location *</span>
-          <input class="sf-i" id="qe-to" type="text" placeholder="To…"
-            style="width:100%;height:40px;box-sizing:border-box;"
-            autocomplete="off" autocorrect="off" autocapitalize="characters"
-            oninput="qeCheck()">
+          <div class="scan-wrap" style="margin-top:0">
+            <input class="sf-i" id="qe-to" type="text" placeholder="To…"
+              style="height:40px;box-sizing:border-box;"
+              autocomplete="off" autocorrect="off" autocapitalize="characters"
+              oninput="qeCheck()">
+            ${scanBtnHtml('__qe_to','Scan new location')}
+          </div>
         </div>
       </div>
       <div style="display:flex;gap:8px;">
@@ -1935,6 +1985,9 @@ function renderMove() {
         placeholder="Type current location to apply to all non-executed rows…"
         autocomplete="off" autocorrect="off" autocapitalize="characters"
         style="width:100%">
+      <div style="display:flex;justify-content:flex-end;margin-top:6px">
+        ${scanBtnHtml('__mass_from','Scan current location to mass-apply')}
+      </div>
       <div class="mass-apply-ok" id="mass-from-ok"></div>
     </div>
 
@@ -1950,6 +2003,9 @@ function renderMove() {
         placeholder="Type new location to apply to all non-executed rows…"
         autocomplete="off" autocorrect="off" autocapitalize="characters"
         style="width:100%">
+      <div style="display:flex;justify-content:flex-end;margin-top:6px">
+        ${scanBtnHtml('__mass_to','Scan new location to mass-apply')}
+      </div>
       <div class="mass-apply-ok" id="mass-to-ok"></div>
     </div>
   </div>`;
@@ -2138,9 +2194,12 @@ function nrLineHtml(iid, line, idx, tot) {
       </div>
       <div class="sf">
         <span class="sf-l${locInh?' inh':''}">Location of Work${locInh?' (from WO)':''}</span>
-        <input class="sf-i${locInh?' inh-val':''}" type="text" placeholder="e.g. HFA.ARC.ITC.1.114"
-          value="${esc(line.loc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
-          data-i="${iid}" data-l="${line.id}" data-f="loc" oninput="nrIn(this)">
+        <div class="scan-wrap" style="margin-top:0">
+          <input class="sf-i${locInh?' inh-val':''}" type="text" placeholder="e.g. HFA.ARC.ITC.1.114"
+            value="${esc(line.loc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+            data-i="${iid}" data-l="${line.id}" data-f="loc" oninput="nrIn(this)">
+          ${scanBtnHtml(`__nr_${iid}_${line.id}_loc`,'Scan location')}
+        </div>
       </div>
     </div>
     <div class="sf">
@@ -2220,9 +2279,12 @@ function rotSlotHtml(item, slot, idx) {
     </div>
     <div class="sf" style="margin-top:8px">
       <span class="sf-l${locInh?' inh':''}">Location of Work${locInh?' (from WO)':''}</span>
-      <input class="sf-i${locInh?' inh-val':''}" type="text" placeholder="e.g. HFA.ARC.ITC.1.114"
-        value="${esc(slot.loc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
-        data-i="${item.id}" data-s="${slot.id}" data-f="loc" oninput="rotIn(this)">
+      <div class="scan-wrap" style="margin-top:0">
+        <input class="sf-i${locInh?' inh-val':''}" type="text" placeholder="e.g. HFA.ARC.ITC.1.114"
+          value="${esc(slot.loc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+          data-i="${item.id}" data-s="${slot.id}" data-f="loc" oninput="rotIn(this)">
+        ${scanBtnHtml(`__rot_${item.id}_${slot.id}_loc`,'Scan location')}
+      </div>
     </div>
     <div class="sf" style="margin-top:8px">
       <span class="sf-l">Actual Date</span>
@@ -2317,9 +2379,12 @@ function nrRetLineHtml(iid, line, idx, tot) {
       </div>
       <div class="sf">
         <span class="sf-l${locInh?' inh':''}">Location of Work${locInh?' (from WO)':''}</span>
-        <input class="sf-i${locInh?' inh-val':''}" type="text" placeholder="e.g. HFA.ARC.ITC.1.114"
-          value="${esc(line.loc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
-          data-i="${iid}" data-l="${line.id}" data-f="loc" oninput="nrRetIn(this)">
+        <div class="scan-wrap" style="margin-top:0">
+          <input class="sf-i${locInh?' inh-val':''}" type="text" placeholder="e.g. HFA.ARC.ITC.1.114"
+            value="${esc(line.loc)}" autocomplete="off" autocorrect="off" autocapitalize="characters"
+            data-i="${iid}" data-l="${line.id}" data-f="loc" oninput="nrRetIn(this)">
+          ${scanBtnHtml(`__ret_${iid}_${line.id}_loc`,'Scan location')}
+        </div>
       </div>
     </div>
     <div class="sf">
@@ -2921,7 +2986,7 @@ function renderSummary() {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // EXPORT
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function doExport(){
+async function doExport(){
   const wo=CWO(); if(!wo)return;
   const L=['============================','MAXPLAN — WO MATERIAL SUMMARY','============================',
     `WO Number  : ${wo.woNumber}`];
@@ -2945,7 +3010,7 @@ function doExport(){
       L.push(`   From     : ${r.fromLoc || '—'}`);
       L.push(`   To       : ${r.toLoc   || '—'}`);
       L.push(`   Status   : ${status}`);
-      L.push(''); // blank line between moves
+      L.push('');
     });
   }
 
@@ -3003,14 +3068,15 @@ function doExport(){
   L.push('============================');
 
   // Work log
-  const expLog = (wo.workLog || []).filter(e => e.subject || e.body);
+  const expLog = (wo.workLog || []).filter(e => e.subject || e.body || (e.images && e.images.length));
+  const hasLogImages = expLog.some(e => e.images && e.images.length);
   if (expLog.length > 0) {
     L.push('', '── WORK LOG ──');
     expLog.forEach((e, i) => {
       L.push('');
       L.push(`   Entry ${i+1}    : [${e.type}] ${e.subject || '(no subject)'}`);
       L.push(`   Date      : ${e.createdAt}`);
-      L.push(`   Visibility: ${e.viewable!==false ? 'Viewable to service requester' : 'Internal — not shared with requester'}`);
+      L.push(`   Visibility: ${e.viewable!==false ? 'Viewable to service requester' : 'Internal — not shared'}`);
       if (e.body) L.push(`   Note      : ${e.body.replace(/\n/g, '\n              ')}`);
       if (e.images && e.images.length) L.push(`   Photos    : ${e.images.length} image${e.images.length!==1?'s':''} attached`);
     });
@@ -3018,9 +3084,129 @@ function doExport(){
   }
 
   L.push('============================');
-  const txt=L.join('\n');
-  if(navigator.clipboard?.writeText)navigator.clipboard.writeText(txt).then(copiedOk).catch(()=>fbCopy(txt));
-  else fbCopy(txt);
+  const txt = L.join('\n');
+
+  // ── CLIPBOARD STRATEGY ──
+  // When log images exist, use DOM-selection copy:
+  //   1. Build a styled HTML element with <img> tags (base64 src loaded directly into DOM)
+  //   2. Briefly append off-screen, select it, execCommand('copy')
+  //   3. Remove the element
+  // This is the most cross-platform way to copy rich content with images because
+  // the browser copies the rendered DOM — images are included as rendered bitmaps,
+  // not as raw base64 strings that paste targets would strip.
+  // ClipboardItem/text/html blob approach is avoided because most paste targets
+  // (email, Word, Outlook, Notion) strip <img src="data:..."> for security.
+
+  if (hasLogImages) {
+    try {
+      copyRichContent(txt, expLog);
+      return;
+    } catch(e) {
+      console.warn('Rich copy failed, falling back to plain text', e);
+    }
+  }
+
+  // Plain text path (no images, or rich copy failed)
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(txt).then(copiedOk).catch(() => fbCopy(txt));
+  } else {
+    fbCopy(txt);
+  }
+}
+
+// ── Rich DOM-selection copy ──────────────────────────────────────────
+// Renders the full export as a visible-but-off-screen HTML element,
+// selects it, and copies via execCommand so images are included.
+function copyRichContent(plainText, logEntries) {
+  const wrapper = document.createElement('div');
+  wrapper.setAttribute('contenteditable', 'true');
+  wrapper.style.cssText = [
+    'position:fixed', 'left:-9999px', 'top:0',
+    'width:700px', 'background:#fff', 'color:#111',
+    'font-family:monospace', 'font-size:13px',
+    'padding:12px', 'z-index:-1', 'overflow:visible',
+    'white-space:pre-wrap', 'pointer-events:none'
+  ].join(';');
+
+  // Plain text section (everything before the work log)
+  const parts = plainText.split('\n── WORK LOG ──');
+  const preText  = parts[0];
+  const preNode  = document.createElement('div');
+  preNode.style.cssText = 'white-space:pre-wrap;font-family:monospace;font-size:13px;margin-bottom:16px';
+  preNode.textContent   = preText;
+  wrapper.appendChild(preNode);
+
+  // Work log section (rich — with images)
+  if (logEntries.length > 0) {
+    const logHeader = document.createElement('div');
+    logHeader.style.cssText = 'font-family:sans-serif;font-size:16px;font-weight:700;margin:12px 0 10px;border-top:2px solid #ccc;padding-top:12px';
+    logHeader.textContent = 'Work Log';
+    wrapper.appendChild(logHeader);
+
+    logEntries.forEach(e => {
+      const viewable = e.viewable !== false;
+      const card     = document.createElement('div');
+      card.style.cssText = 'border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:12px;font-family:sans-serif;background:#fff';
+
+      // Header row: type badge + subject + timestamp + viewable
+      const head = document.createElement('div');
+      head.style.cssText = 'display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap';
+      head.innerHTML = `
+        <span style="background:${e.type==='Work'?'#ECFDF5':'#EFF6FF'};color:${e.type==='Work'?'#059669':'#2563EB'};border-radius:20px;padding:3px 10px;font-size:11px;font-weight:800;text-transform:uppercase">${esc(e.type)}</span>
+        <strong style="font-size:15px;flex:1">${esc(e.subject||'Untitled')}</strong>
+        <span style="color:#6B7280;font-size:11px">${esc(e.createdAt)}</span>
+        <span style="background:${viewable?'#ECFDF5':'#F3F4F6'};color:${viewable?'#059669':'#6B7280'};border-radius:20px;padding:3px 10px;font-size:11px">${viewable?'👁 Viewable':'🔒 Internal'}</span>`;
+      card.appendChild(head);
+
+      // Body text
+      if (e.body) {
+        const p = document.createElement('p');
+        p.style.cssText = 'font-size:14px;color:#374151;margin:0 0 10px;white-space:pre-wrap';
+        p.textContent = e.body;
+        card.appendChild(p);
+      }
+
+      // Images — create real <img> elements with base64 src so browser renders them
+      if (e.images && e.images.length) {
+        const imgRow = document.createElement('div');
+        imgRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-top:4px';
+        e.images.forEach(src => {
+          const img = document.createElement('img');
+          img.src   = src;  // base64 data URL — browser renders immediately
+          img.style.cssText = 'max-width:200px;max-height:200px;border-radius:6px;object-fit:cover;display:block';
+          img.alt   = 'Log photo';
+          imgRow.appendChild(img);
+        });
+        card.appendChild(imgRow);
+      }
+
+      wrapper.appendChild(card);
+    });
+  }
+
+  document.body.appendChild(wrapper);
+
+  // Select the entire wrapper and copy
+  const range = document.createRange();
+  range.selectNodeContents(wrapper);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+
+  let success = false;
+  try {
+    success = document.execCommand('copy');
+  } finally {
+    sel.removeAllRanges();
+    document.body.removeChild(wrapper);
+  }
+
+  if (success) {
+    copiedOk();
+  } else {
+    // execCommand returned false — fall back to plain text
+    fbCopy(plainText);
+  }
 }
 function fbCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');copiedOk();}catch(e){alert(t);}document.body.removeChild(ta);}
 function copiedOk(){const e=$('cok');if(!e)return;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2800);}
@@ -3987,6 +4173,30 @@ document.addEventListener('DOMContentLoaded', () => {
       if (inp) { inp.value = upper; qeCheck(); }
       closeScanner();
       return;
+    }
+
+    // Quick Execute location fields
+    if (id === '__qe_from') {
+      const inp = $('qe-from');
+      if (inp) { inp.value = upper; qeCheck(); }
+      closeScanner(); return;
+    }
+    if (id === '__qe_to') {
+      const inp = $('qe-to');
+      if (inp) { inp.value = upper; qeCheck(); }
+      closeScanner(); return;
+    }
+
+    // Mass Move location fields
+    if (id === '__mass_from') {
+      const inp = $('mass-from-inp');
+      if (inp) inp.value = upper;
+      closeScanner(); return;
+    }
+    if (id === '__mass_to') {
+      const inp = $('mass-to-inp');
+      if (inp) inp.value = upper;
+      closeScanner(); return;
     }
 
     if (id && id.startsWith('__rot_')) {

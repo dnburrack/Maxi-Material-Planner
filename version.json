@@ -1,5 +1,5 @@
 {
-  "version": "1.4.1",
-  "date": "2026-05-09",
-  "notes": "Auto-update root cause fixed; log collapse/expand; photos; viewable checkbox; save button"
+  "version": "1.4.3",
+  "date": "2026-05-13",
+  "notes": "Log image clipboard fix — DOM-selection copy for cross-app image pasting"
 }
