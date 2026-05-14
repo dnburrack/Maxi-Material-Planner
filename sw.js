@@ -1,7 +1,7 @@
-// MaxPlan Service Worker — v1.4.3
-// self.skipWaiting() is NOT called on install — only on explicit SKIP_WAITING message.
+// MaxPlan Service Worker — v1.4.4
+// self.skipWaiting() only called on explicit SKIP_WAITING message.
 
-const CACHE = 'maxplan-v143';
+const CACHE = 'maxplan-v144';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.svg', './version.json'];
 
 self.addEventListener('install', event => {

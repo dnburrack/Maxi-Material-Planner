@@ -1,5 +1,5 @@
 {
-  "version": "1.4.3",
+  "version": "1.4.4",
   "date": "2026-05-13",
-  "notes": "Log image clipboard fix — DOM-selection copy for cross-app image pasting"
+  "notes": "Clipboard image fix; WO location scan button; version history dates corrected"
 }

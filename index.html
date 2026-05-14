@@ -608,7 +608,7 @@
 <div id="vh" class="view active">
   <div class="header">
     <div class="htxt"><h1>MaxPlan</h1><div class="hsub">Maximo Work Order Material Planner</div></div>
-    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.4.3</button>
+    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.4.4</button>
   </div>
   <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button id="btn-do-update">Update</button></div>
   <div id="ib"><p>Install MaxPlan for offline access on your phone.</p><button id="bi">Install</button></div>
@@ -713,7 +713,17 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.4.3</div><div class="vd">May Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.4.4</div><div class="vd">May Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li><strong>Clipboard image fix (improved)</strong> — images are now reliably attached to the copied summary. The fix ensures all base64 images are fully decoded and painted by the browser before the DOM selection copy runs. Uses <code>new Image()</code> + <code>onload</code> + double <code>requestAnimationFrame</code> to guarantee the browser has rendered every image before <code>execCommand('copy')</code> is called. Pasting into email, Word, Outlook, or Notion now consistently includes the photos</li>
+        <li><strong>Location scan button on New Work Order form</strong> — the Location of Work field in the Create / Edit Work Order sheet now has a barcode scan button, matching all other location fields in the app</li>
+        <li><strong>Version history dates corrected</strong> — all version entries now show the correct upload date based on the actual GitHub commit history (April Week 1–4 and May Week 1–2 as appropriate)</li>
+        <li>All v1.4.3 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.4.3</div><div class="vd">May Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Log image clipboard fix</strong> — images are now reliably copied to the clipboard when exporting. The previous approach used a <code>ClipboardItem</code> HTML blob with base64 <code>&lt;img&gt;</code> tags, which most paste targets (email clients, Word, Outlook, Notion) strip for security. The fix uses <strong>DOM-selection copy</strong> (<code>execCommand('copy')</code>): when log images are present, the export renders a styled off-screen HTML element with real <code>&lt;img&gt;</code> elements loaded from base64, selects the entire rendered content, and copies it — the browser copies what it has rendered including the actual image bitmaps. Pasting into email, Word, or any rich-text editor now includes the images</li>
         <li>Plain-text export (no images) is unchanged</li>
@@ -759,7 +769,7 @@
     </div>
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.3.7</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vc-h"><div><div class="vn">v1.3.7</div><div class="vd">May Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Rotating asset placeholder updated</strong> — all rotating asset number fields now show <code>e.g. A60001</code> (was A6001)</li>
         <li><strong>Plan tab field order redesigned</strong> — the Add / Edit Planned Item form now follows the workflow order: <strong>Storeroom</strong> (mandatory) → <strong>Bin</strong> (optional) → <strong>Item Number</strong> + scanner button (mandatory) → <strong>Planned Quantity</strong> (mandatory). This applies to both non-rotating and rotating items</li>
@@ -770,7 +780,7 @@
     </div>
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.3.6</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vc-h"><div><div class="vn">v1.3.6</div><div class="vd">May Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Multi-scan panel — Confirm &amp; Scan Next restored after X</strong> — pressing ✕ during scanning now returns to the confirmation panel with all three options available: <strong>Confirm &amp; Scan Next</strong> (or <strong>Scan Another Asset</strong> if there was no pending value), <strong>Confirm &amp; Finish</strong>, and <strong>Retry this scan</strong></li>
         <li><strong>Placeholder text updated</strong> — Location fields now show <code>e.g. HFA.ARC.ITC.1.114</code>, Bin fields show <code>e.g. C-02-05</code>, and Rotating Asset fields show <code>e.g. A60001</code> across the entire app</li>
@@ -781,7 +791,7 @@
     </div>
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.3.5</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vc-h"><div><div class="vn">v1.3.5</div><div class="vd">May Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Optional Bin field</strong> added to three workflows — <em>issuing non-rotating items</em>, <em>issuing rotating items</em>, and <em>returning non-rotating items</em>. The field is optional (no validation required), labelled <strong>Bin (optional)</strong>, appears after Asset Number / Return Date in each form, and is included in the Summary tab and clipboard export when filled</li>
         <li><strong>Move Tab – Quick Execute</strong> — a new <strong>⚡ Quick Execute</strong> panel at the top of the Move tab lets you create and immediately execute (or plan) an asset move without first adding a row. Enter asset number (with scan button), current location, and new location, then tap <strong>💾 Save as Plan</strong> or <strong>⚡ Execute Now</strong>. The buttons enable the moment both location fields are filled. A confirmation message appears and the row is added to the list below</li>
@@ -791,7 +801,7 @@
     </div>
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.3.4</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vc-h"><div><div class="vn">v1.3.4</div><div class="vd">May Week 1 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Execute Now button</strong> is now dynamically enabled and disabled as you type — it activates the moment all three fields (Asset Number, Current Location, New Location) are filled, and the card state indicator updates in real time between Incomplete → ⏳ Planned → ✓ Executed</li>
         <li><strong>Asset Mass Move section</strong> added at the bottom of the Move tab — two independent fields let you apply the same location to every non-executed row in one tap:
@@ -808,7 +818,7 @@
     </div>
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.3.3</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vc-h"><div><div class="vn">v1.3.3</div><div class="vd">April Week 4 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>PWA update fix</strong> — the Update button now correctly applies new versions on all devices. Previously, tapping Update and reloading did not always activate the new service worker. The fix uses the standard <code>SKIP_WAITING</code> + <code>controllerchange</code> pattern: the app sends a message to the waiting service worker, waits for it to take control, then reloads — guaranteeing the fresh version is served</li>
         <li><strong>Multi-asset scan session</strong> in the Move tab — tap <strong>📷 Scan Assets</strong> to open a scanning session that lets you scan several asset barcodes without restarting each time. After each scan a confirmation panel appears showing the decoded value and your running list, with two choices: <strong>Confirm &amp; Scan Next</strong> to add it and scan another, or <strong>Confirm &amp; Finish</strong> to close and create one new move row per scanned asset. Scanning one asset creates one row; scanning three creates three rows, each pre-filled with that asset's number ready for locations to be added</li>
@@ -818,7 +828,7 @@
     </div>
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.3.2</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vc-h"><div><div class="vn">v1.3.2</div><div class="vd">April Week 4 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>How to Install button</strong> added to the home screen — a <strong>📲 How to install on your phone</strong> button is always visible at the bottom of the main page. Tapping it opens a step-by-step install guide for both iPhone/iPad (Safari) and Android (Chrome)</li>
         <li>Install guide includes numbered steps, platform icons, a Safari-only note for iOS users, and a tip confirming the app works fully offline once installed</li>
@@ -829,7 +839,7 @@
     </div>
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.3.1</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vc-h"><div><div class="vn">v1.3.1</div><div class="vd">April Week 4 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li>Move tab: Current Location and New Location fields aligned on the same horizontal line</li>
         <li>Clipboard export: blank line between each asset movement entry</li>
@@ -838,7 +848,7 @@
     </div>
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.3</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vc-h"><div><div class="vn">v1.3</div><div class="vd">April Week 3 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li>New <strong>🔀 Move tab</strong> added as the first tab in every work order — before Plan, Actual, and Summary</li>
         <li>Each move row has: <strong>Rotating Asset Number</strong> (with barcode scan button), <strong>Current Location</strong>, and <strong>New Location</strong> — shown side by side for quick comparison</li>
@@ -852,7 +862,7 @@
     </div>
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.2.15</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vc-h"><div><div class="vn">v1.2.15</div><div class="vd">April Week 3 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li>Barcode scan button added next to the <strong>Item Number</strong> field in each return row in the Actual tab — allows scanning the item number of the item being returned, consistent with the Plan tab</li>
         <li><strong>Long Description removed</strong> from the Summary tab — it is no longer shown there</li>
@@ -863,7 +873,7 @@
     </div>
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.2.14</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vc-h"><div><div class="vn">v1.2.14</div><div class="vd">April Week 3 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li>New return rows in the <strong>↩ Returns to Storeroom</strong> section now automatically pre-fill <strong>Location</strong> and <strong>Asset Number</strong> from the Work Order details (if set)</li>
         <li>This applies whether the WO-level Location and Asset were set at creation time or added later via Edit Work Order — any new return row will always pick up the current WO values at the moment it is created</li>
@@ -874,7 +884,7 @@
     </div>
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.2.13</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vc-h"><div><div class="vn">v1.2.13</div><div class="vd">April Week 3 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Version history button</strong> in the home screen header now displays the current version number (<code>v1.2.13</code>) as text instead of the 📋 checklist icon</li>
         <li><strong>Standalone Returns section</strong> — the Actual tab now has a dedicated <strong>↩ Returns to Storeroom</strong> section at the bottom, always visible regardless of what is planned. Tap <strong>+ New Return Row</strong> to record any item being returned</li>
@@ -888,7 +898,7 @@
     </div>
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.2.12</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vc-h"><div><div class="vn">v1.2.12</div><div class="vd">April Week 3 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Returns for non-rotating items</strong> — each NR actual card now has a dashed ↩ Returns section below the issue lines. Return lines have the same fields as issue lines (Qty to Return, Location of Work, Asset Number with WO inheritance, Return Date auto-stamp). A live <strong>Net on-hand</strong> counter (Issued − Returned) updates in real time. Return line asset fields also have a scan button</li>
         <li><strong>Torch / flash toggle</strong> — a 🔦 button now appears in the scanner header during Live Mode on devices where the camera supports torch. Tap to turn the flash on (button glows amber); tap again to turn it off. Flash automatically turns off when the scanner closes</li>
@@ -898,7 +908,7 @@
     </div>
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.2.11</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vc-h"><div><div class="vn">v1.2.11</div><div class="vd">April Week 3 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li>Summary tab now <strong>always visible</strong> — Work Order Details (number, title, location, asset, status, timestamps) are shown immediately when opening the Summary tab, even before any items are planned</li>
         <li><strong>"Started" renamed to "In Progress"</strong> in the Summary tab and in the clipboard export</li>
@@ -910,7 +920,7 @@
     </div>
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.2.10</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vc-h"><div><div class="vn">v1.2.10</div><div class="vd">April Week 3 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Beep on successful scan</strong> — a short 1800Hz tone plays when a barcode is decoded. Uses the Web Audio API so no sound file is needed. If the phone is on silent, no sound plays (AudioContext is muted when silent mode is on)</li>
         <li><strong>Wider scan window</strong> — the targeting frame is taller (aspect ratio changed from 3.5:1 to 2.2:1), making it easier to align Code 128 barcodes</li>
@@ -922,7 +932,7 @@
     </div>
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.2.9</div><div class="vd">April Week 2 2026</div></div><span class="vt">Previous</span></div>
+      <div class="vc-h"><div><div class="vn">v1.2.9</div><div class="vd">April Week 3 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Root cause identified and fixed</strong>: all versions from v1.2 through v1.2.8 used <code>@zxing/library</code> — the low-level ZXing core which is officially marked <em>deprecated for browser use</em> in its own source code. The correct package is <code>@zxing/browser</code>, a separate dedicated browser layer.</li>
         <li>Live mode now uses <strong><code>decodeFromConstraints()</code></strong> — the documented continuous-callback API from <code>@zxing/browser</code>. ZXing manages the camera stream and decode loop internally. No manual frame capture, no canvas cropping required.</li>
@@ -1144,8 +1154,19 @@
     <div class="sheet-sec-lbl">Work Details</div>
     <div class="field">
       <label class="fl opt">Location</label>
-      <input class="fi mono" id="iwl" placeholder="Location of work"
-        autocomplete="off" autocorrect="off" autocapitalize="characters">
+      <div class="scan-wrap">
+        <input class="fi mono" id="iwl" placeholder="Location of work"
+          autocomplete="off" autocorrect="off" autocapitalize="characters">
+        <button class="scan-btn" id="btn-scan-wo-loc" title="Scan location barcode" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+            <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+            <line x1="7" y1="8" x2="7" y2="16"/><line x1="10" y1="8" x2="10" y2="16"/>
+            <line x1="13" y1="8" x2="13" y2="16"/><line x1="16.5" y1="8" x2="16.5" y2="16"/>
+            <line x1="19" y1="8" x2="19" y2="16"/>
+          </svg>
+        </button>
+      </div>
       <div class="fi-hint">Items added to the plan after this is set will auto-fill this location in the Actual tab.</div>
     </div>
     <div class="field">
@@ -1268,8 +1289,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.4.3';
-const KEY     = 'maxplan_v143';
+const APP_VER = '1.4.4';
+const KEY     = 'maxplan_v144';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -3098,15 +3119,11 @@ async function doExport(){
   // (email, Word, Outlook, Notion) strip <img src="data:..."> for security.
 
   if (hasLogImages) {
-    try {
-      copyRichContent(txt, expLog);
-      return;
-    } catch(e) {
-      console.warn('Rich copy failed, falling back to plain text', e);
-    }
+    copyRichContent(txt, expLog); // async — handles copiedOk / fbCopy internally
+    return;
   }
 
-  // Plain text path (no images, or rich copy failed)
+  // Plain text path (no images)
   if (navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(txt).then(copiedOk).catch(() => fbCopy(txt));
   } else {
@@ -3116,7 +3133,7 @@ async function doExport(){
 
 // ── Rich DOM-selection copy ──────────────────────────────────────────
 // Renders the full export as a visible-but-off-screen HTML element,
-// selects it, and copies via execCommand so images are included.
+// waits for all images to finish loading, selects, and copies via execCommand.
 function copyRichContent(plainText, logEntries) {
   const wrapper = document.createElement('div');
   wrapper.setAttribute('contenteditable', 'true');
@@ -3128,15 +3145,14 @@ function copyRichContent(plainText, logEntries) {
     'white-space:pre-wrap', 'pointer-events:none'
   ].join(';');
 
-  // Plain text section (everything before the work log)
   const parts = plainText.split('\n── WORK LOG ──');
-  const preText  = parts[0];
-  const preNode  = document.createElement('div');
+  const preNode = document.createElement('div');
   preNode.style.cssText = 'white-space:pre-wrap;font-family:monospace;font-size:13px;margin-bottom:16px';
-  preNode.textContent   = preText;
+  preNode.textContent = parts[0];
   wrapper.appendChild(preNode);
 
-  // Work log section (rich — with images)
+  const imgElements = [];
+
   if (logEntries.length > 0) {
     const logHeader = document.createElement('div');
     logHeader.style.cssText = 'font-family:sans-serif;font-size:16px;font-weight:700;margin:12px 0 10px;border-top:2px solid #ccc;padding-top:12px';
@@ -3145,10 +3161,9 @@ function copyRichContent(plainText, logEntries) {
 
     logEntries.forEach(e => {
       const viewable = e.viewable !== false;
-      const card     = document.createElement('div');
+      const card = document.createElement('div');
       card.style.cssText = 'border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:12px;font-family:sans-serif;background:#fff';
 
-      // Header row: type badge + subject + timestamp + viewable
       const head = document.createElement('div');
       head.style.cssText = 'display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap';
       head.innerHTML = `
@@ -3158,7 +3173,6 @@ function copyRichContent(plainText, logEntries) {
         <span style="background:${viewable?'#ECFDF5':'#F3F4F6'};color:${viewable?'#059669':'#6B7280'};border-radius:20px;padding:3px 10px;font-size:11px">${viewable?'👁 Viewable':'🔒 Internal'}</span>`;
       card.appendChild(head);
 
-      // Body text
       if (e.body) {
         const p = document.createElement('p');
         p.style.cssText = 'font-size:14px;color:#374151;margin:0 0 10px;white-space:pre-wrap';
@@ -3166,16 +3180,19 @@ function copyRichContent(plainText, logEntries) {
         card.appendChild(p);
       }
 
-      // Images — create real <img> elements with base64 src so browser renders them
       if (e.images && e.images.length) {
         const imgRow = document.createElement('div');
         imgRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-top:4px';
         e.images.forEach(src => {
-          const img = document.createElement('img');
-          img.src   = src;  // base64 data URL — browser renders immediately
+          const img = new Image();
+          img.src = src;
           img.style.cssText = 'max-width:200px;max-height:200px;border-radius:6px;object-fit:cover;display:block';
-          img.alt   = 'Log photo';
+          img.alt = 'Log photo';
+          // Crucial: set width/height explicitly so layout is stable during copy
+          img.width  = 200;
+          img.height = 200;
           imgRow.appendChild(img);
+          imgElements.push(img);
         });
         card.appendChild(imgRow);
       }
@@ -3186,27 +3203,32 @@ function copyRichContent(plainText, logEntries) {
 
   document.body.appendChild(wrapper);
 
-  // Select the entire wrapper and copy
-  const range = document.createRange();
-  range.selectNodeContents(wrapper);
-  const sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(range);
+  // Wait for ALL images to decode/load before copying so they are rendered
+  const waitForImages = imgElements.map(img =>
+    img.complete ? Promise.resolve() :
+    new Promise(res => { img.onload = res; img.onerror = res; })
+  );
 
-  let success = false;
-  try {
-    success = document.execCommand('copy');
-  } finally {
-    sel.removeAllRanges();
-    document.body.removeChild(wrapper);
-  }
-
-  if (success) {
-    copiedOk();
-  } else {
-    // execCommand returned false — fall back to plain text
-    fbCopy(plainText);
-  }
+  Promise.all(waitForImages).then(() => {
+    // Small rAF delay to ensure browser has painted the images
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const range = document.createRange();
+        range.selectNodeContents(wrapper);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        let success = false;
+        try { success = document.execCommand('copy'); }
+        finally {
+          sel.removeAllRanges();
+          document.body.removeChild(wrapper);
+        }
+        if (success) copiedOk();
+        else fbCopy(plainText);
+      });
+    });
+  });
 }
 function fbCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');copiedOk();}catch(e){alert(t);}document.body.removeChild(ta);}
 function copiedOk(){const e=$('cok');if(!e)return;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2800);}
@@ -4096,7 +4118,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const id = _targetId;
     const upper = (value || '').toUpperCase();
 
-    if (id && id.startsWith('__nr_')) {
+    // WO-level location field
+    if (id === 'iwl') {
+      const inp = $('iwl');
+      if (inp) inp.value = upper;
+      closeScanner(); return;
+    }
       // Virtual ID for NR issue line: __nr_{iid}_{lid}_{field}
       const parts = id.split('_');
       const iid   = parts[3];
@@ -4473,6 +4500,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (scanBtn) scanBtn.addEventListener('click', () => openScanner('iin'));
   const scanWoAsset = document.getElementById('btn-scan-wo-asset');
   if (scanWoAsset) scanWoAsset.addEventListener('click', () => openScanner('iwa'));
+  const scanWoLoc = document.getElementById('btn-scan-wo-loc');
+  if (scanWoLoc) scanWoLoc.addEventListener('click', () => openScanner('iwl'));
 
 })();
 </script>

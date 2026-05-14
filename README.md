@@ -74,6 +74,12 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 
 ## Version History
 
+### v1.4.4 — May Week 2 2026
+- **Clipboard image fix (improved)** — images now reliably paste into email, Word, Outlook, and Notion. Fix uses `new Image()` + `onload` + double `requestAnimationFrame` to ensure every base64 image is fully decoded and painted before `execCommand('copy')` runs
+- **Location scan button on New Work Order form** — the Location of Work field in the Create/Edit WO sheet now has a barcode scan button
+- **Version history dates corrected** — all version entries updated to reflect actual GitHub upload dates (April Week 1–4 and May Week 1–2)
+- All v1.4.3 features retained
+
 ### v1.4.3 — May Week 2 2026
 - **Log image clipboard fix** — images now copy correctly. The previous `ClipboardItem` HTML blob approach failed because paste targets strip `<img src="data:...">` base64 tags. The fix renders a styled off-screen DOM element with real `<img>` elements, selects and copies it via `execCommand('copy')` — the browser copies the rendered bitmaps. Pasting into email, Word, Outlook, or Notion now includes the photos. Falls back to plain text if DOM-selection copy fails
 - All v1.4.2 features retained
@@ -100,27 +106,27 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 - Log entries appear in the Summary tab (📝 Work Log section) and in the clipboard export (WORK LOG section)
 - All v1.3.7 features retained
 
-### v1.3.7 — April Week 2 2026
+### v1.3.7 — May Week 2 2026
 - **Rotating asset placeholder updated** — all rotating asset number fields now show `e.g. A60001` (was A6001)
 - **Plan tab field order redesigned** — the Add / Edit Planned Item form now follows the workflow order: **Storeroom** (mandatory) → **Bin** (optional) → **Item Number** + scanner (mandatory) → **Planned Quantity** (mandatory). Applies to both non-rotating and rotating items
 - **Bin field removed from Actual tab** — the optional Bin field has been removed from non-rotating issue lines and rotating asset slots. Bin is now a Plan-only field recorded at planning time alongside the storeroom
 - Bin continues to appear on plan item cards, in the Summary tab (as "Planned Bin"), and in the clipboard export
 - All v1.3.6 features retained
 
-### v1.3.6 — April Week 2 2026
+### v1.3.6 — May Week 2 2026
 - **Multi-scan panel — Confirm & Scan Next restored after X** — pressing ✕ during scanning returns to the confirmation panel with all three options: **Confirm & Scan Next** (or "Scan Another Asset" if no pending value), **Confirm & Finish**, and **Retry this scan**
 - **Placeholder text updated** globally — Location fields: `e.g. HFA.ARC.ITC.1.114`, Bin fields: `e.g. C-02-05`, Rotating Asset fields: `e.g. A6001`
 - **Scan Assets button** is now pill-shaped (matching + Add Row) with white text on green background
 - **Optional Bin field in Plan tab** — both non-rotating and rotating plan items have a Bin field in Add / Edit form. Shown on the plan card, in the Summary tab, and in clipboard export as "Planned Bin"
 - All v1.3.5 features retained
 
-### v1.3.5 — April Week 2 2026
+### v1.3.5 — May Week 2 2026
 - **Optional Bin field** added to three workflows — issuing non-rotating items, issuing rotating items, and returning non-rotating items. Optional (no validation), appears after Asset Number / Return Date, included in Summary and clipboard export when filled
 - **Move Tab – Quick Execute** — a new ⚡ Quick Execute panel at the top of the Move tab. Enter asset number (with scan), current location, and new location, then tap 💾 Save as Plan or ⚡ Execute Now. Buttons enable the moment both location fields are filled. No need to first click Add Row
 - **Multi-scan X button fix** — pressing ✕ during a multi-asset scanning session no longer cancels the session and loses scanned assets. It returns to the confirmation panel instead. Assets are only committed or discarded when the user explicitly taps Confirm & Finish or Cancel. The Finish button shows how many rows will be created
 - All v1.3.4 features retained
 
-### v1.3.4 — April Week 2 2026
+### v1.3.4 — May Week 1 2026
 - **Execute Now button** is now dynamically enabled as you type — it activates the moment all three fields (Asset Number, Current Location, New Location) are filled. Card state updates in real time: Incomplete → ⏳ Planned → ✓ Executed
 - **Asset Mass Move section** added at the bottom of the Move tab with two independent fields:
   - **📍 Set Current Location for all** — type a location and tap Apply to fill the Current Location on every non-executed row
@@ -130,25 +136,25 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 - A confirmation message shows how many rows were updated after each Apply
 - All v1.3.3 features retained
 
-### v1.3.3 — April Week 2 2026
+### v1.3.3 — April Week 4 2026
 - **PWA update fix** — the Update button now correctly applies new versions on all devices. Uses the `SKIP_WAITING` + `controllerchange` pattern: sends a message to the waiting service worker, waits for it to take control, then reloads — guaranteeing the new version is served
 - **Multi-asset scan session** in the Move tab — tap **📷 Scan Assets** to scan several asset barcodes in one session. After each decode a confirmation panel shows the value and your running list with two options: **Confirm & Scan Next** or **Confirm & Finish**. Finishing creates one new move row per scanned asset, each pre-filled with the asset number
 - **+ Add Row** button retained for manual entry alongside the scan button
 - All v1.3.2 features retained
 
-### v1.3.2 — April Week 2 2026
+### v1.3.2 — April Week 4 2026
 - **📲 How to Install button** added to the home screen — always visible at the bottom of the main page. Tapping it opens a step-by-step install guide with numbered steps and platform icons for both iPhone/iPad (Safari) and Android (Chrome)
 - Install guide includes a Safari-only note for iOS users and a tip confirming the app works fully offline once installed
 - **Move tab alignment fix** — Current Location and New Location fields are now reliably aligned on the same horizontal line on all devices including iOS Safari. Switched from CSS grid to flexbox with explicit identical input heights for consistent cross-platform rendering
 - Clipboard export: asset movement rows separated by a blank line between entries for easier reading
 - All v1.3 features retained
 
-### v1.3.1 — April Week 2 2026
+### v1.3.1 — April Week 4 2026
 - Move tab: **Current Location** and **New Location** fields are now properly aligned on the same horizontal line — both labels and inputs sit flush at the same height
 - Clipboard export: asset movement rows are now separated by a blank line between each entry, making the exported text much easier to read at a glance
 - All v1.3 features retained
 
-### v1.3 — April Week 2 2026
+### v1.3 — April Week 3 2026
 - New **🔀 Move tab** added as the first tab in every work order — before Plan, Actual, and Summary
 - Each move row has: **Rotating Asset Number** (with barcode scan button), **Current Location**, and **New Location** shown side by side
 - Rows can be **planned** (fields filled, no timestamp) or **executed** — tapping **⚡ Execute Now** stamps the exact date and time the move took place
@@ -158,21 +164,21 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 - Asset movements included in the **clipboard export** under an ASSET MOVEMENTS section
 - All v1.2.15 features retained
 
-### v1.2.15 — April Week 2 2026
+### v1.2.15 — April Week 3 2026
 - Barcode scan button added next to the **Item Number** field in each return row in the Actual tab — allows scanning the item number of the item being returned, consistent with the Plan tab
 - **Long Description removed** from the Summary tab — it is no longer shown there
 - **Summary tab layout clarified** — issued and returned items are now separated by clearly labelled colour-coded section dividers: a blue **⬆ Issued Items** banner and a red **↩ Returned Items** banner
 - Section sub-labels simplified: **Non-Rotating** and **Rotating** under Issued Items; return count and total units under Returned Items
 - All v1.2.14 features retained
 
-### v1.2.14 — April Week 2 2026
+### v1.2.14 — April Week 3 2026
 - New return rows in the **↩ Returns to Storeroom** section now automatically pre-fill **Location** and **Asset Number** from the Work Order details (if set)
 - This applies whether WO-level Location and Asset were set at creation time or added later via Edit Work Order — any new return row always picks up the current WO values at the moment it is created
 - Pre-filled fields are visually marked **(from WO)** in purple, matching the inheritance styling used on issue lines throughout the app
 - Fields remain fully editable — the WO values are a starting point, not a lock
 - All v1.2.13 features retained
 
-### v1.2.13 — April Week 2 2026
+### v1.2.13 — April Week 3 2026
 - **Version history button** in the home screen header now shows the current version number (`v1.2.13`) as text instead of the 📋 checklist icon
 - **Standalone Returns section** — the Actual tab now has a dedicated **↩ Returns to Storeroom** section at the bottom, always visible regardless of what is planned
 - Each return row accepts: Item Number, Storeroom, Qty to Return, Location, Asset Number (with barcode scan), and Return Date (auto-stamps on first qty entry)
@@ -181,13 +187,13 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 - Returns summarised in the Summary tab and included in clipboard export
 - All v1.2.12 features retained
 
-### v1.2.12 — April Week 2 2026
+### v1.2.12 — April Week 3 2026
 - Returns for non-rotating items — each NR actual card has a ↩ Returns section with return lines (Qty to Return, Location, Asset Number with scan, Return Date). Net on-hand counter (Issued − Returned) updates live
 - Torch / flash toggle (🔦) in scanner header during Live Mode on supported devices
 - Version history button moved to home screen header (was bottom of scroll list)
 - All v1.2.11 features retained
 
-### v1.2.11 — April Week 2 2026
+### v1.2.11 — April Week 3 2026
 - Summary tab always visible with Work Order Details shown immediately, even before any items are planned
 - "Started" renamed to "In Progress" in Summary tab and clipboard export
 - Timestamp format changed to `DD/MM/YYYY H:MM AM/PM` throughout
@@ -195,7 +201,7 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 - Clear Completed WOs button appears when at least one WO has COMP status
 - All v1.2.10 features retained
 
-### v1.2.10 — April Week 2 2026
+### v1.2.10 — April Week 3 2026
 - Beep on successful scan (Web Audio API, 1800Hz tone)
 - Wider scan window (aspect ratio changed from 3.5:1 to 2.2:1)
 - Scan button added to WO Asset field in WO creation/edit sheet
@@ -203,7 +209,7 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 - Scan buttons on every rotating asset slot's Rotating Asset and Asset Number fields
 - All v1.2.9 features retained
 
-### v1.2.9 — April Week 2 2026
+### v1.2.9 — April Week 3 2026
 - Barcode scanner rebuilt using `@zxing/browser` (the correct dedicated browser layer — `@zxing/library` is deprecated for browser use)
 - Live mode uses `decodeFromConstraints()`, photo mode uses `decodeFromImageElement()` — both from `BrowserMultiFormatReader`
 - All v1.2.8 features retained
