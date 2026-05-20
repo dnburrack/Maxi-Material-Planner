@@ -608,7 +608,7 @@
 <div id="vh" class="view active">
   <div class="header">
     <div class="htxt"><h1>MaxPlan</h1><div class="hsub">Maximo Work Order Material Planner</div></div>
-    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.4.4</button>
+    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.4.5</button>
   </div>
   <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button id="btn-do-update">Update</button></div>
   <div id="ib"><p>Install MaxPlan for offline access on your phone.</p><button id="bi">Install</button></div>
@@ -713,7 +713,22 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.4.4</div><div class="vd">May Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.4.5</div><div class="vd">May Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li><strong>Update mechanism fully rebuilt</strong> — the Update button now reliably applies new versions. Three root causes were fixed:
+          <ul style="margin-top:6px">
+            <li><strong>Race condition</strong> — the update banner was shown as soon as <code>version.json</code> was fetched, but the new service worker may still be downloading. Tapping Update while it was still installing caused a fallback reload with the old SW still in control, serving the old cached page. Fix: <code>doUpdate()</code> now calls <code>reg.update()</code> to force a fresh SW check and waits up to 8 seconds for the new SW to reach the <code>installed</code> (waiting) state before sending <code>SKIP_WAITING</code></li>
+            <li><strong>sessionStorage not cleared</strong> — <code>sessionStorage</code> persists across <code>location.reload()</code> in the same browser tab. After a failed reload, the version check guard (<code>vchk</code>) was still set, so <code>chkVer()</code> returned early and the banner persisted. Fix: <code>sessionStorage.removeItem('vchk')</code> is called before every reload, and the <code>controllerchange</code> handler also clears it</li>
+            <li><strong>No confirmation after update</strong> — after reload there was no check that the update succeeded. Fix: <code>chkVer()</code> now explicitly hides the banner when <code>APP_VER</code> matches <code>version.json</code>, confirming success</li>
+          </ul>
+        </li>
+        <li>Update button shows "Updating…" while waiting for the new SW to install</li>
+        <li>All v1.4.4 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.4.4</div><div class="vd">May Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Clipboard image fix (improved)</strong> — images are now reliably attached to the copied summary. The fix ensures all base64 images are fully decoded and painted by the browser before the DOM selection copy runs. Uses <code>new Image()</code> + <code>onload</code> + double <code>requestAnimationFrame</code> to guarantee the browser has rendered every image before <code>execCommand('copy')</code> is called. Pasting into email, Word, Outlook, or Notion now consistently includes the photos</li>
         <li><strong>Location scan button on New Work Order form</strong> — the Location of Work field in the Create / Edit Work Order sheet now has a barcode scan button, matching all other location fields in the app</li>
@@ -1289,8 +1304,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.4.4';
-const KEY     = 'maxplan_v144';
+const APP_VER = '1.4.5';
+const KEY     = 'maxplan_v145';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -3323,41 +3338,128 @@ function openEditItem(iid){
 // VERSION CHECK + SW UPDATE
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Strategy:
-//  1. Register SW and keep a reference to the registration.
-//  2. If SW finds an update (waiting worker), store it.
-//  3. chkVer fetches version.json once per session; if newer, show banner.
-//  4. Tapping Update sends SKIP_WAITING to the waiting SW, then reloads
-//     once controllerchange fires — guaranteeing the new SW is in control
-//     before the page reloads.
-//  NOTE: controllerchange no longer auto-reloads — the user must tap Update.
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SERVICE WORKER UPDATE — ROBUST IMPLEMENTATION
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Root causes of the "update banner shows again after Update tap" bug:
+//
+//  A) RACE CONDITION: chkVer() shows the banner as soon as version.json is
+//     fetched, but the new SW may still be downloading/installing. If the user
+//     taps Update while _swWaiting is still null, the fallback reload fires
+//     with the old SW still in control → old index.html from cache → banner
+//     shows again.
+//
+//  B) SESSION STORAGE NOT CLEARED: sessionStorage persists across
+//     location.reload() in the same tab. After a failed reload, chkVer()
+//     bails on the 'vchk' guard and the banner stays visible.
+//
+//  C) NO WAITING CONFIRMATION: After reload there's no check that the update
+//     actually succeeded (APP_VER now matches version.json).
+//
+// FIX:
+//  1. doUpdate() always calls reg.update() to force SW re-check first.
+//  2. If _swWaiting is already set, use it immediately.
+//  3. If not, wait up to 8s for the new SW to reach the 'installed' state.
+//  4. Clear sessionStorage BEFORE reloading so chkVer() runs fresh.
+//  5. controllerchange reloads only when _updatePending is true.
+//  6. On DOMContentLoaded, check if we just completed an update
+//     (APP_VER matches version.json) and hide the banner automatically.
 
-let _swReg = null;
-let _swWaiting = null;
-let _updatePending = false; // true once user tapped Update and SW is taking over
+let _swReg       = null;
+let _swWaiting   = null;
+let _updatePending = false;
 
 function initSW() {
   if (!('serviceWorker' in navigator)) return;
+
   navigator.serviceWorker.register('sw.js').then(reg => {
     _swReg = reg;
+    // New SW may already be waiting (e.g. user opened app while SW was installing)
     if (reg.waiting) _swWaiting = reg.waiting;
+
     reg.addEventListener('updatefound', () => {
-      const newWorker = reg.installing;
-      if (!newWorker) return;
-      newWorker.addEventListener('statechange', () => {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          _swWaiting = newWorker;
+      const w = reg.installing;
+      if (!w) return;
+      w.addEventListener('statechange', () => {
+        if (w.state === 'installed' && navigator.serviceWorker.controller) {
+          _swWaiting = w;
         }
       });
     });
-  }).catch(e => console.warn('SW:', e));
 
-  // Only reload when the controller changes AND the user explicitly triggered it
+    // Proactively check for updates in background (won't auto-apply)
+    reg.update().catch(() => {});
+  }).catch(e => console.warn('SW registration failed:', e));
+
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (_updatePending) window.location.reload();
+    if (_updatePending) {
+      // Clear the version check guard so the fresh page checks version again
+      sessionStorage.removeItem('vchk');
+      window.location.reload();
+    }
   });
 }
 
+// Wait up to `ms` milliseconds for a waiting SW to appear
+function waitForWaitingSW(ms) {
+  return new Promise(resolve => {
+    if (_swWaiting) { resolve(true); return; }
+    const deadline = setTimeout(() => {
+      resolve(false);
+    }, ms);
+    // Poll via updatefound on the registration
+    function check() {
+      if (!_swReg) return;
+      _swReg.addEventListener('updatefound', function onFound() {
+        const w = _swReg.installing;
+        if (!w) return;
+        w.addEventListener('statechange', function onState() {
+          if (w.state === 'installed') {
+            _swWaiting = w;
+            clearTimeout(deadline);
+            _swReg.removeEventListener('updatefound', onFound);
+            resolve(true);
+          }
+        });
+      });
+    }
+    check();
+  });
+}
+
+async function doUpdate() {
+  _updatePending = true;
+
+  // Update button text to show progress
+  const btn = $('btn-do-update');
+  if (btn) btn.textContent = 'Updating…';
+
+  // If we already have a waiting SW, activate it immediately
+  if (_swWaiting) {
+    _swWaiting.postMessage({ type: 'SKIP_WAITING' });
+    // controllerchange handler will clear sessionStorage and reload
+    return;
+  }
+
+  // No waiting SW yet — force a fresh update check and wait for it
+  try {
+    if (_swReg) await _swReg.update();
+    const found = await waitForWaitingSW(8000);
+    if (found && _swWaiting) {
+      _swWaiting.postMessage({ type: 'SKIP_WAITING' });
+      return; // controllerchange handles the reload
+    }
+  } catch(e) {
+    console.warn('SW update wait failed:', e);
+  }
+
+  // Last resort: clear guard and hard-reload (bypasses SW cache)
+  sessionStorage.removeItem('vchk');
+  window.location.reload();
+}
+
 async function chkVer() {
+  // Skip if already checked this session
   if (sessionStorage.getItem('vchk')) return;
   sessionStorage.setItem('vchk', '1');
   try {
@@ -3367,16 +3469,12 @@ async function chkVer() {
       $('um').textContent = `MaxPlan v${d.version} is available — tap to update.`;
       $('ub').classList.add('show');
     }
-  } catch(e) {}
-}
-
-function doUpdate() {
-  _updatePending = true; // mark as user-initiated
-  if (_swWaiting) {
-    _swWaiting.postMessage({ type: 'SKIP_WAITING' });
-    // controllerchange will fire and reload because _updatePending is true
-  } else {
-    window.location.reload();
+    // If versions match (update succeeded on previous reload), ensure banner is hidden
+    if (d.version && d.version === APP_VER) {
+      $('ub').classList.remove('show');
+    }
+  } catch(e) {
+    // Offline — skip silently
   }
 }
 

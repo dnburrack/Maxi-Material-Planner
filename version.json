@@ -1,5 +1,5 @@
 {
-  "version": "1.4.4",
-  "date": "2026-05-13",
-  "notes": "Clipboard image fix; WO location scan button; version history dates corrected"
+  "version": "1.4.5",
+  "date": "2026-05-21",
+  "notes": "Update mechanism fully rebuilt — race condition, sessionStorage, and confirmation fixes"
 }

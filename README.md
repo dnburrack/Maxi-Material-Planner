@@ -74,6 +74,14 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 
 ## Version History
 
+### v1.4.5 — May Week 2 2026
+- **Update mechanism fully rebuilt** — the Update button now reliably applies new versions. Three root causes were fixed:
+  - **Race condition** — the banner showed as soon as `version.json` was fetched, but the new SW may still be installing. Tapping Update while `_swWaiting` was null caused a fallback reload with the old SW still in control. Fix: `doUpdate()` calls `reg.update()` and waits up to 8 seconds for the new SW to reach the `installed` state before sending `SKIP_WAITING`
+  - **sessionStorage not cleared** — `sessionStorage` persists across `location.reload()` in the same tab, blocking the version re-check after reload. Fix: `sessionStorage.removeItem('vchk')` is called before every reload (both in `controllerchange` and the fallback path)
+  - **No update confirmation** — after reload there was no check that the update succeeded. Fix: `chkVer()` now explicitly hides the banner when `APP_VER` matches `version.json`
+- Update button shows "Updating…" while waiting for the new SW to be ready
+- All v1.4.4 features retained
+
 ### v1.4.4 — May Week 2 2026
 - **Clipboard image fix (improved)** — images now reliably paste into email, Word, Outlook, and Notion. Fix uses `new Image()` + `onload` + double `requestAnimationFrame` to ensure every base64 image is fully decoded and painted before `execCommand('copy')` runs
 - **Location scan button on New Work Order form** — the Location of Work field in the Create/Edit WO sheet now has a barcode scan button
