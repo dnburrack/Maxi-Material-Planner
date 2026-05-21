@@ -1,5 +1,5 @@
 {
-  "version": "1.4.5",
+  "version": "1.4.6",
   "date": "2026-05-21",
-  "notes": "Update mechanism fully rebuilt — race condition, sessionStorage, and confirmation fixes"
+  "notes": "Scanner buttons restored — syntax error fix in applyValue IIFE"
 }

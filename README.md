@@ -74,6 +74,10 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 
 ## Version History
 
+### v1.4.6 — May Week 2 2026
+- **Scanner buttons restored** — all barcode scan buttons throughout the app stopped working in v1.4.4. Root cause: adding the WO Location scan button routing accidentally deleted the `if (id && id.startsWith('__nr_')) {` guard, leaving duplicate `const` declarations as top-level code. In the IIFE's strict mode this caused a `SyntaxError` that prevented `window.openScanner` from ever being assigned — every scan button silently failed. Fixed by restoring the correct `if` guard. Validated with a JavaScript parser to confirm no syntax errors remain
+- All v1.4.5 features retained
+
 ### v1.4.5 — May Week 2 2026
 - **Update mechanism fully rebuilt** — the Update button now reliably applies new versions. Three root causes were fixed:
   - **Race condition** — the banner showed as soon as `version.json` was fetched, but the new SW may still be installing. Tapping Update while `_swWaiting` was null caused a fallback reload with the old SW still in control. Fix: `doUpdate()` calls `reg.update()` and waits up to 8 seconds for the new SW to reach the `installed` state before sending `SKIP_WAITING`

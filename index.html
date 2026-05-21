@@ -608,7 +608,7 @@
 <div id="vh" class="view active">
   <div class="header">
     <div class="htxt"><h1>MaxPlan</h1><div class="hsub">Maximo Work Order Material Planner</div></div>
-    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.4.5</button>
+    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.4.6</button>
   </div>
   <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button id="btn-do-update">Update</button></div>
   <div id="ib"><p>Install MaxPlan for offline access on your phone.</p><button id="bi">Install</button></div>
@@ -713,7 +713,15 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.4.5</div><div class="vd">May Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.4.6</div><div class="vd">May Week 2 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li><strong>Scanner buttons restored</strong> — all barcode scan buttons throughout the app stopped working in v1.4.4. The root cause was a JavaScript syntax error introduced when the WO Location scan button routing was added: the opening <code>if (id &amp;&amp; id.startsWith('__nr_')) {</code> guard was accidentally deleted, leaving the <code>__nr_</code> branch as unconditional top-level code with duplicate <code>const</code> declarations. In the scanner IIFE's strict mode this caused a <code>SyntaxError</code>, which prevented the entire IIFE from executing — meaning <code>window.openScanner</code> was never assigned and every scan button silently failed. Fixed by restoring the correct <code>if</code> guard</li>
+        <li>All other features unchanged from v1.4.5</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.4.5</div><div class="vd">May Week 2 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Update mechanism fully rebuilt</strong> — the Update button now reliably applies new versions. Three root causes were fixed:
           <ul style="margin-top:6px">
@@ -1304,8 +1312,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.4.5';
-const KEY     = 'maxplan_v145';
+const APP_VER = '1.4.6';
+const KEY     = 'maxplan_v146';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -4222,6 +4230,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (inp) inp.value = upper;
       closeScanner(); return;
     }
+
+    if (id && id.startsWith('__nr_')) {
       // Virtual ID for NR issue line: __nr_{iid}_{lid}_{field}
       const parts = id.split('_');
       const iid   = parts[3];
