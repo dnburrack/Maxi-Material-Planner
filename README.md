@@ -74,6 +74,14 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 
 ## Version History
 
+### v1.5.1 — June Week 1 2026
+- **Asset Move rows newest-first** — new rows are inserted at the top of the list (pushing existing rows down) when added via + Add Row, ⚡ Quick Execute, or 📷 Scan Assets multi-scanner. Numbering always shows the newest row as Asset Move 1
+- All v1.5 features retained
+
+### v1.5 — June Week 1 2026
+- **Mass Return Storeroom** — a new 📦 Mass Return — Storeroom bar at the top of the Returns section in the Actual tab. Enter a storeroom number (with scan button) and every new return row automatically pre-fills that storeroom. Tap **Apply to all rows** to update any rows already added
+- All v1.4.6 features retained
+
 ### v1.4.6 — May Week 2 2026
 - **Scanner buttons restored** — all barcode scan buttons throughout the app stopped working in v1.4.4. Root cause: adding the WO Location scan button routing accidentally deleted the `if (id && id.startsWith('__nr_')) {` guard, leaving duplicate `const` declarations as top-level code. In the IIFE's strict mode this caused a `SyntaxError` that prevented `window.openScanner` from ever being assigned — every scan button silently failed. Fixed by restoring the correct `if` guard. Validated with a JavaScript parser to confirm no syntax errors remain
 - All v1.4.5 features retained

@@ -1,11 +1,9 @@
-// MaxPlan Service Worker — v1.4.6
-const CACHE  = 'maxplan-v146';
+// MaxPlan Service Worker — v1.5.1
+const CACHE  = 'maxplan-v151';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.svg', './version.json'];
-
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
 });
-
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
@@ -13,11 +11,9 @@ self.addEventListener('activate', event => {
       .then(() => self.clients.claim())
   );
 });
-
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
-
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   if (event.request.url.includes('version.json')) {

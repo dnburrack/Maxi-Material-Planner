@@ -1,5 +1,5 @@
 {
-  "version": "1.4.6",
-  "date": "2026-05-21",
-  "notes": "Scanner buttons restored — syntax error fix in applyValue IIFE"
+  "version": "1.5.1",
+  "date": "2026-06-03",
+  "notes": "Asset Move rows insert newest-first (top of list)"
 }
