@@ -74,6 +74,13 @@ All data is saved in your browser's **localStorage** — it never leaves your de
 
 ## Version History
 
+### v1.5.2 — June Week 1 2026
+- **Asset Move numbering corrected** — newest move displayed at top with the highest number. Add A → Asset Move 1; add B → B = Asset Move 2 at top, A = Asset Move 1 at bottom; add C → C = Asset Move 3 at top. First-ever move = Asset Move 1 (bottom), latest = Asset Move N (top)
+- **Summary tab — oldest-first** — asset moves listed Asset Move 1 (first entered) at top to most recently added at bottom, matching chronological WO order
+- Clipboard export follows the same oldest-first order
+- **Storeroom scan button** — the Storeroom field in the Add/Edit Planned Item form now has a barcode scan button (applies to both non-rotating and rotating items)
+- All v1.5.1 features retained
+
 ### v1.5.1 — June Week 1 2026
 - **Asset Move rows newest-first** — new rows are inserted at the top of the list (pushing existing rows down) when added via + Add Row, ⚡ Quick Execute, or 📷 Scan Assets multi-scanner. Numbering always shows the newest row as Asset Move 1
 - All v1.5 features retained

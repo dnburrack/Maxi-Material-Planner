@@ -620,7 +620,7 @@
 <div id="vh" class="view active">
   <div class="header">
     <div class="htxt"><h1>MaxPlan</h1><div class="hsub">Maximo Work Order Material Planner</div></div>
-    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.5.1</button>
+    <button class="hbtn" id="btn-home-ver" title="Version History" style="font-size:11px;font-weight:800;letter-spacing:.03em;opacity:1;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 11px;margin:0;">v1.5.2</button>
   </div>
   <div class="update-banner" id="ub"><p id="um">A new version is available!</p><button id="btn-do-update">Update</button></div>
   <div id="ib"><p>Install MaxPlan for offline access on your phone.</p><button id="bi">Install</button></div>
@@ -725,7 +725,18 @@
   <div class="scroll-content">
 
     <div class="vc">
-      <div class="vc-h"><div><div class="vn">v1.5.1</div><div class="vd">June Week 1 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vc-h"><div><div class="vn">v1.5.2</div><div class="vd">June Week 1 2026</div></div><span class="vt lat">Latest</span></div>
+      <div class="vb"><ul>
+        <li><strong>Asset Move numbering corrected</strong> — the most recently added move is displayed at the top with the highest number. Add A → Asset Move 1; add B → B becomes Asset Move 2 at top, A stays Asset Move 1 at bottom; add C → C becomes Asset Move 3 at top. First-ever move = Asset Move 1 (bottom), latest move = Asset Move N (top)</li>
+        <li><strong>Summary tab — oldest-first order</strong> — asset movements listed from Asset Move 1 (first entered, top) to the most recently added (bottom), matching chronological WO order</li>
+        <li>Clipboard export follows the same oldest-first order</li>
+        <li><strong>Storeroom scan button</strong> — the Storeroom field in the Add / Edit Planned Item form now has a barcode scan button, for both non-rotating and rotating items</li>
+        <li>All v1.5.1 features retained</li>
+      </ul></div>
+    </div>
+
+    <div class="vc">
+      <div class="vc-h"><div><div class="vn">v1.5.1</div><div class="vd">June Week 1 2026</div></div><span class="vt">Previous</span></div>
       <div class="vb"><ul>
         <li><strong>Asset Move rows are now newest-first</strong> — newly added asset movement rows are inserted at the <strong>top</strong> of the list, directly below the header, pushing existing rows down. This applies to all three ways of adding rows: <strong>+ Add Row</strong>, <strong>⚡ Quick Execute</strong>, and the <strong>📷 Scan Assets</strong> multi-scanner</li>
         <li>Numbering reflects the new order — the most recently added row is always Asset Move 1, with older rows numbered sequentially below it</li>
@@ -1277,8 +1288,19 @@
     </div>
     <div class="field">
       <label class="fl">Storeroom *</label>
-      <input class="fi mono" id="isr" placeholder="e.g. ST050"
-        autocomplete="off" autocorrect="off" autocapitalize="characters">
+      <div class="scan-wrap">
+        <input class="fi mono" id="isr" placeholder="e.g. ST050"
+          autocomplete="off" autocorrect="off" autocapitalize="characters">
+        <button class="scan-btn" id="btn-scan-isr" title="Scan storeroom barcode" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+            <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+            <line x1="7" y1="8" x2="7" y2="16"/><line x1="10" y1="8" x2="10" y2="16"/>
+            <line x1="13" y1="8" x2="13" y2="16"/><line x1="16.5" y1="8" x2="16.5" y2="16"/>
+            <line x1="19" y1="8" x2="19" y2="16"/>
+          </svg>
+        </button>
+      </div>
     </div>
     <div class="field">
       <label class="fl">Bin <span style="font-weight:400;opacity:.6">(optional)</span></label>
@@ -1344,8 +1366,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const APP_VER = '1.5.1';
-const KEY     = 'maxplan_v151';
+const APP_VER = '1.5.2';
+const KEY     = 'maxplan_v152';
 const $       = id => document.getElementById(id);
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 const esc     = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1805,9 +1827,10 @@ function refreshMoveCard(wo, row) {
   if (lbl) lbl.className = `move-row-lbl ${executed ? 'executed' : (filled ? 'planned' : '')}`;
   // Update the label text state indicator
   if (lbl) {
-    const idx = (wo.assetMoves||[]).findIndex(r => r.id === row.id);
+    const idx  = (wo.assetMoves||[]).findIndex(r => r.id === row.id);
+    const tot  = (wo.assetMoves||[]).length;
     const stateText = executed ? '✓ Executed' : (filled ? '⏳ Planned' : 'Incomplete');
-    lbl.textContent = `Asset Move ${idx+1} · ${stateText}`;
+    lbl.textContent = `Asset Move ${tot - idx} · ${stateText}`;
   }
   // Enable / disable execute button based on whether all three fields are filled
   const execBtn = card.querySelector('.exec-btn');
@@ -1910,7 +1933,7 @@ function moveCardHtml(row, idx, tot) {
     </button>`;
   return `<div class="move-card ${stateClass}" id="movecard-${row.id}">
     <div class="move-card-head">
-      <span class="move-row-lbl ${lblClass}">Asset Move ${idx+1} &nbsp;·&nbsp; ${stateText}</span>
+      <span class="move-row-lbl ${lblClass}">Asset Move ${tot - idx} &nbsp;·&nbsp; ${stateText}</span>
       <button class="il-rm" onclick="rmMoveRow('${row.id}')" title="Remove row">✕</button>
     </div>
     <div class="move-fields">
@@ -2933,8 +2956,8 @@ function renderSummary() {
   <button class="export-btn" id="exb">📋 &nbsp;Copy Summary to Clipboard</button>
   <div class="copy-ok" id="cok">✓ Copied!</div>`;
 
-  // ── ASSET MOVEMENTS SUMMARY (after WO details, before issued items) ──
-  const moveRows = (wo.assetMoves || []).filter(r => r.assetNumber && r.assetNumber.trim());
+  // ── ASSET MOVEMENTS SUMMARY — oldest first (first entered = Move 1, newest at bottom) ──
+  const moveRows = (wo.assetMoves || []).filter(r => r.assetNumber && r.assetNumber.trim()).slice().reverse();
   if (moveRows.length > 0) {
     const execMoves    = moveRows.filter(r => r.executedAt);
     const plannedMoves = moveRows.filter(r => !r.executedAt);
@@ -3122,8 +3145,8 @@ async function doExport(){
   if(wo.compDate) L.push(`Completed  : ${wo.compDate}`);
   L.push(`Exported   : ${now()}`,'');
 
-  // Asset movements
-  const expMoves = (wo.assetMoves || []).filter(r => r.assetNumber && r.assetNumber.trim());
+  // Asset movements — oldest first (matches summary tab)
+  const expMoves = (wo.assetMoves || []).filter(r => r.assetNumber && r.assetNumber.trim()).slice().reverse();
   if (expMoves.length > 0) {
     L.push('── ASSET MOVEMENTS ──');
     expMoves.forEach((r, i) => {
@@ -4310,6 +4333,13 @@ document.addEventListener('DOMContentLoaded', () => {
       closeScanner(); return;
     }
 
+    // Plan modal storeroom field
+    if (id === 'isr') {
+      const inp = $('isr');
+      if (inp) inp.value = upper;
+      closeScanner(); return;
+    }
+
     // Mass-return storeroom field
     if (id === 'mass-ret-storeroom') {
       const inp = $('mass-ret-storeroom');
@@ -4566,8 +4596,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (assets.length > 0) {
       const wo = CWO(); if (!wo) return;
       if (!wo.assetMoves) wo.assetMoves = [];
-      // Insert newest-first: reverse so last-scanned ends up at index 0
-      [...assets].reverse().forEach(a => {
+      // Each unshift makes the last-scanned the new Asset Move 1 (top)
+      assets.forEach(a => {
         wo.assetMoves.unshift({ id: uid(), assetNumber: a, fromLoc: '', toLoc: '', executedAt: '' });
       });
       save();
@@ -4697,6 +4727,8 @@ document.addEventListener('DOMContentLoaded', () => {
   window.openMultiScanner = openMultiScanner;
   const scanBtn = document.getElementById('btn-scan-item');
   if (scanBtn) scanBtn.addEventListener('click', () => openScanner('iin'));
+  const scanSr = document.getElementById('btn-scan-isr');
+  if (scanSr) scanSr.addEventListener('click', () => openScanner('isr'));
   const scanWoAsset = document.getElementById('btn-scan-wo-asset');
   if (scanWoAsset) scanWoAsset.addEventListener('click', () => openScanner('iwa'));
   const scanWoLoc = document.getElementById('btn-scan-wo-loc');
